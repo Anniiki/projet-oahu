@@ -33,8 +33,8 @@ Released sources and inputs were hash-verified, the alias arithmetic was
 rechecked, and the integrated canonical target was compiled independently with
 MSVC x64 C++ latest and `/W4 /WX`. The dispatch test passes 100 checks for live
 state, callback order, identity halves, creation failure and removal isolation.
-The child and parent also ran the unchanged 83-check core suite and detected
-nine mutants in their isolated builds.
+Two independent runs of the unchanged 83-check core suite also detected nine
+mutants in isolated builds.
 
 Creation, profile storage, the mode-4 action and world loading remain injected
 services. No commercial game was run by these tests. This layer does not prove

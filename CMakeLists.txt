@@ -75,6 +75,28 @@ add_library(tdur_config_auxiliary STATIC
 target_link_libraries(tdur_config_auxiliary PUBLIC tdur_config_startup)
 tdur_compile_options(tdur_config_auxiliary)
 
+add_library(tdur_startup_lifecycle_binding STATIC
+    src/game/startup_lifecycle_binding.cpp)
+target_link_libraries(tdur_startup_lifecycle_binding PUBLIC tdur_config_startup)
+tdur_compile_options(tdur_startup_lifecycle_binding)
+
+add_library(tdur_startup_completion STATIC src/game/startup_completion.cpp)
+target_link_libraries(tdur_startup_completion PUBLIC
+    tdur_startup_lifecycle_binding)
+tdur_compile_options(tdur_startup_completion)
+
+add_library(tdur_startup_config_drivers STATIC
+    src/game/startup_config_drivers.cpp)
+target_link_libraries(tdur_startup_config_drivers PUBLIC
+    tdur_startup_completion tdur_config_auxiliary)
+tdur_compile_options(tdur_startup_config_drivers)
+
+add_library(tdur_startup_file_sources STATIC
+    src/game/startup_file_sources.cpp)
+target_link_libraries(tdur_startup_file_sources PUBLIC
+    tdur_startup_config_drivers)
+tdur_compile_options(tdur_startup_file_sources)
+
 if(TDUR_BUILD_SDL_GAMEPADS)
     add_library(tdur_controller_bindings STATIC
         src/input/controller_bindings.cpp)
@@ -423,6 +445,40 @@ if(BUILD_TESTING)
         tdur_compile_options(startup_services_test)
         add_test(NAME startup_services COMMAND startup_services_test)
         set_tests_properties(startup_services PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_lifecycle_binding_test
+            tests/startup_lifecycle_binding_test.cpp)
+        target_link_libraries(startup_lifecycle_binding_test PRIVATE
+            tdur_startup_completion)
+        tdur_compile_options(startup_lifecycle_binding_test)
+        add_test(NAME startup_lifecycle_binding COMMAND startup_lifecycle_binding_test)
+        set_tests_properties(startup_lifecycle_binding PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_completion_test tests/startup_completion_test.cpp)
+        target_link_libraries(startup_completion_test PRIVATE tdur_startup_completion)
+        tdur_compile_options(startup_completion_test)
+        add_test(NAME startup_completion COMMAND startup_completion_test
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/startup_completion_services.txt")
+        set_tests_properties(startup_completion PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_config_drivers_test
+            tests/startup_config_drivers_test.cpp)
+        target_link_libraries(startup_config_drivers_test PRIVATE
+            tdur_startup_config_drivers)
+        tdur_compile_options(startup_config_drivers_test)
+        add_test(NAME startup_config_drivers COMMAND startup_config_drivers_test
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/startup_config_stages.txt")
+        set_tests_properties(startup_config_drivers PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_file_sources_test
+            tests/startup_file_sources_test.cpp)
+        target_link_libraries(startup_file_sources_test PRIVATE
+            tdur_startup_file_sources)
+        tdur_compile_options(startup_file_sources_test)
+        add_test(NAME startup_file_sources COMMAND startup_file_sources_test)
+        set_tests_properties(startup_file_sources PROPERTIES TIMEOUT 20)
+        target_link_libraries(startup_config_drivers_test PRIVATE
+            tdur_startup_file_sources)
 
         add_executable(startup_9b1df0_tail_test tests/startup_9b1df0_tail_test.cpp)
         target_link_libraries(startup_9b1df0_tail_test PRIVATE tdur_startup_9b1df0_tail)

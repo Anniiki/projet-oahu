@@ -4,7 +4,7 @@
 
 PC MC1.66A reference: SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The four windows come from the official observation.
+The four windows come from the [official observation](official_menu_actions_runtime.md).
 The analysis is static on these captured bytes; it calls no game
 function and does not reread the process.
 
@@ -29,7 +29,7 @@ neighbors after RET never serve as behavioral evidence.
 equals 8, otherwise EAX0. A low-byte comparison would differ for
 `0x108`. The body writes no field and receives no stack argument.
 RET consumes its return address: ESP after RET is function-entry ESP
-+4. Composed with the callers, ECX is
++4. Composed with the [callers](vmf_fscommand_menu_actions.md), ECX is
 owner+4, so the compared field is owner+198.
 
 `634DA0` and `634D80` take 32-bit W, push W then M+34, with ECX also

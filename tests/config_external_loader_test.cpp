@@ -58,6 +58,7 @@ struct FakePorts final : cfg::ExternalLoaderPorts {
     std::uint32_t alloc_a7 = 0;
     std::optional<cfg::BlockHandle> allocated;
     std::uint8_t callback_al = 1;
+    bool callback_refuses = false;
     cfg::Callback9a5730 call_seen{};
     bool replace_block = false;
     std::optional<cfg::BlockHandle> replacement;
@@ -157,8 +158,9 @@ struct FakePorts final : cfg::ExternalLoaderPorts {
             std::vector<std::byte>(capacity.value_or(bytes), std::byte{0xAA}));
         return allocated;
     }
-    std::uint8_t callback_9a5730(const cfg::Callback9a5730& call,
-                                 cfg::ExternalOutputs out) override {
+    cfg::FileReadCallbackResult
+    callback_9a5730(const cfg::Callback9a5730& call,
+                    cfg::ExternalOutputs out) override {
         note("callback", nullptr);
         call_seen = call;
         if (replace_block) {
@@ -167,7 +169,9 @@ struct FakePorts final : cfg::ExternalLoaderPorts {
         if (mutate_size && out.size != nullptr) {
             *out.size = 0x4242;
         }
-        return callback_al;
+        return {callback_refuses ? cfg::ExternalCallOutcome::modern_refusal
+                                 : cfg::ExternalCallOutcome::native_returned,
+                callback_al};
     }
     void release_674e0c(cfg::BlockHandle block) override {
         note("release", nullptr);
@@ -646,6 +650,26 @@ void test_binding_does_not_fabricate_return_after_refusal() {
           "no later native cleanup is fabricated");
 }
 
+void test_callback_modern_refusal() {
+    Run t;
+    const auto replacement =
+        t.store.add(std::vector<std::byte>(8, std::byte{0xAA}));
+    t.ports.callback_refuses = true;
+    t.ports.replace_block = true;
+    t.ports.replacement = replacement;
+    t.ports.mutate_size = true;
+    const auto result = t.go();
+    check(result.outcome == O::refused_callback && result.exit == E::none,
+          "callback refusal is not a native AL return");
+    check(t.block == replacement && t.size == 0x4242,
+          "callback effects remain before modern refusal");
+    check(t.ports.log.back() == "callback" && t.ports.released.empty(),
+          "refused callback fabricates neither release nor cleanup");
+    const auto bytes = t.store.view(replacement);
+    check(bytes && (*bytes)[5] == std::byte{0xAA},
+          "refused callback fabricates no trailing NUL");
+}
+
 } // namespace
 
 int main() {
@@ -672,6 +696,7 @@ int main() {
     test_binding_6b1a00();
     test_binding_rejects_released_block();
     test_binding_does_not_fabricate_return_after_refusal();
+    test_callback_modern_refusal();
     std::printf("%d checks, %d failures\n", g_checks, g_failures);
     return g_failures == 0 ? 0 : 1;
 }

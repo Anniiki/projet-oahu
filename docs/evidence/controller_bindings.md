@@ -4,7 +4,7 @@
 
 `ControllerBindings` transposes assignments from the publisher's Xbox 360
 manual, PDF page 3/printed pages 2–3, whose identity and verified rendering
-are recorded in the donor inventory.
+are recorded in the [donor inventory](xbox360_controller_inventory.md).
 This is a table for the new client, not the Xbox binary's dispatcher or
 proof of playability. The library builds in modern C++ for x64 and Win32
 with the SDL3.4.18 headers.

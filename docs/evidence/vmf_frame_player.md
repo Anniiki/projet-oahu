@@ -15,20 +15,20 @@ of the XEX nor complete navigation with the controller.
 
 `VmfFramePlayerLimits::variables` now enables the dictionary owned by the
 display, Get/SetVariable and the
-ordered scope cleanup. Leaving this option out
+[ordered scope cleanup](vmf_variable_lifecycle.md). Leaving this option out
 keeps the previous boundaries. The separate option `text_bindings`
-enables the PC text hookup and implies the
+enables the [PC text hookup](vmf_text_bindings.md) and implies the
 dictionary. Fields requiring focus remain missing services; no displayed
 interface is inferred from this support.
 
-The `properties` option adds the native properties setter.
+The `properties` option adds the [native properties setter](vmf_properties.md).
 It uses the already bound dictionary if there is one and does not enable it
 implicitly. The earlier options and inputs keep their boundaries; `GetProperty`
 and the external commands remain explicit.
 
 ## Evidence and new handlers
 
-The native phases and the queue are
+The [native phases](vmf_scheduler.md) and the [queue](vmf_script_calls.md) are
 the previous references. The new private batch `rea/vmf-frame-player/`
 concerns the Paradise secondary, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.

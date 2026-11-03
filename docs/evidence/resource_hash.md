@@ -5,14 +5,14 @@
 `hash_resource_bytes` reconstructs `504980/117`, called by thunk
 `504920/5`. Program selection uses this calculation through `602DD0`
 on an **88-byte** variant descriptor; see
-retail_shader_selection.md.
+[retail_shader_selection.md](retail_shader_selection.md).
 
 These bodies and their table are first established from the local
 secondary executable, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 Both bodies differ from official MC1.66A on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Official trial 24 confirms both bodies in the
+[Official trial 24](official_trial_24.md) confirms both bodies in the
 identified official process, equal to the secondary. It also confirms
 all 256 table entries; code presence does not prove execution.
 

@@ -89,7 +89,7 @@ ne prouve ni l’exécution d’une routine ni le fonctionnement du jeu complet.
 Protection, activation et données de référence restent inchangées.
 
 La première publication est une sélection auditée du chantier local, avec un
-historique public indépendant. La coordination privée, ses identités de session, les quotas et
-les captures commerciales privées ne sont pas inclus. Les licences tierces
+historique public indépendant. Les captures
+commerciales ne sont pas incluses. Les licences tierces
 présentes, dont celle de Detours, sont conservées. Le code propre au projet est
 publié sous [licence MIT](LICENSE), copyright Anniiki et les contributeurs de Projet Oʻahu.

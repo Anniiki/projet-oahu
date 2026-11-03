@@ -64,14 +64,19 @@ bool request_game_mode(GameModeState& state, std::uint32_t next) noexcept;
 
 struct GameModeRuntime;
 
+// Native AL false still returns to the caller. A bounded C++ refusal does
+// not, and must not fabricate the following native helper or count update.
+enum class ModeInitOutcome { initialized, native_rejected, modern_refusal };
+enum class ModeCallOutcome { native_returned, modern_refusal };
+
 class ModeSubsystem {
   public:
     virtual ~ModeSubsystem() = default;
     std::int32_t startup_status = 0; // Native member +0x14, reset before init.
-    virtual bool initialize(GameModeRuntime& owner) = 0; // Native slot +0x08.
-    virtual void on_forward_pass() = 0;                  // Native slot +0x0C.
-    virtual void on_reverse_pass() = 0;                  // Native slot +0x18.
-    virtual void on_shutdown() = 0;                      // Native slot +0x1C.
+    virtual ModeInitOutcome initialize(GameModeRuntime& owner) = 0;
+    virtual void on_forward_pass() = 0; // Native slot +0x0C.
+    virtual void on_reverse_pass() = 0; // Native slot +0x18.
+    virtual void on_shutdown() = 0;     // Native slot +0x1C.
 };
 
 using ModeSubsystemPtr = std::shared_ptr<ModeSubsystem>;
@@ -88,6 +93,13 @@ struct GameModeRuntime {
     std::uint32_t subsystem_count = 0;
 };
 
+enum class ModeLifecycleStatus {
+    success,
+    rejected,
+    invalid_registry,
+    modern_refusal
+};
+
 class ModeLifecyclePorts {
   public:
     virtual ~ModeLifecyclePorts() = default;
@@ -96,15 +108,15 @@ class ModeLifecyclePorts {
     // Resolve the 13 fixed native services in the documented order. Lookup
     // supplies stable identities; it is not an additional native callback.
     virtual ModeSubsystemPtr boot_subsystem(std::size_t index) = 0;
-    virtual void begin_initialization(ModeSubsystem& member) = 0; // 0x9B40C0.
-    virtual void end_initialization(ModeSubsystem& member) = 0;   // 0x9B4060.
-    virtual void
+    virtual ModeCallOutcome begin_initialization(ModeSubsystem& member) = 0;
+    virtual ModeCallOutcome end_initialization(ModeSubsystem& member) = 0;
+    virtual ModeCallOutcome
     configure_startup(GameModeRuntime& owner,
-                      ModeSubsystem& fifth_service) = 0;       // 0x98E960.
-    virtual bool complete_startup(GameModeRuntime& owner) = 0; // Derived +0x04.
+                      ModeSubsystem& fifth_service) = 0; // 0x98E960.
+    // Derived +0x04 can register further services. Preserve its refusal or
+    // invalid registry separately from a native false return.
+    virtual ModeLifecycleStatus complete_startup(GameModeRuntime& owner) = 0;
 };
-
-enum class ModeLifecycleStatus { success, rejected, invalid_registry };
 
 // 0x9B4900: increments count even when initialize() returns false, so that
 // partially initialized members remain visible to shutdown. Unknown helpers

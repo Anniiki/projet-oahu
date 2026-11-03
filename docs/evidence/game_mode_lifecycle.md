@@ -63,8 +63,12 @@ Any subsequent operation validates its own accesses. Initialization failure
 preserves its partial registry.
 
 The gate, service resolution, initialization helpers `0x9B40C0`/`0x9B4060`,
-configuration `0x98E960`, and derived completion remain explicit ports.
-Their implementations are still required. A callback may change a mode:
+configuration `0x98E960`, and derived completion are explicit interfaces.
+The [startup lifecycle binding](startup_lifecycle_binding.md) now supplies
+the reconstructed helper and configuration bodies. Derived completion's
+[caller driver](startup_completion.md) uses the same registry for another
+38 services. The gate and unresolved callees still need implementations.
+A callback may change a mode:
 the lack of a direct mode write in `0x9B46C0` does not exclude such an effect.
 
 `game_mode_lifecycle` checks primary phase identities, unsigned mode values,
@@ -89,3 +93,8 @@ Neither consumes the incoming ESI/ECX register values. They still require a
 global-controller/allocator context when implemented; the member argument
 alone is not all their state. Allocation can have indirect effects that the
 listings do not resolve. These helpers remain ports in this library.
+
+Initialization now distinguishes a native AL=false return from a modern
+refusal before a native return. Only the former reaches the end helper and
+count increment. The same typed control flow propagates helper/configuration
+refusals; completed native calls retain their original ordering and count rules.

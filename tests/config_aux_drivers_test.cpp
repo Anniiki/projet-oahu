@@ -31,7 +31,10 @@ void check(bool ok, const char* what) {
 constexpr OpaqueWord kHigh = 0x1'0000'0000ull;
 
 struct Service final : tdur::game::startup::StartupServiceBase {
-    bool initialize(tdur::game::GameModeRuntime&) override { return true; }
+    tdur::game::ModeInitOutcome
+    initialize(tdur::game::GameModeRuntime&) override {
+        return tdur::game::ModeInitOutcome::initialized;
+    }
     void on_forward_pass() override {}
     void on_reverse_pass() override {}
     void on_shutdown() override {}

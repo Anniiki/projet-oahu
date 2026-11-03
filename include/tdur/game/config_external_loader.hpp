@@ -65,7 +65,9 @@ struct Callback9a5730 {
     LookupWord esi_second;  // ESI = [ESP+0x24] après 4 PUSH = [ESP+0x14]
     NativeIdentity service; // PUSH ESI (arg1)
     std::span<const char> path;
-    BlockHandle block;  // PUSH ECX = [EBP] relu à 9A5E77
+    // 9A5D20 only calls with a non-null block. The buffer-supplied route of
+    // 9A5A70 can pass null; the shared callee interface preserves that input.
+    std::optional<BlockHandle> block;
     std::uint32_t size; // PUSH EDI
 };
 
@@ -74,6 +76,11 @@ struct Callback9a5730 {
 struct ExternalOutputs {
     std::optional<BlockHandle>& block;
     std::uint32_t* size;
+};
+
+struct FileReadCallbackResult {
+    ExternalCallOutcome control = ExternalCallOutcome::modern_refusal;
+    std::uint8_t al = 0; // Valid only after a native return.
 };
 
 class ExternalLoaderPorts {
@@ -124,8 +131,8 @@ class ExternalLoaderPorts {
                                                        std::uint32_t arg7) = 0;
 
     // 9A5E8D ; retour = AL brut.
-    virtual std::uint8_t callback_9a5730(const Callback9a5730& call,
-                                         ExternalOutputs outputs) = 0;
+    virtual FileReadCallbackResult callback_9a5730(const Callback9a5730& call,
+                                                   ExternalOutputs outputs) = 0;
 
     // 9A5EA0 : PUSH EAX ; CALL 674E0C, cdecl. Libération explicite.
     virtual void release_674e0c(BlockHandle block) = 0;
@@ -141,14 +148,15 @@ enum class ExternalRoute {
 };
 
 enum class ExternalOutcome {
-    native_return,                    // RET 0x1C atteint, al valide
-    refused_block_slot_absent,        // arg2 nul : 9A5D3E impossible
-    refused_service_unreadable,       // 9A5D62
-    refused_lookup_entry_null,        // 9A5D91 sur entry == 0
-    refused_lookup_entry_unreadable,  // 9A5D91
-    refused_selector_unreadable,      // 9A5D9E..9A5DA4
-    refused_prefix_unavailable,       // 9A5DC0 : chaîne absente
-    refused_prefix_unterminated,      // 9A5DC0..9A5DC5 : pas de NUL borné
+    native_return,                   // RET 0x1C atteint, al valide
+    refused_block_slot_absent,       // arg2 nul : 9A5D3E impossible
+    refused_service_unreadable,      // 9A5D62
+    refused_lookup_entry_null,       // 9A5D91 sur entry == 0
+    refused_lookup_entry_unreadable, // 9A5D91
+    refused_selector_unreadable,     // 9A5D9E..9A5DA4
+    refused_prefix_unavailable,      // 9A5DC0 : chaîne absente
+    refused_prefix_unterminated,     // 9A5DC0..9A5DC5 : pas de NUL borné
+    refused_callback, // Modern callee refusal, before native return.
     refused_terminator_null_block,    // 9A5ECB avec [EBP] nul
     refused_terminator_unknown_block, // 9A5ECB, handle inconnu ou libéré
     refused_terminator_out_of_bounds, // 9A5ECB, taille >= stockage

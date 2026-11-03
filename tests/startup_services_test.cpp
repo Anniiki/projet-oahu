@@ -29,7 +29,10 @@ void check(bool condition, const char* label) {
 class Witness final : public StartupServiceBase {
   public:
     std::function<bool(GameModeRuntime&)> init;
-    bool initialize(GameModeRuntime& owner) override { return init(owner); }
+    ModeInitOutcome initialize(GameModeRuntime& owner) override {
+        return init(owner) ? ModeInitOutcome::initialized
+                           : ModeInitOutcome::native_rejected;
+    }
     void on_forward_pass() override {}
     void on_reverse_pass() override {}
     void on_shutdown() override {}
@@ -441,18 +444,33 @@ class ControllerPorts final : public ModeLifecyclePorts {
     std::vector<std::string> log;
     std::uint32_t startup_gate() override { return 0; }
     ModeSubsystemPtr boot_subsystem(std::size_t) override { return {}; }
-    void begin_initialization(ModeSubsystem& member) override {
+    ModeCallOutcome begin_initialization(ModeSubsystem& member) override {
         log.push_back("begin");
         auto& base = dynamic_cast<StartupServiceBase&>(member);
-        initialization_helper_9b40c0(base, *slot, *allocator);
+        const auto result =
+            initialization_helper_9b40c0(base, *slot, *allocator);
+        return result == HelperOutcome::filled ||
+                       result == HelperOutcome::inactive
+                   ? ModeCallOutcome::native_returned
+                   : ModeCallOutcome::modern_refusal;
     }
-    void end_initialization(ModeSubsystem& member) override {
+    ModeCallOutcome end_initialization(ModeSubsystem& member) override {
         log.push_back("end");
         auto& base = dynamic_cast<StartupServiceBase&>(member);
-        initialization_helper_9b4060(base, *slot, *allocator);
+        const auto result =
+            initialization_helper_9b4060(base, *slot, *allocator);
+        return result == HelperOutcome::filled ||
+                       result == HelperOutcome::inactive
+                   ? ModeCallOutcome::native_returned
+                   : ModeCallOutcome::modern_refusal;
     }
-    void configure_startup(GameModeRuntime&, ModeSubsystem&) override {}
-    bool complete_startup(GameModeRuntime&) override { return true; }
+    ModeCallOutcome configure_startup(GameModeRuntime&,
+                                      ModeSubsystem&) override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeLifecycleStatus complete_startup(GameModeRuntime&) override {
+        return ModeLifecycleStatus::success;
+    }
 };
 
 void test_controller_link() {
@@ -486,7 +504,7 @@ void test_controller_link() {
           "controller helpers fill both blocks");
 }
 
-// Independent cases from the native branches, rather than the proposal's
+// Independent cases from the native branches, rather than precomputed
 // expected values. Compare whole DWORD selectors, including high bits.
 void test_branch_widths_and_live_selectors() {
     struct Case {

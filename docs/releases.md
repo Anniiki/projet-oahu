@@ -5,12 +5,12 @@ Validated subsystem milestones produce development snapshots on
 Each snapshot identifies its exact public source commit, shipped tools,
 test scope, remaining work and SHA-256 checksums.
 
-## Automatic publication
+## Publication
 
-The Windows workflow builds and tests x64 and Win32 on functional source,
-test, CMake or release-tool changes pushed to main. Pull requests receive
-validation without publication. Manual workflow dispatch can validate or
-publish a milestone. Documentation-only edits do not create snapshots.
+The Windows workflow runs only when it is dispatched manually. It builds and
+tests x64 and Win32; publishing a snapshot is an explicit option, off by
+default. Pushes and pull requests do not start the workflow, so
+documentation edits never create snapshots.
 
 Publication runs only after both architecture jobs succeed. Its token has
 write access to this repository's contents; build jobs use read access.

@@ -132,7 +132,7 @@ class Service9b1df0 : public StartupServiceBase {
     Fields9b1df0 fields;
     // Empty until the first initialize(); then the last driver outcome.
     std::optional<Init9b1df0Outcome> last_outcome;
-    bool initialize(GameModeRuntime& owner) override;
+    ModeInitOutcome initialize(GameModeRuntime& owner) override;
 
   private:
     Startup9b1df0Context context_;

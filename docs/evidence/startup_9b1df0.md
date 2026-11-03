@@ -30,8 +30,11 @@ do not free previous storage when assigned; their context owns the lifetime.
 
 `Service9b1df0` exposes the initialization slot while remaining abstract for its
 unreconstructed cycle callbacks. Its last outcome is absent until initialization
-has actually been attempted. Registering a rejected service still counts that
-member, following the controller's established cleanup contract.
+has actually been attempted. Registering a service that returns native AL=false
+still counts that member, following the controller's established cleanup
+contract. A bounded driver refusal is a distinct outcome: it stops before the
+end helper and count increment. Partial writes and the detailed driver outcome
+remain available; a null-refused initialization is not reported as AL=false.
 
 ## Evidence and validation
 

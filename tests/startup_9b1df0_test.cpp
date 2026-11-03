@@ -179,7 +179,9 @@ struct Rig {
     Fields9b1df0 fields;
     GameModeRuntime owner;
     struct Self final : StartupServiceBase {
-        bool initialize(GameModeRuntime&) override { return false; }
+        ModeInitOutcome initialize(GameModeRuntime&) override {
+            return ModeInitOutcome::native_rejected;
+        }
         void on_forward_pass() override {}
         void on_reverse_pass() override {}
         void on_shutdown() override {}
@@ -426,12 +428,23 @@ struct TestService final : Service9b1df0 {
 };
 
 struct Lifecycle final : ModeLifecyclePorts {
+    int end_calls = 0;
     std::uint32_t startup_gate() override { return 1; }
     ModeSubsystemPtr boot_subsystem(std::size_t) override { return {}; }
-    void begin_initialization(ModeSubsystem&) override {}
-    void end_initialization(ModeSubsystem&) override {}
-    void configure_startup(GameModeRuntime&, ModeSubsystem&) override {}
-    bool complete_startup(GameModeRuntime&) override { return true; }
+    ModeCallOutcome begin_initialization(ModeSubsystem&) override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome end_initialization(ModeSubsystem&) override {
+        ++end_calls;
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome configure_startup(GameModeRuntime&,
+                                      ModeSubsystem&) override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeLifecycleStatus complete_startup(GameModeRuntime&) override {
+        return ModeLifecycleStatus::success;
+    }
 };
 
 void test_controller_registration() {
@@ -445,6 +458,7 @@ void test_controller_registration() {
         GameModeRuntime state;
         const auto status = register_mode_subsystem(state, service, ports);
         check(state.subsystem_count == 1, "member counted in all cases");
+        check(ports.end_calls == 1, "native false still reaches end helper");
         check(status == (gate == 0 ? ModeLifecycleStatus::success
                                    : ModeLifecycleStatus::rejected),
               "rejected member reported as rejected");
@@ -455,6 +469,19 @@ void test_controller_registration() {
                                  : Init9b1df0Outcome::rejected_610840),
               "outcome engaged after initialize");
     }
+    Rig refused;
+    refused.calls.null_6107c0 = true;
+    auto service = std::make_shared<TestService>(refused.context());
+    Lifecycle ports;
+    GameModeRuntime state;
+    check(register_mode_subsystem(state, service, ports) ==
+              ModeLifecycleStatus::modern_refusal,
+          "null dereference refusal is not a native AL=false return");
+    check(state.subsystem_count == 0 && ports.end_calls == 0,
+          "refused driver cannot fabricate end helper or count increment");
+    check(service->owner_10 == &state &&
+              service->last_outcome == Init9b1df0Outcome::refused_null_6107c0,
+          "partial driver effects and exact refusal remain visible");
 }
 
 void test_full_driver_allocator_edges() {

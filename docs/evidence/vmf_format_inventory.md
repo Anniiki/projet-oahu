@@ -3,7 +3,7 @@
 ## Scope and provenance
 
 Static study of 30 October 2026. It complements
-the donor inventory: **20 Xbox VMF and
+[the donor inventory](xbox360_controller_inventory.md): **20 Xbox VMF and
 19 PC VMF**, i.e. **23,844,792 bytes**. The Xbox files come from the banks
 already extracted in the `xbox360-controller-inventory` batch; the PC files are
 the members of the inventoried local official installation, not a new
@@ -265,11 +265,11 @@ The [placements 26 and removals 28](vmf_display_data.md) now have a separate
 C++ decoder, checked against the 39 films. This establishes their fields and
 events per frame, without building the live display list.
 
-The transformation composition is ported to C++.
+The [transformation composition](vmf_transform.md) is ported to C++.
 The [lifecycle rules](vmf_display_lifecycle.md) distinguish removal,
 cache, rewind and destruction. The [C++ runtime](vmf_display_runtime.md)
 carries these operations on live instances, with an explicit driver;
-hooking up to the scheduler, the scripts and the
+hooking up to the [scheduler](vmf_scheduler.md), the scripts and the
 external services remains necessary before the menus can be played.
 
 Still to be established separately: native loader/version/flags,

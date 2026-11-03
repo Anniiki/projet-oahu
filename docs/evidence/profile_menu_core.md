@@ -34,11 +34,11 @@ pending byte to the live menu fields on the established `pnew`/`psel` paths.
 
 ## Validation
 
-The revised proposal was hash-verified, copied exactly and independently
+The revised implementation was hash-verified, copied exactly and independently
 compiled in the canonical MSVC x64 build with C++ latest and `/W4 /WX`.
 `profile_menu_core` passes 83 checks covering call order, high identity halves,
 rank limits, refusal branches, malformed storage and a no-effect false gate.
-The proposal's seven mutation cases were detected in its isolated build.
+Seven mutation cases were detected in an isolated build.
 
 This is a reconstructed component for the independent client. It is not
 injected into the commercial executable, does not resolve the Oahu new-game

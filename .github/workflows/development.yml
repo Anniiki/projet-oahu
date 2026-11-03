@@ -20,6 +20,11 @@ jobs:
     name: Windows ${{ matrix.architecture }}
     runs-on: windows-2022
     timeout-minutes: 40
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      MSBUILDDISABLENODEREUSE: '1'
     strategy:
       fail-fast: false
       matrix:
@@ -39,9 +44,19 @@ jobs:
         run: ctest --test-dir build -C Release --output-on-failure --no-tests=error -E "^(d3d12_|native_submission_lifecycle$|material_cli_)" --output-junit "${{ runner.temp }}/ctest-${{ matrix.architecture }}.xml"
       - name: Test release packaging
         run: python -I -B -Werror -m unittest discover -s tools/release/tests -p "test_*.py"
-      - name: Package x64 inspection tools
+      - name: Package x64 inspection tools with CPack
         if: matrix.architecture == 'x64'
-        run: python -I tools/release/package_devtools.py --repo . --build-dir build --output-dir "${{ runner.temp }}/oahu-package" --ctest-report "${{ runner.temp }}/ctest-x64.xml"
+        run: |
+          $cpack = (Get-Command cpack -ErrorAction Stop).Source
+          & $cpack --version
+          if ($LASTEXITCODE -ne 0) { throw 'CPack is unavailable' }
+          python -I -B tools/release/package_devtools.py --repo . --build-dir build --output-dir "$env:RUNNER_TEMP/oahu-package" --ctest-report "$env:RUNNER_TEMP/ctest-x64.xml" --cpack $cpack
+          if ($LASTEXITCODE -ne 0) { throw 'CPack packaging failed' }
+      - name: Validate complete v2 package before upload
+        if: matrix.architecture == 'x64'
+        env:
+          EXPECTED_SOURCE: ${{ github.sha }}
+        run: python -I -B tools/release/check_package.py --source "$env:EXPECTED_SOURCE" --package-dir "$env:RUNNER_TEMP/oahu-package"
       - name: Upload verified x64 package
         if: matrix.architecture == 'x64'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -57,8 +72,11 @@ jobs:
   publish:
     name: Publish development snapshot
     needs: validate
-    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.publish
     runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
     permissions:
       contents: write
     steps:
@@ -73,6 +91,10 @@ jobs:
         with:
           name: oahu-windows-x64
           path: dist
+      - name: Revalidate downloaded v2 package before publication
+        env:
+          EXPECTED_SOURCE: ${{ github.sha }}
+        run: python -I -B tools/release/check_package.py --source "$env:EXPECTED_SOURCE" --package-dir dist
       - name: Publish immutable development release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

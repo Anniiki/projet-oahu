@@ -6,7 +6,7 @@
 `VmfProgram`. It carries the explicit operations of placement, removal,
 rewind and destruction. The
 [frame driver](vmf_frame_player.md) and an optional backend of
-owned variables are hooked up. Focus and
+[owned variables](vmf_variable_lifecycle.md) are hooked up. Focus and
 rendering remain to be integrated. An accepted operation does not prove a
 displayed interface.
 
@@ -16,16 +16,16 @@ corroboration and no equivalence with the Xbox code is claimed.
 Both resource profiles are consumed with these PC behaviours.
 
 The executor can now apply five
-timeline commands to the live instances.
+[timeline commands](vmf_timeline_actions.md) to the live instances.
 `apply_timeline_action` distinguishes the frame request, the current frame
 and Play/Stop. It triggers neither rewind, nor traversal of children, nor
 consumption of scripts. The frame driver remains to be hooked up.
 
-The target resolvers walk the full names of the
+The [target resolvers](vmf_target_resolution.md) walk the full names of the
 active children and the parent links, without mutating the display. Labels
 are looked up in the timeline's own resource with `_strnicmp(...,63)`
 and the first match wins. `apply_goto_label` publishes requested/pending on a
-match and Stop in every case. The script context
+match and Stop in every case. The [script context](vmf_script_context.md)
 keeps origin, current target and recovery phase between resumptions.
 
 ## Program and identities
@@ -79,7 +79,7 @@ this behaviour.
 Component overrides are restored only for a child kept by the
 **Character present** block. A Move without Character does not take this
 save. The node's own properties remain distinct from those of the child;
-the computations use the transformation module.
+the computations use the [transformation module](vmf_transform.md).
 
 ## Driver, counters and observations
 

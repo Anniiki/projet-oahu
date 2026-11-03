@@ -23,20 +23,20 @@ remain to be established. This foundation currently renders no gameplay.
 
 [Draw batches](evidence/d3d12_draw_batches.md) now manage independent ranges
 and transformations with shared depth and geometry reuse. The
-3DD/3DG connection applies matrices to explicitly
+[3DD/3DG connection](evidence/scene_mesh.md) applies matrices to explicitly
 selected instances and entries, verified on GPU and WARP. Dynamic LOD
 selection and original materials remain required for the complete vehicle
 assembly in step 2.
 
-The `.2DM` reader now connects the 289
+The [`.2DM` reader](evidence/material_2dm_reader.md) now connects the 289
 primitives of three vehicles to their MAT/PAR/LAY through the instances'
-MBNK banks. Textures and samplers
+MBNK banks. [Textures and samplers](evidence/retail_texture_bindings.md)
 are established for the type 2 parameter path, with code corroborated in
-the official executable in memory. The D3D12 integration
+the official executable in memory. The [D3D12 integration](evidence/native_material_inspection.md)
 now uses the UVs, mips and samplers of one explicit stage for three official
 car bodies. Missing resources or unknown previous states are rejected.
 External textures, original programs and stage combinations remain to be
-reconstructed. The program-selection evidence
+reconstructed. The [program-selection evidence](evidence/retail_shader_selection.md)
 and [key calculation](evidence/resource_hash.md) establish part of the input
 to the future variant system, without identifying every shader.
 
@@ -73,14 +73,14 @@ CPU/GPU only where dependencies require it. Validated retention of failed
 submissions is a lifetime prerequisite; it does not prove the absence of
 stuttering in the final game.
 
-The asynchronous presentation path removes
+The [asynchronous presentation path](evidence/d3d12_async_present.md) removes
 the unconditional wait from both visualization loops. Three submissions
 may remain in flight; allocator reuse and readback/upload operations retain
 their necessary waits. Telemetry separates wait calls, CPU scopes and GPU
 timestamps from the witnesses. The integration passes 55/55 x64 CTests,
 without yet validating complete-game frame times.
 
-The last sampler-layout cache removes
+The [last sampler-layout cache](evidence/d3d12_sampler_cache.md) removes
 recreation for an identical layout. Synthetic pixel readbacks remain
 identical to the previous renderer, and the replaced heap survives the
 viewer while its GPU submission remains in flight. Layout changes,

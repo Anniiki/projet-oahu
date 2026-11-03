@@ -79,22 +79,28 @@ ModeLifecycleStatus register_mode_subsystem(GameModeRuntime& state,
         state.subsystem_slots[state.subsystem_count] = std::move(member);
     auto current = slot(state, state.subsystem_count);
     current->startup_status = -1;
-    ports.begin_initialization(*current);
+    if (ports.begin_initialization(*current) !=
+        ModeCallOutcome::native_returned)
+        return ModeLifecycleStatus::modern_refusal;
     // The original reloads count and slot around both helper calls and init.
     // Reentrant mutation is observed; no vector iterator survives a callback.
     current = slot(state, state.subsystem_count);
     if (!valid_count(state) || !current)
         return ModeLifecycleStatus::invalid_registry;
-    const bool initialized = current->initialize(state);
+    const auto initialized = current->initialize(state);
+    if (initialized == ModeInitOutcome::modern_refusal)
+        return ModeLifecycleStatus::modern_refusal;
     current = slot(state, state.subsystem_count);
     if (!valid_count(state) || !current)
         return ModeLifecycleStatus::invalid_registry;
-    ports.end_initialization(*current);
+    if (ports.end_initialization(*current) != ModeCallOutcome::native_returned)
+        return ModeLifecycleStatus::modern_refusal;
     // No indexed access follows this callback in 0x9B4900. Preserve its
     // unconditional DWORD increment, including wrap from UINT32_MAX to zero.
     ++state.subsystem_count;
-    return initialized ? ModeLifecycleStatus::success
-                       : ModeLifecycleStatus::rejected;
+    return initialized == ModeInitOutcome::initialized
+               ? ModeLifecycleStatus::success
+               : ModeLifecycleStatus::rejected;
 }
 
 ModeLifecycleStatus forward_mode_subsystems(GameModeRuntime& state) {
@@ -118,8 +124,9 @@ ModeLifecycleStatus initialize_mode_subsystems(GameModeRuntime& state,
     state.subsystem_count = 0;
     ModeSubsystemPtr fifth;
     for (std::size_t index = 0; index < boot_subsystem_count; ++index) {
-        if (index == 12)
-            ports.configure_startup(state, *fifth);
+        if (index == 12 && ports.configure_startup(state, *fifth) !=
+                               ModeCallOutcome::native_returned)
+            return ModeLifecycleStatus::modern_refusal;
         auto member = ports.boot_subsystem(index);
         if (index == 4)
             fifth = member;
@@ -127,8 +134,9 @@ ModeLifecycleStatus initialize_mode_subsystems(GameModeRuntime& state,
         if (outcome != ModeLifecycleStatus::success)
             return outcome;
     }
-    if (!ports.complete_startup(state))
-        return ModeLifecycleStatus::rejected;
+    const auto completion = ports.complete_startup(state);
+    if (completion != ModeLifecycleStatus::success)
+        return completion;
     return forward_mode_subsystems(state);
 }
 

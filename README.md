@@ -72,6 +72,8 @@ Set `TDUR_BUILD_SDL_GAMEPADS=OFF` to omit the SDL gamepad transport, or
 See [dependencies](docs/dependencies.md) for versions and notices.
 Scenarios requiring local game data need explicit paths and are not provided
 by a plain repository clone. Legacy instrumentation needs a separate Win32 build.
+[Building and testing](docs/building.md) describes the CMake presets, targeted
+builds and the separate configuration of the Win32 mod.
 
 ## Downloads and roadmap
 
@@ -89,8 +91,8 @@ Protection, activation and reference game data remain unchanged.
 
 Technical evidence notes are published in English as their translations are
 validated; source identifiers, addresses and validation commands are preserved.
-The public history is an audited selection of the local project. Private
-coordination, session identities, quotas and commercial captures are excluded.
+The public history is an audited selection of the local project. Commercial
+captures are excluded.
 
 ## License
 

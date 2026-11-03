@@ -31,11 +31,12 @@ struct Member final : ModeSubsystem {
     Member(int number, GameModeRuntime& owner, std::vector<std::string>& log)
         : id(number), state(owner), trace(log) {}
     std::string number() const { return std::to_string(id); }
-    bool initialize(GameModeRuntime& owner) override {
+    ModeInitOutcome initialize(GameModeRuntime& owner) override {
         seen_owner = &owner;
         trace.push_back("i" + number() + ":" +
                         std::to_string(state.subsystem_count));
-        return initialized;
+        return initialized ? ModeInitOutcome::initialized
+                           : ModeInitOutcome::native_rejected;
     }
     void on_forward_pass() override {
         trace.push_back("f" + number());
@@ -73,30 +74,34 @@ struct Ports final : ModeLifecyclePorts {
     ModeSubsystemPtr boot_subsystem(std::size_t index) override {
         return members.at(index);
     }
-    void begin_initialization(ModeSubsystem& member) override {
+    ModeCallOutcome begin_initialization(ModeSubsystem& member) override {
         const auto& m = static_cast<Member&>(member);
         trace.push_back("b" + m.number() + ":" +
                         std::to_string(member.startup_status) + ":" +
                         std::to_string(state.subsystem_count));
+        return ModeCallOutcome::native_returned;
     }
-    void end_initialization(ModeSubsystem& member) override {
+    ModeCallOutcome end_initialization(ModeSubsystem& member) override {
         const auto& m = static_cast<Member&>(member);
         trace.push_back("e" + m.number() + ":" +
                         std::to_string(state.subsystem_count));
         if (end_effect)
             end_effect();
+        return ModeCallOutcome::native_returned;
     }
-    void configure_startup(GameModeRuntime& owner,
-                           ModeSubsystem& service) override {
+    ModeCallOutcome configure_startup(GameModeRuntime& owner,
+                                      ModeSubsystem& service) override {
         CHECK(&owner == &state);
         CHECK(&service == members[4].get());
         trace.push_back("config:" + std::to_string(state.subsystem_count));
+        return ModeCallOutcome::native_returned;
     }
-    bool complete_startup(GameModeRuntime& owner) override {
+    ModeLifecycleStatus complete_startup(GameModeRuntime& owner) override {
         CHECK(&owner == &state);
         trace.push_back("finish");
         request_game_mode(owner.mode, 24);
-        return completed;
+        return completed ? ModeLifecycleStatus::success
+                         : ModeLifecycleStatus::rejected;
     }
 };
 

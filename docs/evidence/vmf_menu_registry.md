@@ -15,7 +15,7 @@ Private exports establish the rank in EBX for lookup, the
 selector in ESI for counting and their common filter: nonzero byte `2E0`,
 then 32-bit equality of group `AD4`. Lookup also has historical memory
 corroboration; counting is established on disk and
-subsequently corroborated in the official process.
+[subsequently corroborated in the official process](official_menu_actions_runtime.md).
 The counter returns filtered count M, independently of movie type,
 display and `AC4` flags. Lookup starts at the beginning on every call.
 An absent rank returns the last match; NULL means no match. Therefore

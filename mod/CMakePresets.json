@@ -1,0 +1,22 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "mod-win32",
+      "displayName": "Win32 observation mod, SDL transport disabled",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "Win32",
+      "binaryDir": "${sourceDir}/../build/presets/mod-win32",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "environment": { "MSBUILDDISABLENODEREUSE": "1" },
+      "cacheVariables": { "TDUR_MOD_GAMEPAD": false, "FETCHCONTENT_FULLY_DISCONNECTED": true }
+    }
+  ],
+  "buildPresets": [
+    { "name": "mod-win32", "configurePreset": "mod-win32", "configuration": "Release", "jobs": 1 }
+  ],
+  "testPresets": [
+    { "name": "mod-win32", "configurePreset": "mod-win32", "configuration": "Release", "output": { "outputOnFailure": true }, "execution": { "jobs": 1, "noTestsAction": "error" } }
+  ]
+}

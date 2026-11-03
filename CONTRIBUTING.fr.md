@@ -4,7 +4,7 @@
 
 ## Structure du projet
 
-`include/tdur/` expose les interfaces ; `src/` sépare ressources, réseau, jeu,
+`include/tdur/` expose les interfaces ; `src/` sépare ressources, jeu,
 physique, entrées et interface. Le rendu natif est dans `src/render/d3d12/`.
 `tests/` contient les validations C++ ; `mod/` l’instrumentation Win32.
 `docs/evidence/` conserve les comportements établis et leurs limites.

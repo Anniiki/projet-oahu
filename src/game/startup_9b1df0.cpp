@@ -107,9 +107,13 @@ Init9b1df0Outcome initialize_9b1df0(StartupServiceBase& self,
     return Init9b1df0Outcome::completed;
 }
 
-bool Service9b1df0::initialize(GameModeRuntime& owner) {
+ModeInitOutcome Service9b1df0::initialize(GameModeRuntime& owner) {
     last_outcome = initialize_9b1df0(*this, fields, owner, context_);
-    return *last_outcome == Init9b1df0Outcome::completed;
+    if (*last_outcome == Init9b1df0Outcome::completed)
+        return ModeInitOutcome::initialized;
+    if (*last_outcome == Init9b1df0Outcome::rejected_610840)
+        return ModeInitOutcome::native_rejected;
+    return ModeInitOutcome::modern_refusal;
 }
 
 } // namespace tdur::game::startup

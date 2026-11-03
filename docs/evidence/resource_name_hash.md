@@ -38,7 +38,7 @@ normalization is added. A positive span that is too short gives
 ## Evidence and validation on 01/11/2026
 
 Both complete bodies, **156 bytes**, are corroborated in the official
-MC1.66A process by the targeted trial.
+MC1.66A process by the [targeted trial](official_notification_helpers.md).
 The wrapper has two ranges of 42 and 23 bytes, separated by six excluded
 alignment bytes; the historical helper is 91 bytes. Backend 504980
 retains its earlier memory evidence and verified table; it is presented

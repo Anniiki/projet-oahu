@@ -12,7 +12,7 @@ Primary reference: `Vehicules/Alfa_GT.bnk`, SHA-256
 Its physical member 0 starts at `0x3a0`, contains 29280 bytes and has SHA-256
 `7d4b35fd68dbf22f2791c2a570f0993e5cd5570788dd6cf99ad538a4ba02143a`.
 Member 1 is the associated geometry, already described in
-geometry_3dg.md.
+[geometry_3dg.md](geometry_3dg.md).
 
 ## Actually validated structure
 
@@ -81,7 +81,7 @@ successively equal 0 through 11; this agreement with the twelve MBNK keys
 **does not establish the complete semantics of material assignment**.
 No texture or shader is selected from that assumption.
 
-The new Rea study establishes from the
+The [new Rea study](retail_material_bindings.md) establishes from the
 secondary executable the unsigned16 `PRIM+0x2a` selector, fallbacks and
 MBNK-to-MAT resolution. These routines still need corroboration in official
 memory; the present reader still retains raw primitive bindings.

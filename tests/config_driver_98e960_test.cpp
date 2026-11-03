@@ -51,7 +51,9 @@ std::vector<std::byte> bytes(std::string_view text) {
 }
 
 struct Service final : startup::StartupServiceBase {
-    bool initialize(GameModeRuntime&) override { return true; }
+    ModeInitOutcome initialize(GameModeRuntime&) override {
+        return ModeInitOutcome::initialized;
+    }
     void on_forward_pass() override {}
     void on_reverse_pass() override {}
     void on_shutdown() override {}
@@ -626,8 +628,8 @@ struct ExternalBoundaryPorts final : ExternalLoaderPorts {
                                                std::uint32_t) override {
         unexpected();
     }
-    std::uint8_t callback_9a5730(const Callback9a5730&,
-                                 ExternalOutputs) override {
+    FileReadCallbackResult callback_9a5730(const Callback9a5730&,
+                                           ExternalOutputs) override {
         unexpected();
     }
     void release_674e0c(BlockHandle) override { unexpected(); }

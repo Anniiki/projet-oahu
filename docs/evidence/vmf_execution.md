@@ -18,7 +18,7 @@ A second entry now receives a `VmfDisplayRuntime` and an explicit
 timeline target. It takes the movie from that runtime's program and also
 executes NextFrame, PreviousFrame, Play, Stop and GotoFrame: **24 supported
 opcodes, 12 retained host boundaries** for this entry. The earlier scalar
-API retains its 19/17 contract. Timeline commands
+API retains its 19/17 contract. [Timeline commands](vmf_timeline_actions.md)
 change the request and playback state; they do not play the requested
 frame. Stop or a pending request does not interrupt bytecode. No stack
 reset is added.
@@ -36,18 +36,18 @@ A third entry uses a persistent `VmfScriptContext`. It adds SetTarget,
 TellTarget and GotoLabel: **27 supported opcodes and 9 host boundaries**.
 The preceding two entries retain their contracts. The context owns the
 program and origin; the stack remains shared and caller-supplied at
-every resumption. Targets and the
-script context describe evidence and limits.
+every resumption. [Targets](vmf_target_resolution.md) and the
+[script context](vmf_script_context.md) describe evidence and limits.
 
 A fourth entry also receives a `const VmfVariables&` dictionary and
-adds GetVariable: **28 opcodes, 8 host boundaries**.
+adds [GetVariable](vmf_get_variable.md): **28 opcodes, 8 host boundaries**.
 The preceding three entries retain their contracts. This read uses the
 current target without changing it on a native failure, which pushes
 empty text. SetVariable remains suspended pending scope and cleanup integration.
 
 A fifth explicit entry, `execute_vmf_actions_with_variables`, uses the
 display-owned dictionary and adds
-SetVariable and scope cleanup: **29 opcodes,
+[SetVariable and scope cleanup](vmf_variable_lifecycle.md): **29 opcodes,
 7 host boundaries**. The frame driver may select this backend through
 configuration. The four other entries retain their contracts.
 
@@ -80,7 +80,7 @@ Source: assemblies in Rea batch `rea/vmf-action-interpreter/session/`:
 exports 11..13,24..34 for operations and Jump/If contracts from the
 preceding batch. Secondary SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Official trial 25 corroborates arithmetic,
+[Official trial 25](official_trial_25.md) corroborates arithmetic,
 Boolean, ToInteger, Jump/If bodies and four stack helpers, without
 attested invocation. Text wrappers 445080/445130/4451B0/445260 and
 formatter 442330 remain secondary. The

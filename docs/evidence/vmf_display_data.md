@@ -56,7 +56,7 @@ resolutions 9..14 and assemblies 18..23, functions 446B70, 44AD20, 44ADB0,
 44AE10, 44AE80, 44AF00. The accessors establish widths, alignments,
 defaults and the order of the PC fields. The initialiser 4487F0 links
 `resource+E` to the list capacity used by 446B70. The
-instance contracts detail this relationship
+[instance contracts](vmf_instance_contracts.md) detail this relationship
 and their limits.
 
 Three small virtual wrappers have no function recognised by Ghidra.

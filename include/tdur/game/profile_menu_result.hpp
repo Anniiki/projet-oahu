@@ -14,7 +14,7 @@ namespace tdur::game {
 // or a session: they are opaque native services.
 
 // 007C5570, called by 007C5A90 for contexts 1 and 2 with the scene in EDI.
-// Its listing is not part of this mission: its calling convention, and
+// Its listing is outside this reconstruction: its calling convention, and
 // whether it reads EAX (the context) or ECX (the result, zero) at the call,
 // are not established.
 class ProfileResultSharedPort {

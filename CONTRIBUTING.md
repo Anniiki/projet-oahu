@@ -4,7 +4,7 @@
 
 ## Project structure
 
-Public interfaces live in `include/tdur/`; `src/` separates assets, networking,
+Public interfaces live in `include/tdur/`; `src/` separates assets,
 game logic, physics, input and UI. Native rendering is in `src/render/d3d12/`.
 `tests/` contains C++ validations, `mod/` contains Win32 instrumentation, and
 `docs/evidence/` records established behavior and limitations. Commercial assets

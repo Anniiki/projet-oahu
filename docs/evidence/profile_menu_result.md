@@ -28,7 +28,7 @@ than the layout of a packed C++ object.
 
 ## Verification and limits
 
-The first proposal incorrectly rejected nonzero results in context 5. An
+The first version incorrectly rejected nonzero results in context 5. An
 independent x64 witness failed before correction and passed unchanged against
 the revision. The integrated MSVC C++ latest build passes 211 result checks
 and the existing 100 dispatch checks. A separate mutation run detected 23 mutants.

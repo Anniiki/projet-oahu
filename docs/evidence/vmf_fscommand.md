@@ -58,7 +58,7 @@ the affinity of the services. No x86 address is called. The logger bodies,
 `606B90/606B60` (time, counters and owner included), `99B7A0`
 and film-specific receivers remain separate work, with mandatory ports.
 Declaring these ports does not recompile their bodies.
-The default router is now provided with an owned
+The [default router](vmf_fscommand_router.md) is now provided with an owned
 adapter; the bodies of its handlers and of the diagnostic remain separate
 services. This module consumes no VMF action, does not pop GetURL and does not acknowledge
 `sbdd`. The commercial player still requires its real hosts.

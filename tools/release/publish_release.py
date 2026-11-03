@@ -7,13 +7,11 @@ import json
 import re
 import subprocess
 import tempfile
-import zipfile
 
 _spec = importlib.util.spec_from_file_location(
     "oahu_package_devtools", Path(__file__).with_name("package_devtools.py"))
 _package = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_package)
-PACKAGE_FILES = _package.PACKAGE_FILES
 
 
 def gh(*args):
@@ -37,23 +35,8 @@ def publish(repository, source, package_dir):
     checksum = (package_dir / "SHA256SUMS.txt").read_text("ascii").strip()
     if checksum != sha256(archive.read_bytes()).hexdigest() + "  " + archive.name:
         raise ValueError("Archive checksum mismatch")
-    with zipfile.ZipFile(archive) as packed:
-        if packed.testzip() is not None or set(packed.namelist()) != PACKAGE_FILES:
-            raise ValueError("Unexpected archive contents")
-        if json.loads(packed.read("manifest.json")) != manifest:
-            raise ValueError("Archive and standalone manifests differ")
-        if {row["file"] for row in manifest["binaries"]} != set(_package.BINARIES):
-            raise ValueError("Incomplete binary manifest")
-        if len(manifest["binaries"]) != len(_package.BINARIES):
-            raise ValueError("Duplicate binary manifest entries")
-        for row in manifest["binaries"]:
-            data = packed.read(row["file"])
-            _package.verify_binary(data, row["file"])
-            if len(data) != row["bytes"] or sha256(data).hexdigest() != row["sha256"]:
-                raise ValueError("Packaged binary checksum mismatch")
+    _package.verify_archive(archive, manifest)
     validation = manifest["validation"]["ctest"]
-    if validation["tests"] <= 0 or validation["failures"] or validation["errors"]:
-        raise ValueError("Package has no successful test summary")
 
     try:
         existing = json.loads(gh("api", "repos/" + repository + "/releases/tags/" + tag))
@@ -74,13 +57,13 @@ def publish(repository, source, package_dir):
         "Includes Windows x64 installation, bank and database inspection tools,\n"
         "native D3D12 texture and mesh viewers, MIT license, guides and checksums.\n\n"
         "## Validation\n\n"
-        "Windows x64 and Win32 build/test jobs completed successfully. The x64\n"
-        "package records " + str(validation["tests"]) + " registered CPU tests, with no\n"
-        "failures or errors. GPU-dependent tests are excluded on hosted runners;\n"
-        "hardware and WARP validation is recorded separately in project evidence.\n\n"
+        "The supplied CTest report records " + str(validation["tests"]) + " tests,\n"
+        + str(validation["skipped"]) + " skipped, with no failures or errors.\n"
+        "The manifest records the report digest and all payload digests.\n"
+        "Packaging alone does not attest the build's source provenance.\n\n"
         "## Scope\n\n"
-        "Full gameplay, authenticated multiplayer, two-PC co-op and the final\n"
-        "installer remain under reconstruction. Commercial game data, saves,\n"
+        "The complete playable client and final installer remain under\n"
+        "reconstruction. Commercial game data, saves,\n"
         "keys and the original executable are excluded. Use your own installation.\n"
     )
     # A named temporary file is removed individually, never a computed tree.

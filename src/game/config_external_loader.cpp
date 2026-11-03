@@ -156,8 +156,11 @@ ExternalLoadResult run_external_loader_9a5d20(const ExternalLoaderArgs& args,
                               .path = args.path,
                               .block = *block_slot,
                               .size = size};
-    const std::uint8_t bl = ports.callback_9a5730(
+    const auto callback = ports.callback_9a5730(
         call, ExternalOutputs{block_slot, args.size_slot});
+    if (callback.control != ExternalCallOutcome::native_returned)
+        return refuse(result, ExternalOutcome::refused_callback);
+    const std::uint8_t bl = callback.al;
     result.al = bl;
 
     // 9A5E96 : bloc relu APRÈS le callback.

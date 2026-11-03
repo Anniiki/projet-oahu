@@ -74,11 +74,13 @@ function(tdur_proxy target variant)
         _WIN32_WINNT=0x0A00 _CRT_SECURE_NO_WARNINGS)
     target_link_libraries(${target} PRIVATE tdur_detours tdur_display_hooks tdur_retail_video_defaults
         shell32 ole32 uuid advapi32)
+    tdur_proxy_gamepad(${target})
     set_target_properties(${target} PROPERTIES OUTPUT_NAME dinput8
         ARCHIVE_OUTPUT_NAME "${target}_import"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${variant}")
 endfunction()
 
+include(cmake/gamepad.cmake)
 tdur_proxy(tdur_observation_proxy normal)
 tdur_proxy(tdur_observation_mutant_source mutant-source)
 target_compile_definitions(tdur_observation_mutant_source PRIVATE TDUR_MUTANT_ALLOW_SOURCE_WRITE)

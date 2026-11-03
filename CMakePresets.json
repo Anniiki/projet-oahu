@@ -1,0 +1,58 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "msvc-local",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "environment": { "MSBUILDDISABLENODEREUSE": "1" },
+      "cacheVariables": {
+        "BUILD_TESTING": true,
+        "TDUR_BUILD_SDL_GAMEPADS": false,
+        "TDUR_BUILD_D3D12_DEVICE_TESTS": false,
+        "FETCHCONTENT_FULLY_DISCONNECTED": true
+      }
+    },
+    {
+      "name": "x64-offline",
+      "displayName": "x64, no SDL download or GPU device tests",
+      "inherits": "msvc-local",
+      "architecture": "x64"
+    },
+    {
+      "name": "x64-sdl-local",
+      "displayName": "x64, existing SDL3 source tree",
+      "inherits": "x64-offline",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+          { "type": "notEquals", "lhs": "$penv{TDUR_SDL3_SOURCE}", "rhs": "" }
+        ]
+      },
+      "cacheVariables": {
+        "TDUR_BUILD_SDL_GAMEPADS": true,
+        "FETCHCONTENT_SOURCE_DIR_SDL3": { "type": "PATH", "value": "$penv{TDUR_SDL3_SOURCE}" }
+      }
+    },
+    {
+      "name": "win32-offline",
+      "displayName": "Win32 component builds, without SDL or GPU device tests",
+      "inherits": "msvc-local",
+      "architecture": "Win32"
+    }
+  ],
+  "buildPresets": [
+    { "name": "x64-offline", "configurePreset": "x64-offline", "configuration": "Release", "jobs": 1 },
+    { "name": "x64-sdl-local", "configurePreset": "x64-sdl-local", "configuration": "Release", "jobs": 1 },
+    { "name": "win32-offline", "configurePreset": "win32-offline", "configuration": "Release", "jobs": 1 }
+  ],
+  "testPresets": [
+    { "name": "x64-offline", "configurePreset": "x64-offline", "configuration": "Release", "output": { "outputOnFailure": true }, "execution": { "jobs": 1, "noTestsAction": "error" } },
+    { "name": "x64-sdl-local", "configurePreset": "x64-sdl-local", "configuration": "Release", "output": { "outputOnFailure": true }, "execution": { "jobs": 1, "noTestsAction": "error" } },
+    { "name": "win32-offline", "configurePreset": "win32-offline", "configuration": "Release", "output": { "outputOnFailure": true }, "execution": { "jobs": 1, "noTestsAction": "error" } }
+  ]
+}

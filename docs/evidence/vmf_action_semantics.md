@@ -6,16 +6,16 @@ Rea batch `rea/vmf-action-interpreter/session/`, secondary PC SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 The AddressSets and the assembly listings take precedence over pseudocode,
 which sometimes loses SSE computations and register parameters. No commercial
-listing is incorporated into the sources. The usages across the 39 films
+listing is incorporated into the sources. The [usages across the 39 films](vmf_script_usage.md)
 give the concrete consumers and distinguish abstract models from execution.
 
-The official trial 25 corroborates 24 bodies and six
+The [official trial 25](official_trial_25.md) corroborates 24 bodies and six
 constants. This scope is exact: the helpers and wrappers below that do not
-appear in it remain secondary. The C++ stack and a
+appear in it remain secondary. The [C++ stack](vmf_stack.md) and a
 [19-opcode executor](vmf_execution.md) are now ported and tested.
 The scalar-only entry point stops in front of the 17 host actions.
 
-The timeline hookup now adds five actions to the
+The [timeline hookup](vmf_timeline_actions.md) now adds five actions to the
 entry point that receives a runtime and an explicit target; the 12 other host
 boundaries and the complete player remain to be implemented.
 
@@ -97,7 +97,7 @@ An FSCommand can modify a variable that the script reads back immediately.
 The future host must therefore respect ordering, reentrancy, ownership and
 restoration of the context. A missing callback must not be replaced by a
 fictitious success. The 10 Call 445640 and the Get/SetProperty still require
-their complete port. The formatter 442330 is ported
+their complete port. The [formatter 442330](vmf_number_format.md) is ported
 and hooked up to the shared text pop; computed names such as `line1` still
 await the dictionary and the resolution of variables from the host context.
 

@@ -22,7 +22,7 @@ the primary executable in Rea/Ghidra 12.2: both ranges and the 246 listing
 lines are identical, with checksums recalculated from raw results.
 Private evidence: `<private-evidence>/rea-session/`, records 01,
 04, 05 and 10. This comparison concerns the file. A
-later observation of the official process
+[later observation of the official process](official_menu_actions_runtime.md)
 separately corroborates the 796 bytes in memory without demonstrating
 execution of this handler. The older `445CB0` capture does not substitute
 for that. No x86 pointer is called or reconstructed through arithmetic
@@ -47,7 +47,7 @@ Called service bodies remain complete dependencies to connect. Their
 mere availability is not execution. The `tfoc` local is not interpreted
 as a string; the tutorial owner/enclosing relationship is explicit and
 does not subtract an x86 address. The
-two loop-finalization services have a
+[two loop-finalization services](vmf_fscommand_menu_actions.md) have a
 caller contract established from the primary executable; their helpers
 remain to be resolved.
 

@@ -2,14 +2,14 @@
 
 ## Result and scope
 
-`FixedPhysicsWorker` hosts the 90 Hz fixed owner
+`FixedPhysicsWorker` hosts the [90 Hz fixed owner](fixed_physics_timer.md)
 on an ordinary Windows thread initialized by the CRT. It builds in
 C++latest for x64 and x86 and is tested with QPC and actual wait objects.
 It contains no game address, hook or Havok call. No driving trial or
 actual physics decoupling of the official client is claimed.
 
 This component provides lifetime infrastructure needed by the future
-adapter. It does not replace native lifecycle evidence:
+adapter. It does not replace [native lifecycle evidence](retail_physics_thread_adapter.md):
 drain before `846CF0`, actual join at the `607010` boundary, publication
 of historical scalars and priority handling after thread creation.
 The integrator's transitive TLS/FPU compatibility remains a separate

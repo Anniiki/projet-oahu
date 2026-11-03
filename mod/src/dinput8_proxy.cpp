@@ -4,6 +4,9 @@
 #include "tdur/mod/cursor_diagnostics.hpp"
 #include "tdur/mod/display_startup_gate.hpp"
 #include "tdur/mod/observation_hooks.hpp"
+#if defined(TDUR_MOD_GAMEPAD)
+#include "tdur/mod/gamepad_dinput.hpp"
+#endif
 #include <detours.h>
 #include <dinput.h>
 #include <windows.h>
@@ -69,6 +72,14 @@ extern "C" HRESULT WINAPI TdurDirectInput8Create(HINSTANCE instance,
     }
     const HRESULT result = systemFactory(instance, version, iid, output, outer);
     Log("DirectInput8Create-forwarded", result);
+#if defined(TDUR_MOD_GAMEPAD)
+    // Opt-in wrapping happens at the client's factory call, never in DllMain.
+    // Aggregation and unsupported interfaces keep the native factory.
+    if (SUCCEEDED(result) && output != nullptr && *output != nullptr &&
+        outer == nullptr) {
+        *output = tdur::mod::gamepad::WrapFactory(iid, *output);
+    }
+#endif
     return result;
 }
 

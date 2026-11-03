@@ -28,7 +28,9 @@ void check(bool condition, const char* what) {
 // Test double: no cycle behavior, only satisfies the abstract interface.
 class TestService final : public StartupServiceBase {
   public:
-    bool initialize(GameModeRuntime&) override { return false; }
+    ModeInitOutcome initialize(GameModeRuntime&) override {
+        return ModeInitOutcome::native_rejected;
+    }
     void on_forward_pass() override {}
     void on_reverse_pass() override {}
     void on_shutdown() override {}

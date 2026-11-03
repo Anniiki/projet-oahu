@@ -19,7 +19,7 @@ std::span<const std::byte> bytes(std::string_view value) {
     return std::as_bytes(std::span<const char>{value.data(), value.size()});
 }
 void vectors() {
-    // Independent native-register/table oracles retained in review109.
+    // Independent native-register/table oracles.
     check(hash_resource_name("testcar_01", 1) == 0x5f52414354537684ULL,
           "legacy golden lower ASCII and lane wrap");
     check(hash_resource_name("TESTCAR_01", 1) == 0x5f52414354537684ULL,
