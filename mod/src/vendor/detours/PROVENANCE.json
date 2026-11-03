@@ -1,0 +1,27 @@
+﻿{
+    "upstream":  "https://github.com/microsoft/Detours",
+    "commit":  "1dbd4ea281d73d478aa8d09a8b83fbd265f715f7",
+    "version":  "4.0.1",
+    "license":  "MIT",
+    "local_modifications":  [
+
+                            ],
+    "notes":  "Pinned upstream source files; Makefile copied as Makefile.upstream for reference only; built with local CMake.",
+    "sha256":  {
+                   "creatwth.cpp":  "57d1756707c93d4544d3346355d3c7fe900578a8ecb4b4f6835da55e71b02cd5",
+                   "detours.cpp":  "ea4f2b7ae5b71a902d88ae6b55e9167b72fcf69d2bece8acc453450702be3f91",
+                   "detours.h":  "74b9d7a9f4f219a3ba1f08ee3f11ffece16f10ba413b12477955cca7449c4f60",
+                   "detver.h":  "997d713d5b47d159f1736840b318ea426c76ed6f148014a5a9da78ebb4bd700c",
+                   "disasm.cpp":  "13c38684b1c1018828138301b57863feb37be70557d39ffe171849a0894ff395",
+                   "disolarm.cpp":  "20900e34f4afa968f4182fc9ae2d94d00ad15ddf1a17c53a034b18b38a9a4592",
+                   "disolarm64.cpp":  "b93f39ba5691b9ffb98aae45c7fa5f5a6975a8fed001704ec97f7867a59998ce",
+                   "disolia64.cpp":  "8ce93f70257c11a7b1015fac5ff801e7b72bbb9621f302a74f9d0bc1db49d334",
+                   "disolx64.cpp":  "dcac45e9bf07b916e454e141f850856b76e3e0f7b502bd5dd56e18aa2250e020",
+                   "disolx86.cpp":  "045d4b00029e810a9a156c1e17b33c2becdda1cc652a7cadfe61d9d1c66c81b6",
+                   "image.cpp":  "a039466a8edc0248042c9df804a2d13bb8a4e03cb038fb10b4b762b2e5d214a9",
+                   "LICENSE.md":  "b301808b732cfaa60df2b4b422d78cd97d2a15058b207e7e33f0535ba5170dd6",
+                   "Makefile.upstream":  "4ae1200e0e3767bf3c6b60e8362ea99c10c5f25615716d06dce85715d7ca1688",
+                   "modules.cpp":  "1950d936e27e847d69c132ee063752b5078593a98ab1841a2e10f33d8bbb4567",
+                   "uimports.cpp":  "18f86c93d2c2d8feb46ddfb500027ce959a542b824c1d70cf7671227b8c70176"
+               }
+}

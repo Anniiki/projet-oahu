@@ -1,0 +1,9 @@
+/build*/
+/.vs/
+/.cache/
+/local/
+*.user
+*.suo
+*.dmp
+__pycache__/
+*.py[cod]

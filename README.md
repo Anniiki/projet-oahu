@@ -2,42 +2,99 @@
 
 [Français](README.fr.md)
 
-Projet Oʻahu is an independent modernization project for the original Test Drive
-Unlimited on PC. Players will need their own legitimate copy of the game.
+An independent reconstruction of **Test Drive Unlimited PC MC 1.66 A** in
+modern C++ for Windows x64, based on the original executable's behavior.
+OpenTDU is a secondary reference; its engine is not imported or linked.
 
-This repository provides user documentation, the roadmap and reviewed downloads.
+**Work in progress: the complete client and co-op are not playable yet.**
+This repository contains reconstructed code, tests and documented findings.
+Players must provide their own local game installation. No commercial game
+assets, saves or product keys are distributed.
 
-## Current status
+## Goals
 
-Development is at the component and integration stage. There is no complete
-reconstructed game, validated two-PC co-op build or end-user mod installer yet.
-The original-copy diagnostic reaches menus, but an offline new-game path hangs
-and is still being investigated.
+- Reconstruct the whole game and restore every multiplayer feature.
+- Render directly with **native D3D12**, without D3D9 translation, and offer
+  Vulkan as an alternative backend.
+- Decouple physics and AI from rendering framerate, improve automatic
+  transmission behavior, and measure frame times during driving and streaming.
+- Reproduce full Xbox 360 controller coverage on PC through SDL3, including
+  Xbox/PlayStation identification, prompts, map navigation and hot plugging.
+- Support windowed, borderless and exclusive fullscreen modes, background
+  operation, variable refresh rate and display-aware frame limits.
+- Ship a Windows installer for compatible two-player co-op testing, then
+  reconstruct the historical online services with a modern Rust server.
 
-The available development tools inspect local installations and resources and
-view textures and meshes with native D3D12. They are not a playable game or an
-online client. The preserved tool build passed 107 CPU component tests on each
-of Windows x64 and Win32; hosted CI excluded GPU-dependent tests.
+The [roadmap](docs/roadmap.md) summarizes the goals and next milestones, and
+the [documentation index](docs/README.md) points to each subsystem.
 
-See [downloads and limitations](docs/downloads.md) and the [roadmap](docs/roadmap.md).
+## Verified progress
 
-## Long-term goals
+Bank, texture, model, scene and material readers access local game data in
+read-only mode. Native D3D12 viewers display original resources and explicitly
+selected assemblies, with pixel, depth and resize tests. World streaming,
+complete materials, gameplay and their transitions still need integration.
 
-- Rebuild the entire game in modern C++ as a native 64-bit PC client, using the
-  official PC MC 1.66 A executable as its behavioral reference.
-- Provide native D3D12 and selectable Vulkan rendering.
-- Restore the original multiplayer feature set, add co-op testing on two PCs
-  and provide an installer for legitimate game owners.
-- Reproduce complete Xbox 360 controller coverage with current SDL3, hot-plugging,
-  Xbox/PlayStation recognition and appropriate prompts, including menus and map.
-- Separate fixed-step simulation from rendering FPS, improve the automatic
-  gearbox, correct bugs and improve frame pacing.
-- Support windowed, borderless and exclusive fullscreen, background simulation,
-  refresh-aware limits and variable-refresh displays.
-- Later provide a modern Rust server reproducing the original online behavior.
+Fixed-step simulation, driving, configuration, input and UI modules are
+reconstructed and tested separately. These component results do not
+establish a complete, playable game.
 
-These are development goals. No release date is promised. Original binaries,
-game assets, saves and activation keys are not distributed; original protection
-and activation remain untouched.
+The observation mod's D3D9On12 bridge is used to study the legacy executable.
+It is separate from the [final native renderer](docs/native_renderer_plan.md).
 
-If the project interests you, a GitHub star helps its visibility.
+## Repository layout
+
+| Path | Contents |
+| --- | --- |
+| `include/tdur/`, `src/` | Assets, game, physics, input and UI |
+| `src/render/d3d12/` | Native D3D12 backend and viewers |
+| `tests/` | C++ scenarios and synthetic fixtures |
+| `mod/` | Win32 instrumentation and isolated observation launcher |
+| `docs/evidence/` | Established behavior, provenance and limitations |
+| `tools/` | Release packaging; commercial resources are excluded |
+
+## Build and test
+
+Requirements: CMake 3.25+, Visual Studio Build Tools 2022 with C++ and the
+Windows SDK, and Python 3 for test scenarios. Initial configuration
+downloads the pinned official SDL3 release and verifies its SHA-256.
+
+```powershell
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+cmake --build build --config Release --parallel 4
+ctest --test-dir build -C Release --output-on-failure
+.\build\Release\tdur_inspect_game.exe --game-dir "D:\Games\Test Drive Unlimited"
+```
+
+C++23 is the minimum; our MSVC targets use `/std:c++latest /W4 /WX`.
+Set `TDUR_BUILD_SDL_GAMEPADS=OFF` to omit the SDL gamepad transport, or
+`TDUR_BUILD_D3D12_DEVICE_TESTS=OFF` to disable standalone graphics tests.
+See [dependencies](docs/dependencies.md) for versions and notices.
+Scenarios requiring local game data need explicit paths and are not provided
+by a plain repository clone. Legacy instrumentation needs a separate Win32 build.
+
+## Downloads and roadmap
+
+Reviewed development tools are published with their limitations in
+[downloads](docs/downloads.md). The [roadmap](docs/roadmap.md) lists the next
+milestones. If the project interests you, a GitHub star helps its visibility.
+
+## Contributing and evidence
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[subsystem workflow](docs/development_batches.md). Each reconstruction records
+its source executable, addresses, bounds and unresolved dependencies.
+Matching bytes establish presence, not execution or a finished game feature.
+Protection, activation and reference game data remain unchanged.
+
+Technical evidence notes are published in English as their translations are
+validated; source identifiers, addresses and validation commands are preserved.
+The public history is an audited selection of the local project. Private
+coordination, session identities, quotas and commercial captures are excluded.
+
+## License
+
+Project code is released under the [MIT License](LICENSE), copyright
+Anniiki and the contributors to Projet Oʻahu. Third-party code retains its
+own notices, including [Microsoft Detours](mod/src/vendor/detours/LICENSE.md).
+Commercial game data is not part of this repository.

@@ -1,0 +1,14 @@
+* text=auto
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.h text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf
+
+# Keep published evidence checksums identical on Windows and Unix checkouts.
+docs/evidence/global_primary_*.csv text eol=lf
+
+# Preserve the exact upstream bytes and its whitespace conventions.
+mod/src/vendor/detours/* -text -whitespace
