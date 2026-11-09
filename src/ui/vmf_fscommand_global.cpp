@@ -44,10 +44,6 @@ Branch identify_vmf_global_branch(std::uint32_t code) noexcept {
         return Branch::cams;
     case 0x636c6d73U:
         return Branch::clms;
-    case 0x66726361U:
-        return Branch::frca;
-    case 0x66726f6bU:
-        return Branch::frok;
     case 0x6765696eU:
         return Branch::gein;
     case 0x67656f75U:
@@ -83,12 +79,6 @@ void VmfFsGlobalContext::select(Branch branch) noexcept {
     case Branch::unknown:
         finish(0);
         break;
-    case Branch::frca:
-        state_.phase = Phase::collection;
-        break;
-    case Branch::frok:
-        state_.phase = Phase::frok_root;
-        break;
     case Branch::mcin:
     case Branch::mcou:
         state_.phase = Phase::mode_owner;
@@ -109,11 +99,6 @@ void VmfFsGlobalContext::select(Branch branch) noexcept {
         state_.phase = Phase::owner4;
         break;
     }
-}
-void VmfFsGlobalContext::next_item() noexcept {
-    ++state_.loop_index; // At most INT32_MAX: loop_index was strictly < count.
-    state_.phase = state_.loop_index < state_.loop_count ? Phase::loop_lookup
-                                                         : Phase::post_owner;
 }
 void VmfFsGlobalContext::after_tutorial_selection() noexcept {
     if (state_.branch == Branch::tuin)
@@ -235,11 +220,8 @@ VmfFsGlobalContext::run(const VmfFsGlobalInputs& inputs,
             finish(1);
             break;
         case Phase::wend_argument:
-        case Phase::post_owner:
-            if (!load(state_.phase == Phase::wend_argument
-                          ? inputs.globals.owner_114c048
-                          : inputs.globals.owner_10e75f0,
-                      argument_, "helper argument", true))
+            if (!load(inputs.globals.owner_114c048, argument_,
+                      "helper argument", true))
                 return stopped();
             state_.phase = Phase::leaf_call;
             break;
@@ -259,12 +241,6 @@ VmfFsGlobalContext::run(const VmfFsGlobalInputs& inputs,
             case Branch::wend:
                 binding = &inputs.call_99feb0;
                 break;
-            case Branch::frca:
-                binding = &inputs.call_866040;
-                break;
-            case Branch::frok:
-                binding = &inputs.call_866080;
-                break;
             default:
                 return fail(error(Code::invalid_context,
                                   "Invalid global helper phase"));
@@ -279,60 +255,6 @@ VmfFsGlobalContext::run(const VmfFsGlobalInputs& inputs,
             finish(1);
             break;
         }
-        case Phase::frok_root:
-            if (!load(inputs.globals.root_11403d0, frok_root_, "root11403D0",
-                      true))
-                return stopped();
-            state_.phase = frok_root_ ? Phase::frok_child : Phase::collection;
-            break;
-        case Phase::frok_child:
-            if (!load(frok_root_->child_90, frok_child_, "root.child90", true))
-                return stopped();
-            state_.phase = frok_child_ ? Phase::frok_flags : Phase::collection;
-            break;
-        case Phase::frok_flags:
-            if (!frok_child_->flags_8)
-                return wait("frok.flags8");
-            frok_child_->flags_8 =
-                static_cast<std::uint8_t>(((*frok_child_->flags_8 & 1U) << 1U) |
-                                          (*frok_child_->flags_8 & 0xe1U));
-            ++state_.writes;
-            state_.phase = Phase::collection;
-            break;
-        case Phase::collection:
-            if (!load(inputs.collection_114b0c0, collection_, "fixed114B0C0"))
-                return stopped();
-            state_.phase = Phase::count;
-            break;
-        case Phase::count: {
-            ++state_.calls;
-            const auto result = collection_->count(1U);
-            if (!result)
-                return called_error(result.error());
-            state_.loop_count = *result;
-            state_.loop_index = 0;
-            state_.phase = *result > 0 ? Phase::loop_lookup : Phase::post_owner;
-            break;
-        }
-        case Phase::loop_lookup: {
-            ++state_.calls;
-            const auto result = collection_->item(1U, state_.loop_index);
-            if (!result)
-                return called_error(result.error());
-            item_ = *result;
-            if (item_)
-                state_.phase = Phase::loop_flags;
-            else
-                next_item();
-            break;
-        }
-        case Phase::loop_flags:
-            if (!item_->flags_ac4)
-                return wait("item.flagsAC4");
-            item_->flags_ac4 = *item_->flags_ac4 & 0xffffdfffU;
-            ++state_.writes;
-            next_item();
-            break;
         case Phase::mode_owner:
         case Phase::tuin_owner_first:
         case Phase::tuin_owner_second:

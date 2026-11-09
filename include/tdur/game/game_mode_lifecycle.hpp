@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -74,15 +75,22 @@ class ModeSubsystem {
     virtual ~ModeSubsystem() = default;
     std::int32_t startup_status = 0; // Native member +0x14, reset before init.
     virtual ModeInitOutcome initialize(GameModeRuntime& owner) = 0;
-    virtual void on_forward_pass() = 0; // Native slot +0x0C.
-    virtual void on_reverse_pass() = 0; // Native slot +0x18.
-    virtual void on_shutdown() = 0;     // Native slot +0x1C.
+    // Native cycles return void. The modern result distinguishes a returned
+    // call from a bounded refusal inside a reconstructed body.
+    virtual ModeCallOutcome on_forward_pass() = 0; // Native slot +0x0C.
+    virtual ModeCallOutcome on_reverse_pass() = 0; // Native slot +0x18.
+    virtual ModeCallOutcome on_shutdown() = 0;     // Native slot +0x1C.
 };
 
 using ModeSubsystemPtr = std::shared_ptr<ModeSubsystem>;
 inline constexpr std::uint32_t closed_subsystem_count =
     std::numeric_limits<std::uint32_t>::max();
 inline constexpr std::size_t boot_subsystem_count = 13;
+
+struct ModeWorkItem {
+    std::uint8_t queued_04 = 0;
+};
+using ModeWorkPtr = std::shared_ptr<ModeWorkItem>;
 
 // Owned x64-compatible storage. Slots remain available when count shrinks,
 // matching the native loops' live slot reads. Callbacks may update this state
@@ -91,6 +99,13 @@ struct GameModeRuntime {
     GameModeState mode;
     std::vector<ModeSubsystemPtr> subsystem_slots;
     std::uint32_t subsystem_count = 0;
+    // Attested by 9B4400/9B4710/9B4BA0; the host supplies initial state.
+    ModeWorkPtr current_work_200;
+    std::uint8_t completion_208 = 0;
+    // Known DWORD slots +210..+310, before the signed count at +314.
+    // Removal also copies the slot immediately after the active range.
+    std::array<ModeWorkPtr, 65> work_slots_210;
+    std::int32_t pending_314 = 0;
 };
 
 enum class ModeLifecycleStatus {

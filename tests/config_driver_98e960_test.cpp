@@ -54,9 +54,15 @@ struct Service final : startup::StartupServiceBase {
     ModeInitOutcome initialize(GameModeRuntime&) override {
         return ModeInitOutcome::initialized;
     }
-    void on_forward_pass() override {}
-    void on_reverse_pass() override {}
-    void on_shutdown() override {}
+    ModeCallOutcome on_forward_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_reverse_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_shutdown() override {
+        return ModeCallOutcome::native_returned;
+    }
 };
 
 struct Fake final : reg::Constructor9896c0Ports,

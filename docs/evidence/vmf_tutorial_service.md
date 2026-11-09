@@ -64,7 +64,7 @@ texts come from the real data, without recording them in Git or in the logs.
 
 ## Native evidence and limits
 
-Rea, the PE sections and DUMPBIN cross-check two complete bodies: 7FBEF0 /
+Static analysis, the PE sections and DUMPBIN cross-check two complete bodies: 7FBEF0 /
 282 bytes and 441120 / 96. The first equals the primary on disk; the second
 differs from it. An exclusive probe without scalars finds the 378 studied
 bytes in the isolated official process. No cause for the differences is

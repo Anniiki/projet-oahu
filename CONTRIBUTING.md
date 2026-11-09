@@ -46,8 +46,7 @@ English contributions are welcome. Explain the problem, resulting behavior,
 evidence and checks. Link an issue when applicable and add screenshots for
 visual changes.
 
-Coordinate subsystem batches and reserve files before writing. Every
-reconstruction must identify its origin and unresolved boundaries. Keep unknown
-services explicit. Do not publish commercial executables, saves, keys, Ghidra
+Every reconstruction must identify its origin and unresolved boundaries. Keep
+unknown services explicit. Do not publish commercial executables, saves, keys, Ghidra
 projects or raw exports, or alter protection and activation. Contributions to
 project code follow the MIT License; preserve third-party notices.

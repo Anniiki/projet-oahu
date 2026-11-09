@@ -106,7 +106,7 @@ The initialization body `996850..996b7e` is read in two ranges, 512 and
 303 bytes. The 815 bytes are identical on both disks; they corroborate
 in particular the copy of the AA/HDR preferences to the renderer. The total
 code budget is 29 ranges, 7 333 bytes. The complementary static SDK dump is
-kept in `rea/original-video-settings/gs_render_initialize_sdk.asm.txt`.
+kept in `original-video-settings/gs_render_initialize_sdk.asm.txt`.
 
 Scalar report: 20 791 bytes, SHA-256
 `832df9cf873c04affd1dd083393b920787dc218da8223733ab308a415dba7aac`.

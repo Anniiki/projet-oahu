@@ -2,6 +2,7 @@
 
 #include "tdur/assets/vmf_movie.hpp"
 #include "tdur/ui/vmf_display_runtime.hpp"
+#include "tdur/ui/vmf_host_actions.hpp"
 #include "tdur/ui/vmf_stack.hpp"
 #include "tdur/ui/vmf_variables.hpp"
 
@@ -31,6 +32,9 @@ struct VmfExecutionLimits {
     // Used only by the persistent script-context entry point. Failed target
     // actions already count as executed; this bounds subsequent skipped ones.
     std::size_t skipped_actions = 100'000;
+    // Host steps accumulated per invocation (modern bound). It bounds work,
+    // not admission: a host action may begin with zero steps left.
+    std::size_t host_steps = 4096;
 };
 
 enum class VmfExecutionStatus {
@@ -38,6 +42,7 @@ enum class VmfExecutionStatus {
     instruction_limit,
     needs_host,
     scan_limit,
+    host_pending, // GetURL begun, not finished; cursor kept on it.
 };
 struct VmfExecutionReport {
     VmfExecutionStatus status{};
@@ -45,6 +50,8 @@ struct VmfExecutionReport {
     std::size_t text_bytes_consumed{};
     std::uint16_t next_opcode{};
     std::size_t actions_skipped{};
+    std::size_t host_steps_consumed{};
+    std::optional<VmfHostActionStatus> host_status{}; // host_pending only.
 };
 
 enum class VmfExecutionErrorCode {
@@ -56,6 +63,7 @@ enum class VmfExecutionErrorCode {
     string_range,
     timeline,
     variables,
+    host,
 };
 struct VmfExecutionError {
     VmfExecutionErrorCode code{};
@@ -69,7 +77,12 @@ struct VmfExecutionError {
     std::size_t actions_skipped{};
     std::size_t text_bytes_consumed{};
     std::optional<VmfVariableError> variable_error{};
+    std::optional<VmfHostActionError> host_error{};
+    std::size_t host_steps_consumed{};
 };
+
+// Backend of an existing persistent entry, extended by the host entry.
+enum class VmfScriptBackend { targets, owned_variables, properties };
 
 // Executes 19 proven scalar/control opcodes of a VALIDATED movie. Remaining
 // 17 host actions stop with needs_host BEFORE popping or advancing; they are
@@ -144,5 +157,34 @@ execute_vmf_actions_with_variables(VmfDisplayRuntime &display,
 execute_vmf_actions_with_properties(VmfDisplayRuntime &display,
                                     VmfScriptContext &context, VmfStack &stack,
                                     VmfExecutionLimits limits = {}) noexcept;
+
+// Same as the backend's entry (targets: execute_vmf_actions(display,
+// context, stack); owned_variables: _with_variables; properties:
+// _with_properties), plus GetURL83 and GetURL2 9A through host AT the
+// action, as 443AF0 calls 445CB0/445D40 (secondary f452; presence of
+// 443AF0/445CB0/445D40 corroborated in official memory, not execution).
+// With properties and a bound dictionary: 32 opcodes, 4 boundaries
+// (22, 26, 9E, 9F). host declining the opcode, or at capacity: needs_host,
+// nothing consumed. host_pending keeps cursor and current target on the
+// GetURL; the next call with the SAME host continues it without replaying
+// operands. The action counts one instruction when host really finished.
+// Errors retain prefix effects and fault the context after one cancel of
+// its published ticket, host errors included (answer ignored: a host that
+// already freed the slot refuses it). Refused without change: nested entry
+// on a running context, in-flight context without host, ticket refused by
+// host, and a backend value outside the enumeration.
+[[nodiscard]] std::expected<VmfExecutionReport, VmfExecutionError>
+execute_vmf_actions_with_host(VmfDisplayRuntime& display,
+                              VmfScriptContext& context, VmfStack& stack,
+                              VmfHostActions& host, VmfScriptBackend backend,
+                              VmfExecutionLimits limits = {}) noexcept;
+
+// Terminal abandonment of context's in-flight host call: host.cancel once,
+// prefix kept, no enter, no restore, no advance. The context is faulted
+// even if host rejects the ticket. Refused without change when nothing is
+// in flight or the context is running.
+[[nodiscard]] std::expected<void, VmfExecutionError>
+cancel_vmf_host_action(VmfScriptContext& context,
+                       VmfHostActions& host) noexcept;
 
 } // namespace tdur::ui

@@ -12,8 +12,8 @@ decoding constant is added to the sources.
 
 Additional native evidence: secondary PE
 f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed,
-rea/vmf-menu-data-bindings-v1. The closed batch of 105 queries verifies 18
-bodies, 12 518 PE/Rea/DUMPBIN bytes, 56 ranges and 179 excluded alignment
+vmf-menu-data-bindings-v1. The closed batch of 105 queries verifies 18
+bodies, 12 518 PE/disassembly/DUMPBIN bytes, 56 ranges and 179 excluded alignment
 bytes. The 12 805 bytes read are backed by the file. A
 [corroboration in the official process](official_menu_bindings_runtime.md)
 now covers nine complete functions, one loader window and its dispatch

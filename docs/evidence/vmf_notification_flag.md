@@ -45,7 +45,7 @@ the singleton initialization.
 The **74 bytes** of the complete body match the official PC MC 1.66 A
 primary executable, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Rea, PE and DUMPBIN are cross-checked. No new game trial for this batch.
+Static analysis, PE and DUMPBIN are cross-checked. No new game trial for this batch.
 
 MSVC Release C++latest, `/W4 /WX /permissive- /utf-8`: **30 targeted suites
 pass on x64 and Win32**. The helper scenario counts 286 checks, including

@@ -2,14 +2,14 @@
 
 ## Origin and status
 
-New C++latest infrastructure answering Anniiki's request: physics, simulation
+New C++latest infrastructure with one goal: physics, simulation
 and NPCs independent of the frame rate, including 500 FPS, and no implicit
 pause on focus loss. **This is not a recovered original
 routine.** No code from the OpenTDU engine is imported.
 
-The [historical inventory](../opentdu_simulation_inventory.md) distinguishes the
-120 Hz proposal from the actually measured path of the port at 90 Hz, and
-confirms that the AI and several counters remained tied to frames there. The
+The earlier OpenTDU-based port distinguished a 120 Hz proposal from its
+actually measured 90 Hz path, and its AI and several counters remained tied
+to frames. The
 historical defects of lost time do not become requirements to copy.
 
 Default policy: **90 Hz physics**, compatible with the measured port;

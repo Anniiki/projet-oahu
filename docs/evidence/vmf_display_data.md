@@ -51,7 +51,7 @@ DWORD would wrongly multiply non-zero depths by 65536.
 
 Secondary PC SHA-256:
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Rea session `reprise-2026-10-31/rea/vmf-host-context/session-v2/`:
+Static analysis session `reprise-2026-10-31/vmf-host-context/session-v2/`:
 resolutions 9..14 and assemblies 18..23, functions 446B70, 44AD20, 44ADB0,
 44AE10, 44AE80, 44AF00. The accessors establish widths, alignments,
 defaults and the order of the PC fields. The initialiser 4487F0 links
@@ -62,7 +62,7 @@ and their limits.
 Three small virtual wrappers have no function recognised by Ghidra.
 Pseudocode 17..19 from the first session used the documented file-offset
 fallback towards another function: they are explicitly discarded.
-Their instructions were then verified with bounded DUMPBIN and exact Rea
+Their instructions were then verified with bounded DUMPBIN and exact static analysis
 reads. Four windows, **2179 bytes**, match; private report
 `exact-byte-validation.json`, SHA-256
 `c444057f7775fda5c82582a53b5089eb2d67233b03a1c9c35fd221ff1867d258`.

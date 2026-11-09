@@ -8,7 +8,7 @@ as well as in both PE images. The C++ uses owned objects and callback
 identities adapted to x64; it calls no original code.
 Fields without an established role remain raw parameters or opaque bytes.
 The [shared registry](vmf_menu_registry.md) provides the same selection to
-global commands and displays; its lookup keeps the native fallback.
+the other menu modules; its lookup keeps the native fallback.
 
 Finishing this data does not acknowledge `sbdd`: receiver, specific services,
 tutorial/help, suspended script, input and rendering remain to be wired.

@@ -9,7 +9,7 @@ remain to be bound.
 
 Reference: PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-A new Rea session establishes the complete body of `99A920`, 39 bytes,
+A new static analysis session establishes the complete body of `99A920`, 39 bytes,
 `99A920..99A946`, SHA-256
 `ffb03fc6eb5c558d2c5086aeeb0468c1fd69a7e92b608d2c2873c773f81a7272`.
 This body and the 98 bytes of `8911A0` are compared again against the primary

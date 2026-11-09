@@ -4,7 +4,7 @@
 
 The exclusive ui-vmf-menu-bindings profile read **14 ranges in the executable
 section, 2 176 bytes, and three four-byte scalars**, that is **2 188 bytes**.
-Every request is readable and equals the secondary PE studied with Rea.
+Every request is readable and equals the secondary PE studied statically.
 Ten ranges also equal the official file on disk; the four host accesses
 440AB0/440B00/440BA0/440E00 differ. The three scalars equal both files and
 form TDU_Menus followed by three NULs. No cause for the differences between
@@ -29,14 +29,14 @@ f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed.
 | Topic name, three non-executable scalars | F05170/4, F05174/4, F05178/4 |
 
 The body ranges gather **nine complete functions / 2 093 bytes** according
-to the Rea AddressSets. The gaps 9ABAB7..BF (nine bytes) and 9AEBBD..BF
+to the static analysis AddressSets. The gaps 9ABAB7..BF (nine bytes) and 9AEBBD..BF
 (three) are excluded. The 24-byte window does not cover all of 9ABC30;
 the 59-byte table contains data, not instructions.
 
 ## Trial and verification
 
-Slot 0 of coop-anything; private batch
-`<isolated-copies>/slot0/20261031T170334-34228`.
+Isolated copy; private batch
+`<isolated-copies>/20261031T170334-34228`.
 PID 38644, FILETIME 134379398510306664, observed base 00400000.
 The instrumented launcher owns a Job limited to one process, stopped at the
 100.167-second timeout. Two windows are recorded, with no visual inspection

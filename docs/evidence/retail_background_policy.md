@@ -11,7 +11,7 @@ mechanism is modified.
 
 The primary reference is the PC MC 1.66 A executable, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The Rea evidence and code comparisons are in
+The static analysis evidence and code comparisons are in
 [retail_simulation_dispatch.md](retail_simulation_dispatch.md) and
 [retail_focus_timing.md](retail_focus_timing.md). Trial 14 corroborates the
 complete original bodies of `7BEB90` and `97F260` before any adaptation.

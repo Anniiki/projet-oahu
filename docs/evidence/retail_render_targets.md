@@ -30,10 +30,10 @@ x86 VA, preferred base `00400000`:
 
 The existing exports `paradise-video-defaults/49..60` are consulted first.
 Their snapshot is then reopened for the derived helpers that are strictly
-needed, with summaries before assemblies. The Rea/Ghidra 12.2 session is
+needed, with summaries before assemblies. The Ghidra 12.2 session is
 exported and closed cleanly: **377 pieces of evidence**, bundle and new
 snapshot kept private under
-`<private-evidence>/reprise-2026-10-30/rea/retail-render-targets/rea-session/`.
+`<private-evidence>/reprise-2026-10-30/retail-render-targets/session/`.
 The instruction listings serve to check the ABI; `float` types or missing
 arguments in the pseudocode are not treated as a signature.
 
@@ -203,7 +203,7 @@ evidence.
 ## Historical baseline: trial 17
 
 Trial 17 closed, PID 26820, folder
-`<isolated-copies>/slot0/20261030T112335-28184/`.
+`<isolated-copies>/20261030T112335-28184/`.
 The file `timing-scalars.json` has SHA-256
 `e67802a20da347b33b8cee4bc083ac813a5eab97b1661f33f803ac76016f9148`.
 Rereading it verifies 26 samples, zero unreadable scalars, preferences
@@ -286,17 +286,17 @@ SHA-256
 The 41 tuples are normalized there and the six request/description groups
 (dimensions, format, MSAA, quality, usage, pool) agree for each of them.
 
-## Main Rea references
+## Main static analysis references
 
 - `paradise-video-defaults/49` (`994490`):
-  `ev_93388c87263688442f463e02c4c005efa534c8be5012bc0b58f3b64447f01d61`.
+  `93388c87263688442f463e02c4c005efa534c8be5012bc0b58f3b64447f01d61`.
 - New session `/12` (`98f380`):
-  `ev_0cf722dbd85014ec676acbe3402342bef64762bd19c8366c70e222c57d1a6f8d`.
+  `0cf722dbd85014ec676acbe3402342bef64762bd19c8366c70e222c57d1a6f8d`.
 - `/15` (`5fd3e0`):
-  `ev_79eee572369bc846c3183362ae4f4a717fabad989574ef319856f102edc9a123`.
+  `79eee572369bc846c3183362ae4f4a717fabad989574ef319856f102edc9a123`.
 - `/17` (`509710`):
-  `ev_6b02d7232c28611e8627be06f9446b27c5e5f24f4632772758fecac7895b1543`.
+  `6b02d7232c28611e8627be06f9446b27c5e5f24f4632772758fecac7895b1543`.
 - `/19` (`512f60`):
-  `ev_55d53ad6325b15aa37c92c11e63f3d1afd80a8e03226babac86e9b647b68cbe7`.
+  `55d53ad6325b15aa37c92c11e63f3d1afd80a8e03226babac86e9b647b68cbe7`.
 - `/28` (`5fd800`):
-  `ev_97830c897cd8f3366f94c71ff0a95ae6e289f0cb8fd68fc523be39efe0e53dfe`.
+  `97830c897cd8f3366f94c71ff0a95ae6e289f0cb8fd68fc523be39efe0e53dfe`.

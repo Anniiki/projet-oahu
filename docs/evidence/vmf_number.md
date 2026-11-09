@@ -7,17 +7,17 @@ string → float32 conversion used by the actions of the VMF player.
 It does not yet constitute an interpreter or a playable interface.
 
 Reference: `0x00442530..0x004426EB`, **four AddressSets, 435 bytes in
-a span of 444**. Rea/Ghidra analyzes the secondary SHA-256
+a span of 444**. Ghidra analyzes the secondary SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 The [official trial 25](official_trial_25.md) then corroborates these four
 bodies and the constants in the MC 1.66 A copy, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 This presence does not prove an observed original invocation.
 
-Normative source: export 10 `procedure_assembly` of the batch
-`rea/vmf-action-interpreter/session/`, evidence
-`ev_15f0cce6a2fb910768bae6f1e7a9c76885f3b0d79766fde3ac844098739fc097`.
-Resolution 61: `ev_88756a4b05f448cf47381140a0a67a62b1476d960bff30225a557306dbc78362`.
+Normative source: export 10 `assembly` of the batch
+`vmf-action-interpreter/session/`, evidence
+`15f0cce6a2fb910768bae6f1e7a9c76885f3b0d79766fde3ac844098739fc097`.
+Resolution 61: `88756a4b05f448cf47381140a0a67a62b1476d960bff30225a557306dbc78362`.
 Readings 40/41/42 establish +1, −1 and 10 in float32.
 Pseudocode 08 omits the SSE computations; it does not serve as an implementation.
 

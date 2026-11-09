@@ -42,14 +42,20 @@ struct Service final : StartupServiceBase {
             after_init();
         return result;
     }
-    void on_forward_pass() override {
+    ModeCallOutcome on_forward_pass() override {
         trace.push_back("forward" + std::to_string(id));
+
+        return ModeCallOutcome::native_returned;
     }
-    void on_reverse_pass() override {
+    ModeCallOutcome on_reverse_pass() override {
         trace.push_back("reverse" + std::to_string(id));
+
+        return ModeCallOutcome::native_returned;
     }
-    void on_shutdown() override {
+    ModeCallOutcome on_shutdown() override {
         trace.push_back("shutdown" + std::to_string(id));
+
+        return ModeCallOutcome::native_returned;
     }
 };
 

@@ -8,7 +8,7 @@ of the `89BF80` effect; they do not yet load the game's commercial tables.
 
 Primary reference: official PC MC 1.66 A executable, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The Rea evidence already exported and closed agrees with the complete bodies
+The static analysis evidence already exported and closed agrees with the complete bodies
 of the primary and the secondary: 49, 48 and 256 bytes. The first routine has
 two distinct ranges; its three padding bytes are excluded from the 49 bytes.
 Private evidence is in

@@ -3,7 +3,7 @@
 ## Result and scope
 
 The existing exports are sufficient to establish the chain to observe, without
-a new Rea session: static object `S=01293880h`, world pointer at
+a new static analysis session: static object `S=01293880h`, world pointer at
 `S+865Ch`, simulation object at `world+8`, vtable of that object, then the
 target of slot `vtable+8`. **`S` is not a cell holding a service
 pointer.** Its first DWORD is a vtable, not the address of the service.
@@ -41,24 +41,24 @@ disk, matches the secondary in the official memory of trial
 pointers it would have used.
 
 Private evidence reused under
-`<private-evidence>/reprise-2026-10-30/rea/`:
+`<private-evidence>/reprise-2026-10-30/`:
 
-- `paradise-physics-owner/61-read_bytes.json`: init anchoring in
+- `paradise-physics-owner/61-byte-read.json`: init anchoring in
   `97C8F0`, ID
-  `ev_8d823da0a8d05d36c0657457d0bd3306fcc4c4f794f7e23a9e3ebe6fd17ef2f7`;
-  `81-read_bytes.json`: the twelve bytes around the callback push/call.
-- `paradise-physics-owner/47-read_bytes.json`,
+  `8d823da0a8d05d36c0657457d0bd3306fcc4c4f794f7e23a9e3ebe6fd17ef2f7`;
+  `81-byte-read.json`: the twelve bytes around the callback push/call.
+- `paradise-physics-owner/47-byte-read.json`,
   `targeted-disk-comparisons.json`, `physics-initialize-complete.asm.txt`
   and `physics-stop-cleanup.asm.txt`: vtable, init and destruction.
-- `physics-thread-dependencies/session/47-procedure_assembly.json`:
+- `physics-thread-dependencies/session/47-assembly.json`:
   `81D960`, ID
-  `ev_8b5b8fca5a8d91a0bd5612da339fab721a4ce143a41cdf1df94352b72c92acac`;
+  `8b5b8fca5a8d91a0bd5612da339fab721a4ce143a41cdf1df94352b72c92acac`;
   `asm/0047f1d0.txt`, `asm/004d2370.txt` and `disk-comparisons.json`:
   construction candidates, with their explicit disk differences.
 - `physics-thread-adapter/normalized-09.asm.txt` and
   `integrator-complete.asm.txt`: exact dispatch and caller.
   The corresponding official capture is
-  `<isolated-copies>/slot0/20261030T134824-33340/code-helpers/physics_world_dispatch_47da40.bin`.
+  `<isolated-copies>/20261030T134824-33340/code-helpers/physics_world_dispatch_47da40.bin`.
 
 ## Exact read sequence
 
@@ -252,7 +252,7 @@ tdur_probe_physics_binding.exe --self-test
   file created. The CLI does produce a PE I386 image.
 
 These numbers count fixture assertions, not game scenarios.
-No game, hook or Rea session was involved. The two previous studies
+No game, hook or static analysis session was involved. The two previous studies
 remain unchanged. The launcher wiring and any official observation remain
 to be done at integration.
 

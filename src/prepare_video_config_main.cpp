@@ -150,7 +150,7 @@ Selection supported_selection(unsigned width, unsigned height) {
 }
 
 std::string built_in_config(const fs::path& executable) {
-    // Rea 6b18d0/6b1a00 selects VA f9c460, length357h. Both audited images
+    // Routines 6b18d0/6b1a00 select VA f9c460, length357h. Both audited images
     // have the same resource. The exact full-file hash is checked by run().
     constexpr std::streamoff offset = 0x00b9c460;
     constexpr std::size_t length = 0x357;

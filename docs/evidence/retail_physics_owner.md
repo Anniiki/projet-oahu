@@ -27,11 +27,11 @@ x86 VAs, preferred base `00400000`:
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
 The existing exports `paradise-focus-follow`, `paradise-simulation-dispatch`
-and `paradise-video-defaults` were reread before the new Rea session.
+and `paradise-video-defaults` were reread before the new static analysis session.
 The new private evidence is under
-`<private-evidence>/reprise-2026-10-30/rea/paradise-physics-owner/`:
+`<private-evidence>/reprise-2026-10-30/paradise-physics-owner/`:
 
-| Rea outputs | Content |
+| Static analysis outputs | Content |
 | --- | --- |
 | `02..08`, `20..38` | References, shutdown, integrator calls, bounded bodies |
 | `39..50`, `72..83` | Mode, vtable, flags, control instructions and ABI |
@@ -39,7 +39,7 @@ The new private evidence is under
 | `84..86` | Service teardown dispatch |
 
 Ghidra 12.2 does not recognize several bodies as attributed functions.
-The Rea inspections/reads are supplemented by bounded MSVC `dumpbin`
+The static analysis inspections/reads are supplemented by bounded MSVC `dumpbin`
 14.44.35229.0 disassemblies. The absence of an xref is not enough to exclude
 a call: `81EFA9` is not in the Ghidra listing, but its bytes and its
 disassembly establish the call. The private `.text` scans provide
@@ -66,7 +66,7 @@ No protection mechanism was transformed or traced.
 | `606B90/47` | `8cab123d9a681b6f56c4383851f4e84cafd30bbda9429d771a53b1cb0b1bb4cb` |
 
 The private report is
-`<isolated-copies>/slot0/20261030T105708-19480/code-helpers/comparisons.json`:
+`<isolated-copies>/20261030T105708-19480/code-helpers/comparisons.json`:
 47 ranges, 12,146 bytes in total. The API names are corroborated by the
 code and by the secondary's imports export; the official IAT in memory is
 not reread by this investigation. Code equality does not prove its execution.
@@ -158,7 +158,7 @@ creations; no background patch was applied there.
 
 ## Owners of the integration calls
 
-The targeted scan of direct calls, the disassembly and the Rea references
+The targeted scan of direct calls, the disassembly and the static analysis references
 establish three sites in the image:
 
 | Site | Owner and condition |

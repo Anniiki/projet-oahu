@@ -41,6 +41,7 @@ struct VmfFrameCounters {
     std::size_t instructions{};
     std::size_t skipped_actions{};
     std::size_t text_bytes{};
+    std::size_t host_steps{};
 };
 enum class VmfFrameStop {
     completed,
@@ -51,6 +52,7 @@ enum class VmfFrameStop {
     scan_limit,
     needs_host,
     needs_record_host,
+    host_pending, // Script awaits its bound host; continuation preserved.
 };
 struct VmfFrameReport {
     VmfFrameStop stop{};
@@ -97,6 +99,11 @@ struct VmfTimelinePlaybackSnapshot {
 // target lookup quotas remain per lookup and imply no wall-clock frame budget.
 // current/record cursors belong to the player; use display's request/Play/Stop
 // commands instead of writing current manually, including between invocations.
+// A bound host runs GetURL83/9A at dispatch inside resume; during its
+// callbacks only display mutations and enqueue_script are admitted; resume,
+// bind, unbind and cancel_host_action are refused; never destroy the player
+// or the bound host there. A fault or the destruction of the player abandons
+// an in-flight call on the bound host.
 class VmfFramePlayer {
   public:
     [[nodiscard]] static std::expected<std::unique_ptr<VmfFramePlayer>,
@@ -129,6 +136,19 @@ class VmfFramePlayer {
     [[nodiscard]]
     std::expected<VmfTimelinePlaybackSnapshot, VmfFramePlayerError>
     inspect_timeline(VmfInstanceHandle owner) const noexcept;
+    // Borrows host for GetURL83/9A until unbind. Refused during resume or
+    // while a host call is in flight. Unbound, every path keeps its current
+    // needs_host boundary. host outlives the binding and, while a call is in
+    // flight, this player.
+    [[nodiscard]] std::expected<void, VmfFramePlayerError>
+    bind_host_actions(VmfHostActions& host) noexcept;
+    [[nodiscard]] std::expected<void, VmfFramePlayerError>
+    unbind_host_actions() noexcept;
+    // Terminal abandonment of the in-flight host call: prefix kept, frame
+    // released once, player faulted. Refused during resume or when nothing
+    // is in flight.
+    [[nodiscard]] std::expected<void, VmfFramePlayerError>
+    cancel_host_action() noexcept;
 
   private:
     struct Storage;

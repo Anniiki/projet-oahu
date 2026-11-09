@@ -2,8 +2,8 @@
 
 The official PC MC 1.66 A reference has SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Rea assembly evidence
-`ev_89ecfc1abd159a306a4593d9f1337c230ea90e7ca09765a6ea65e1f3bc882b5c`
+Static analysis assembly evidence
+`89ecfc1abd159a306a4593d9f1337c230ea90e7ca09765a6ea65e1f3bc882b5c`
 establishes all 275 bytes and three returns of `980550`.
 
 The helper selects description ID 1, ordinal 0 via `433DF0`, stores it, then

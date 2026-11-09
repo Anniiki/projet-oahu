@@ -10,21 +10,20 @@ not provide substitute successful service implementations.
 
 Reference: official PC MC 1.66 A, 16,797,696 bytes, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The retained local Rea lot is
+The retained local static analysis lot is
 `reprise-2026-11-03/controller-startup-host-v1/`.
 
-The first session contains 314 requests, including a bounded walk of 302
+The first session includes a bounded walk of 302
 existing Ghidra instructions. Both return paths are reached and no jump
 leaves the declared range or remains unresolved. Calls are recorded but
 their return behavior is not proved by that intraprocedural closure.
-Ghidra has no defined procedure at `97C830`; that request was retained as
+Ghidra has no defined procedure at `97C830`; that lookup was retained as
 an error, with its separate raw byte window. No function was created.
 
 A second session resolves the static startup-gate data chain and reads the
-five direct callees around derived registration. It contains 11 requests,
-including an unsuccessful procedure request at `504770`. Both sessions
-exported evidence and closed successfully; their nonzero client exits
-reflect those retained request errors. The official executable's digest
+five direct callees around derived registration. It includes an
+unsuccessful procedure lookup at `504770`. Both sessions exported evidence
+and closed successfully, with those lookup errors retained. The official executable's digest
 is unchanged. No retail process was launched for this analysis.
 
 The 38 registration sites and object identities are independently retained

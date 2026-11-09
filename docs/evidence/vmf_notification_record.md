@@ -79,7 +79,7 @@ ctest --test-dir build -C Release -R '^(vmf_notification_record|vmf_menu_finaliz
 The three complete bodies, 593 bytes, match the official primary PC MC 1.66 A
 executable on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The PE/Rea/DUMPBIN evidence, six frozen sources and six preserved sensitive
+The PE/disassembly/DUMPBIN evidence, six frozen sources and six preserved sensitive
 files are recorded outside Git in
 `<private-evidence>/reprise-2026-10-31/vmf-notification-record-runtime-v1/`.
 The unit chain reuses the earlier evidence of the finalizer.

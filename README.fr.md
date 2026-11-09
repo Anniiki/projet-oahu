@@ -17,7 +17,7 @@ sauvegarde ou clé commerciale n’est distribuée.
 - Proposer un rendu **D3D12 natif**, sans traduction D3D9, avec Vulkan au choix.
 - Délier physique et IA du framerate, améliorer la boîte automatique et mesurer
   la fluidité en conduite, streaming et transitions.
-- Reproduire toute la couverture manette Xbox360 sur PC avec SDL3 : Xbox et
+- Reproduire toute la couverture manette Xbox 360 sur PC avec SDL3 : Xbox et
   PlayStation, glyphes, navigation de carte et détection à chaud.
 - Fournir les modes de fenêtre, le fonctionnement hors focus et la gestion VRR.
 - Livrer un installateur Windows commun aux deux joueurs pour les essais coop,
@@ -55,9 +55,9 @@ Il est distinct du [renderer natif final](docs/native_renderer_plan.md).
 
 ## Construire et tester
 
-Prérequis : CMake3.25+, Visual Studio Build Tools2022 avec C++ et SDK Windows,
-Python3 pour les scénarios de test. Le premier configure récupère
-SDL3 depuis la release officielle épinglée et vérifie son SHA256.
+Prérequis : CMake 3.25+, Visual Studio Build Tools 2022 avec C++ et SDK
+Windows, Python 3 pour les scénarios de test. La première configuration
+récupère SDL3 depuis la release officielle épinglée et vérifie son SHA-256.
 
 ```powershell
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
@@ -72,6 +72,9 @@ C++23 est le minimum ; nos cibles MSVC emploient `/std:c++latest /W4 /WX`.
 Les [dépendances](docs/dependencies.md) décrivent les versions et licences.
 Les scénarios nécessitant une copie locale doivent recevoir explicitement
 leurs chemins ; ils ne font pas partie d’un simple clone du dépôt.
+L’instrumentation historique exige une construction Win32 distincte.
+[Construire et tester](docs/building.md) décrit les presets CMake, les
+constructions ciblées et la configuration séparée du mod Win32.
 
 ## Téléchargements et feuille de route
 
@@ -82,14 +85,19 @@ GitHub aide sa visibilité.
 
 ## Contribuer
 
-Suivre le [guide de contribution](CONTRIBUTING.fr.md) et les
-[lots par sous-système](docs/development_batches.md). Les preuves indiquent
+Suivre le [guide de contribution](CONTRIBUTING.fr.md). Les preuves indiquent
 le binaire concerné, l’adresse, les bornes et les limites. Une égalité d’octets
 ne prouve ni l’exécution d’une routine ni le fonctionnement du jeu complet.
 Protection, activation et données de référence restent inchangées.
 
-La première publication est une sélection auditée du chantier local, avec un
-historique public indépendant. Les captures
-commerciales ne sont pas incluses. Les licences tierces
-présentes, dont celle de Detours, sont conservées. Le code propre au projet est
-publié sous [licence MIT](LICENSE), copyright Anniiki et les contributeurs de Projet Oʻahu.
+Les notes de preuve techniques sont publiées en anglais à mesure que leurs
+traductions sont validées ; identifiants, adresses et commandes de validation
+sont conservés. L’historique public est une sélection auditée du chantier
+local. Les captures commerciales ne sont pas incluses.
+
+## Licence
+
+Le code du projet est publié sous [licence MIT](LICENSE), copyright
+Anniiki et les contributeurs de Projet Oʻahu. Le code tiers conserve ses
+propres mentions, dont [Microsoft Detours](mod/src/vendor/detours/LICENSE.md).
+Les données commerciales du jeu ne font pas partie de ce dépôt.

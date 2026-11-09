@@ -60,7 +60,7 @@ ctest --test-dir build -C Release -R '^(vmf_notification_identity|pc_database_as
 The three complete bodies, 292 bytes, match the official PC MC 1.66 A
 primary on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-PE, Rea and DUMPBIN are cross-checked; nine frozen sources and six
+PE, static analysis and DUMPBIN are cross-checked; nine frozen sources and six
 preserved sensitive files are recorded outside Git in
 `<private-evidence>/reprise-2026-10-31/vmf-notification-identity-runtime-v1/`.
 An independent review reported no concrete defect across the nine

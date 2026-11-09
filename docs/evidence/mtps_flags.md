@@ -73,7 +73,7 @@ cmake --build build --config Release --target mtps_flags_test
 .\build\Release\mtps_flags_test.exe
 ```
 
-Rea, PE and DUMPBIN cross-check two complete bodies (572 bytes) against the
+Static analysis, PE and DUMPBIN cross-check two complete bodies (572 bytes) against the
 official primary on disk: 7D6B80/287B and 7E7A00/285B. The first AddressSet
 is non-contiguous: 7D6B80..8C then 7D6B90..7D6CA1; the three alignment bytes
 7D6B8D..8F are excluded. No targeted observation or execution in memory is

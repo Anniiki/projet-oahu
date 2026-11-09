@@ -16,10 +16,10 @@ The contracts come from the **secondary** binary, SHA-256
 | `442E80` | Parent/local composition and flags | 283 |
 | `4429F0` | Composition of the eight color WORDs | 200 |
 
-Rea resolved the entry points before the assembly listings were read. The
+Static analysis resolved the entry points before the assembly listings were read. The
 bytes of each body match the PE file and a bounded DUMPBIN disassembly;
 `F4165C` does contain the bits `3F800000`. Private evidence:
-`reprise-2026-10-31/rea/vmf-display-lifecycle/session/`, operations 37/38,
+`reprise-2026-10-31/vmf-display-lifecycle/session/`, operations 37/38,
 53/54, 55/56, 69. No official invocation, Xbox code equivalence or visual
 validation is inferred from this static analysis.
 

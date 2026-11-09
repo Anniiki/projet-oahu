@@ -13,25 +13,25 @@ numerical review of the private batch `vmf-format-review/`. The batch of this
 delivery is `<private-evidence>/reprise-2026-10-30/vmf-movie-cpp/`.
 No commercial resource is embedded in the sources or fixtures.
 
-Secondary Rea anchors, Paradise PE SHA-256
+Secondary static analysis anchors, Paradise PE SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`,
-batch `rea/ui-map-input-dispatch/session/`:
+batch `ui-map-input-dispatch/session/`:
 
-- `442890/161`, exports `34-procedure_assembly` and
-  `35-procedure_pseudo_code`, validates magic/CRC/version; the library
+- `442890/161`, exports `34-assembly` and
+  `35-pseudocode`, validates magic/CRC/version; the library
   presents itself as 2.8 and requires byte `+05==2`, u16 `+06==8` on PC. Evidence
-  `ev_6e5a14a0d8bcc5d832317e8a44bb73c649563bf4c07f72db4f36ce77948bc69b`.
-- `443A90/83`, exports `40-procedure_assembly` and
-  `41-procedure_pseudo_code`, advances by two physical bytes and one logical
+  `6e5a14a0d8bcc5d832317e8a44bb73c649563bf4c07f72db4f36ce77948bc69b`.
+- `443A90/83`, exports `40-assembly` and
+  `41-pseudocode`, advances by two physical bytes and one logical
   byte for a short instruction; by `4+align2(len)` physical and `3+len`
   logical bytes for a long one. Evidence
-  `ev_3b5cb3876fab40278923a7089e601169e4cab03faf331d344894f8d3d7d72e75`.
-- `443EF0/157`, exports `42-resolve_containing_procedure`,
-  `43-procedure_assembly` and `44-procedure_pseudo_code`, returns to the start
+  `3b5cb3876fab40278923a7089e601169e4cab03faf331d344894f8d3d7d72e75`.
+- `443EF0/157`, exports `42-containing-function`,
+  `43-assembly` and `44-pseudocode`, returns to the start
   of the script and rescans while counting physical and compact bytes separately.
   `445560` advances first, then applies the signed16 delta to the compact counter;
   `4455B0` does so if the popped numeric condition is non-zero. Evidence
-  `ev_cc68039ea2be484a2083f9ce6df911268b996208fa56d934bb1dc6b25c501c93`.
+  `cc68039ea2be484a2083f9ce6df911268b996208fa56d934bb1dc6b25c501c93`.
 
 These static exports come from the secondary. [Official trial 25](official_trial_25.md)
 then corroborates the bodies of the checker, the advance and the rebase in

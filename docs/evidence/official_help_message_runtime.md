@@ -2,7 +2,7 @@
 
 ## Bounded capture
 
-The exclusive ui-vmf-help-message profile of tdur_probe_code reads four
+The exclusive ui-vmf-help-message profile of the unpublished code probe reads four
 fixed executable ranges, 1 065 bytes in total, covering three complete
 AddressSets:
 
@@ -18,16 +18,16 @@ enforce the budget and the absence of overlap. The PID, FILETIME and image
 identities are correlated with the launcher reports. These are successive
 reads, not an atomic snapshot.
 
-The [static evidence](vmf_help_message.md) ties these ranges to Rea/Ghidra
+The [static evidence](vmf_help_message.md) ties these ranges to Ghidra
 and DUMPBIN. The functional data, 385 bytes read on disk, match both files
 and include the NUL byte of the empty string at F035DF.
-The Rea read 441180/512 includes 384 bytes outside this procedure; only its
+The static analysis read 441180/512 includes 384 bytes outside this procedure; only its
 128 AddressSet bytes are retained in the body evidence.
 
 ## Real trial
 
-Isolated trial through coop-anything/gameslot:
-<isolated-copies>/slot0/20261031T195112-31208.
+Isolated trial in a private copy:
+<isolated-copies>/20261031T195112-31208.
 PID 31120, FILETIME 134379499098188933, base 400000; duration 100.186 seconds.
 All four ranges are readable and equal to the studied secondary.
 The two 9A03E0 ranges also equal the primary on disk; the two helpers

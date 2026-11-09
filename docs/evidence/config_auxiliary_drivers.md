@@ -1,7 +1,7 @@
 # Auxiliary startup configuration drivers
 
 This module reconstructs the related helpers `0x986B60`, `0x988FC0`,
-`0x98DD20` and `0x98DE80` from the existing official PC MC 1.66 A Rea listings.
+`0x98DD20` and `0x98DE80` from the existing official PC MC 1.66 A static analysis listings.
 Reference SHA-256:
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 Native addresses identify evidence or operands; they are never called.

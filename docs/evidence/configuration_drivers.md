@@ -11,7 +11,7 @@ The official observation `20261030T083003-25076`, PID 9424, creation FILETIME
 512 bytes were independently rechecked against the secondary image with SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 Both complete bodies fit inside those windows, corroborating their previously
-exported Rea assembly. This equivalence does not cover their other callees.
+exported static analysis assembly. This equivalence does not cover their other callees.
 No additional game launch, import or analysis session was needed.
 
 ## Resource loader

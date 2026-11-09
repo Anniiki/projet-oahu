@@ -17,19 +17,19 @@ or exposed by a setter.
 
 ## Sources
 
-The Rea exports studied come from the **secondary** executable, SHA-256
+The static analysis exports studied come from the **secondary** executable, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`:
 
 | Contract | Original VA | Private cache (`<private-evidence>/`) |
 | --- | --- | --- |
-| Creation, first free slots | `443320`, `443410` | `reprise-2026-10-31/rea/vmf-text-services/session/16`; `reprise-2026-10-31/rea/vmf-host-context/session/14` |
-| Typed copy | `443430` | `reprise-2026-10-31/rea/vmf-host-context/session/15` |
-| Insertion and lookup | `4434B0`, `4435D0` | `reprise-2026-10-30/rea/vmf-action-interpreter/session/109`, `108` |
-| Push and text conversion | `443620`, `4436A0` | same batch, `/58`; `reprise-2026-10-31/rea/vmf-runtime-scheduler/session/07` |
-| Number, text and link setters | `443700`, `443770`, `4437F0` | `reprise-2026-10-31/rea/vmf-host-context/session-v2/29..31` |
-| Cleanup | `4438D0` | `reprise-2026-10-31/rea/vmf-display-lifecycle/session/57` |
+| Creation, first free slots | `443320`, `443410` | `reprise-2026-10-31/vmf-text-services/session/16`; `reprise-2026-10-31/vmf-host-context/session/14` |
+| Typed copy | `443430` | `reprise-2026-10-31/vmf-host-context/session/15` |
+| Insertion and lookup | `4434B0`, `4435D0` | `reprise-2026-10-30/vmf-action-interpreter/session/109`, `108` |
+| Push and text conversion | `443620`, `4436A0` | same batch, `/58`; `reprise-2026-10-31/vmf-runtime-scheduler/session/07` |
+| Number, text and link setters | `443700`, `443770`, `4437F0` | `reprise-2026-10-31/vmf-host-context/session-v2/29..31` |
+| Cleanup | `4438D0` | `reprise-2026-10-31/vmf-display-lifecycle/session/57` |
 
-The numbers designate the `*-procedure_assembly.json` exports, whose
+The numbers designate the `*-assembly.json` exports, whose
 EvidenceIDs are kept in the private receipts. The [hash](vmf_variable_hash.md)
 has its own official corroboration of 114 bytes. A [separate trial of the
 dictionary](vmf_variables_runtime.md) now corroborates the eleven

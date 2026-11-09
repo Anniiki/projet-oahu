@@ -5,8 +5,8 @@
 `mod/src/display_backend.cpp` is an original C++ foundation built on the public
 Windows interfaces. It contains no OpenTDU engine code, no decompiled shader and
 no game offset. Its full-screen copy shader is written for this project.
-The [inventoried OpenTDU work](../opentdu_display_inventory.md) is a list of
-behaviors to port; this bridge does not mean that the game is recompiled.
+Earlier OpenTDU-based work only provides a list of behaviors to port; this
+bridge does not mean that the game is recompiled.
 
 The [Microsoft interoperability specification](https://microsoft.github.io/DirectX-Specs/d3d/TranslationLayerResourceInterop.html)
 describes the On12 factories, retrieval of the D3D12 device and the resource

@@ -28,7 +28,7 @@ The evidence levels remain distinct:
   level; the old unreadable original readings of `50AD00/504930` do not
   become evidence of the parser.
 
-A single Rea session, resumed from the existing secondary snapshot, performed
+A single static analysis session, resumed from the existing secondary snapshot, performed
 84 operations; bundle and snapshot were exported, then the session was closed.
 No OpenTDU code is reused. The static analysis and then the verification of
 the trial 21 files launched no game, process probe or build; the trial was
@@ -212,7 +212,7 @@ established before reproducing the game's appearance in D3D12/Vulkan.
 
 ## Private provenance and corroboration catalog
 
-Batch: `<private-evidence>/reprise-2026-10-30/rea/material-bindings/`.
+Batch: `<private-evidence>/reprise-2026-10-30/material-bindings/`.
 `evidence-index.json`, `disk-comparisons.json`, `finding-ledger.json` and the
 asset reports separate facts, interpretations and unknowns. The bank
 fingerprints are rechecked, without writing their payloads:
@@ -226,19 +226,19 @@ fingerprints are rechecked, without writing their payloads:
 Main assembly evidence:
 
 - `41`, list copy `50E330`:
-  `ev_d563fefddc3d8031efd6a87f994d9984e26ba8dd569056acf9148fc80f9c0803`;
+  `d563fefddc3d8031efd6a87f994d9984e26ba8dd569056acf9148fc80f9c0803`;
 - `53`, selection `509160`:
-  `ev_09a4f730363f758206996f59d22bac7deed71723d752d7e8a5e571a29f774000`;
+  `09a4f730363f758206996f59d22bac7deed71723d752d7e8a5e571a29f774000`;
 - `27`, MBNK resolution `50A480`:
-  `ev_ffdeab9f29677017beb162d93002055e24fd06b9d8c28bd4f7dd2b37b68d414f`;
+  `ffdeab9f29677017beb162d93002055e24fd06b9d8c28bd4f7dd2b37b68d414f`;
 - `32`, MATA lookup `40FC80`:
-  `ev_0eab4e7e58425b4fda3d560435adac77696114ec8ad94ca7e3d987ac54f97f49`.
+  `0eab4e7e58425b4fda3d560435adac77696114ec8ad94ca7e3d987ac54f97f49`.
 
 The calling constructor appears in the retained folder
-`ev_e03e8aa22cd8a4f4958f90f5ae2c2d45aa2b7b595607ca989317277aa7c3a42a`.
+`e03e8aa22cd8a4f4958f90f5ae2c2d45aa2b7b595607ca989317277aa7c3a42a`.
 The dispatcher, not recognized as a function by Ghidra, is supported by
 reading `46` and `secondary-504b10.asm.txt` from the MSVC decoder; this
-separate listing is not presented as a Rea AddressSet.
+separate listing is not presented as a static analysis AddressSet.
 
 `corroboration-proposal.json` proposed, for a trial already justified
 independently, seven small executable readings totaling
@@ -258,7 +258,7 @@ verified below.
 
 ## Trial 21: seven bounded official matches
 
-Closed batch: `<isolated-copies>/slot0/20261030T164158-32976/`.
+Closed batch: `<isolated-copies>/20261030T164158-32976/`.
 PID **2692**, creation FILETIME **`134378521269961313`**, identical in
 `suspended-pid.json`, `startup-report.json` and `code-helpers/observations.json`.
 The observed base is `00400000`. The official file is verified by its
@@ -271,7 +271,7 @@ The probe reports **84/84 readable ranges, 18 503 bytes**. The independent
 recheck covers the following seven material captures: size and SHA of the
 `.bin` files, byte-by-byte comparison with the `.text` sections of the two
 PEs whose complete fingerprints are rechecked, then a bounds check against
-the retained Rea evidence. The difference listing of the review report
+the retained static analysis evidence. The difference listing of the review report
 is also recomputed for these seven ranges.
 
 | VA / bytes | Corroborated coverage | Observed SHA-256, equal to the secondary |
@@ -285,8 +285,8 @@ is also recomputed for these seven ranges.
 | `0050ABBC / 165` | **Selected span** of the call site, not all of `50AB40` | `842f844f2f18d5b1bdfb9a31b365cddf3eb2e36a16e2081c09cb0888b114066e` |
 
 The first five sizes cover exactly the five contiguous AddressSets announced
-by `resolve_containing_procedure`, with no missing prefix or filled gap.
-The dispatcher matches the first 92 bytes of Rea reading `46`; the caller
+by containing-function resolution, with no missing prefix or filled gap.
+The dispatcher matches the first 92 bytes of static analysis reading `46`; the caller
 excerpt stays inside the retained body of `50AB40` and starts/ends at
 instruction boundaries. The equality of these two excerpts does not turn
 their coverage into proof of a complete function.
@@ -318,7 +318,7 @@ The fingerprints below identify the closed files of the trial:
 
 In the private `material-bindings` batch, `verify-runtime21.py` reads only
 these files, the seven raw captures, the local PEs and the already closed
-Rea exports. `runtime21-verification.json` keeps the sources/SHAs, the
+static analysis exports. `runtime21-verification.json` keeps the sources/SHAs, the
 bounds, the coverage classifications and the seven recomputed results.
 It opens no process, executes no target and modifies no probe. The private
 report is 13 321 bytes, SHA-256

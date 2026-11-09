@@ -45,16 +45,16 @@ In both PEs, `.text` starts at RVA/raw `0x1000`, VirtualSize
 `0x5EA966`, SizeOfRawData `0x5EB000`; this explains the identical offsets
 of the nine comparisons, without assuming that relationship in the computation.
 
-The entries and sizes come from the closed **secondary** Rea exports
-`rea/ui-map-input-dispatch/session/`: resolutions 09,10,18,25,30,31,32,33,42.
+The entries and sizes come from the closed **secondary** static analysis exports
+`ui-map-input-dispatch/session/`: resolutions 09,10,18,25,30,31,32,33,42.
 Each AddressSet holds a single inclusive interval whose `total_bytes`
 and `span_bytes` equal the requested size. The comparator checks these
 relations and the subject's SHA before using the anchor.
 
 For the identical body, resolution 09:
-`ev_58859635df8f9b9738407cc1bea231de00aa9083e66d0fa306a37e5f8d559cee`,
+`58859635df8f9b9738407cc1bea231de00aa9083e66d0fa306a37e5f8d559cee`,
 AddressSet `0x008DC790..0x008DC7E3`; assembly 11:
-`ev_12302e8be6d5e12ecb7650db453adb12504842a3694c1cfa0c00641cf61e1cfc`.
+`12302e8be6d5e12ecb7650db453adb12504842a3694c1cfa0c00641cf61e1cfc`.
 These are the reused secondary bounds; no new function delimitation by
 analysis of the official executable is claimed.
 
@@ -100,6 +100,6 @@ cause of the differences is not examined.
 
 The C++ reader remains validated against the resources and its independent
 oracles; this batch adds no primary evidence to the interpretation helpers,
-the host commands or the full WhatZoom route. No target game or process, Rea
+the host commands or the full WhatZoom route. No target game or process, static analysis
 session, decryption, protection change, build or live probe was launched.
 The C++ sources, CMake, Git and the other documents are unchanged.

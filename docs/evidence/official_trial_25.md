@@ -5,20 +5,20 @@
 The isolated copy of **TDU PC MC1.66A** provides **28 code windows, 5,496
 bytes**, corresponding to 24 studied procedures, and **six four-byte
 scalars**. Every window equals the analyzed secondary; none equals the
-official file at the same VAs. The constants equal both disks and the Rea
+official file at the same VAs. The constants equal both disks and the static analysis
 listings. This corroborates the presence of the code, not its execution.
 
 Official: SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 Secondary:
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Workspace slot 0 (coop-anything), private batch
-`<isolated-copies>/slot0/20261030T220251-29060`, PID **34200**,
+Isolated copy, private batch
+`<isolated-copies>/20261030T220251-29060`, PID **34200**,
 creation FILETIME **134378714058315318**. The image is at `0x00400000`.
 
 ## Exact perimeter
 
-The exclusive `ui-vmf` profile of `tdur_probe_code` uses only these ranges:
+The exclusive `ui-vmf` profile of the unpublished code probe uses only these ranges:
 
 | Role | VA / requested bytes |
 | --- | --- |
@@ -59,16 +59,16 @@ not the future x64 client with a direct D3D12 renderer.
 ## Verification and limits
 
 `reprise-2026-10-30/vmf-core-runtime-25/verify_runtime.py` rereads the
-captures, the two PEs, the Rea AddressSets, the constants and the end
+captures, the two PEs, the static analysis AddressSets, the constants and the end
 reports, without new access to the process. Its result
 `runtime25-comparison.json` carries SHA-256
 `74e114d2403b30e6c85d4d1ada2745577ac837cd64b34dcc376de2f993647cdc`.
 It checks the virtual/file bounds and the section type, the 28 exact
 requests, the fingerprints, PID/creation and the agreement of the saves.
 
-The new bounds come from the Rea61..77 resolutions of
-`rea/vmf-action-interpreter/session/`, the seven older procedures from the
-`rea/ui-map-input-dispatch/session/` batch. The scalars are exports
+The new bounds come from resolutions 61..77 of
+`vmf-action-interpreter/session/`, the seven older procedures from the
+`ui-map-input-dispatch/session/` batch. The scalars are exports
 40/41/42/78 and the first four bytes of 18/19 of the new batch.
 
 An independent review recomputes these relations without importing or

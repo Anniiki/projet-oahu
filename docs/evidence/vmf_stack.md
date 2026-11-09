@@ -7,12 +7,12 @@ text, sprite identity and owned text. Numbers keep their bits until
 conversion; sprites use a 64-bit identity and a generation, never the bits
 of an x86 pointer.
 
-Sources: Rea exports 21/22/23 from the batch
-`rea/vmf-action-interpreter/session/`, `44B200/68`, `44B250/104`,
+Sources: static analysis exports 21/22/23 from the batch
+`vmf-action-interpreter/session/`, `44B200/68`, `44B250/104`,
 `44B2E0/103`. Respective evidence:
-`ev_cfb37b1741d87cce4ab1e4403900343c10244a4cba53fb4d82aa4d6353dfe86c`,
-`ev_4aa3e2c6c6a8b6cf6d728e29dbb475fb17743eacb85d0101f5458486c2080773`,
-`ev_89b32227f3c385f689a553d78319654471a40d842712c0fd16c24736890fb064`.
+`cfb37b1741d87cce4ab1e4403900343c10244a4cba53fb4d82aa4d6353dfe86c`,
+`4aa3e2c6c6a8b6cf6d728e29dbb475fb17743eacb85d0101f5458486c2080773`,
+`89b32227f3c385f689a553d78319654471a40d842712c0fd16c24736890fb064`.
 The linked push `44B350/43` completes these contracts. These four bodies are
 corroborated by [official trial 25](official_trial_25.md), with no attested
 invocation. The simple pop 444600 and the initialization 44B1A0 remain

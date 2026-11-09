@@ -56,7 +56,7 @@ replay. No buffer, key or commercial resource is embedded.
 The two complete bodies, **277 bytes**, match the official MC1.66A primary on
 disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-PE, Rea and DUMPBIN are cross-checked. The eight-byte constant at F41780 is
+PE, static analysis and DUMPBIN are cross-checked. The eight-byte constant at F41780 is
 also verified as zero in both images; no read of that constant in a live
 process is claimed here.
 

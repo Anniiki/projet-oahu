@@ -78,7 +78,7 @@ official timer; their presence does not prove that the callback runs in this
 scene.
 
 Private evidence:
-`<isolated-copies>/slot0/20261030T083003-25076/`.
+`<isolated-copies>/20261030T083003-25076/`.
 `timing-scalars.json`, 14,744 bytes, SHA-256
 `c22ba848d668332cbe31c5d06371847d674d882b722ed549f5b59e10a3b196c9`.
 The Job stops only our game process at its planned deadline (exit 1460), then

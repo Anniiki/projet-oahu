@@ -17,11 +17,11 @@ files on disk:
 `027f8d2b7fdcef0d4fc9dc375366f2b8020ca2746380cd5924e0e2586a2a6374`.
 
 Evidence is kept under
-`<private-evidence>/reprise-2026-10-30/rea/paradise-focus-follow/`:
+`<private-evidence>/reprise-2026-10-30/paradise-focus-follow/`:
 `physics-periodic-callback.asm.txt`, `physics-worker-prefix.asm.txt`,
-`targeted-disk-comparisons.json`, Rea outputs, bundle and closed snapshot.
+`targeted-disk-comparisons.json`, static analysis outputs, bundle and closed snapshot.
 Ghidra 12.2 does not recognize this callback as an attributed function; the
-Rea instructions and reads are supplemented by the MSVC `dumpbin`
+static analysis instructions and reads are supplemented by the MSVC `dumpbin`
 14.44.35229.0 static disassembly. No pseudocode is taken as a source.
 
 The closed official trial `20261030T083003-25076` corroborated the complete

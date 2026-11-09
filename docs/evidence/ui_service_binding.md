@@ -28,7 +28,7 @@ they prove neither lifetime, absence of ABA nor permission to invoke
 a native method.
 
 The isolated launcher's `--ui-binding-probe` option passes this identity,
-records the probe checksum and retains the coop-anything lifecycle,
+records the probe checksum and retains the isolated copy lifecycle,
 private saves and before/after checks.
 
 ## Checks and first observation
@@ -48,7 +48,7 @@ Official trial on 01/11/2026, PID `22784`, FILETIME `134379823609035422`:
 result: null host, catalog `011F25F4`, zero counts for both descriptors
 at the observed point. This establishes neither general absence of
 services nor a bank/language association. The 6 697 references and
-17 checked saves are preserved, slot released. The trial D3D9On12/DXGI
+17 checked saves are preserved, copy released. The trial D3D9On12/DXGI
 bridge remains temporary.
 
 Private evidence: `<private-evidence>/reprise-2026-10-31/`, directories

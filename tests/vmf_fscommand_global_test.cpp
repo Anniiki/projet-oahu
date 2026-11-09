@@ -70,38 +70,6 @@ struct Call final : VmfFsGlobalCall {
         return {};
     }
 };
-struct Collection final : VmfFsGlobalCollection {
-    std::size_t counts{}, lookups{};
-    std::int32_t size{3};
-    std::array<VmfFsCollectionItem*, 3> rows{};
-    std::array<std::int32_t, 16> indices{};
-    std::function<void()> on_count, on_item;
-    bool fail_count{}, fail_item{};
-    std::expected<std::int32_t, Error>
-    count(std::uint32_t selector) noexcept override {
-        check(selector == 1, "count uses native selector1");
-        ++counts;
-        if (on_count)
-            on_count();
-        if (fail_count)
-            return std::unexpected(injected());
-        return size;
-    }
-    std::expected<VmfFsCollectionItem*, Error>
-    item(std::uint32_t selector, std::int32_t index) noexcept override {
-        check(selector == 1 && index >= 0,
-              "lookup uses selector1 and independent nonnegative index");
-        check(lookups < indices.size(), "fixture lookup trace bounded");
-        indices[lookups++] = index;
-        if (on_item)
-            on_item();
-        if (fail_item)
-            return std::unexpected(injected());
-        return static_cast<std::size_t>(index) < rows.size()
-                   ? rows[static_cast<std::size_t>(index)]
-                   : nullptr;
-    }
-};
 struct Query final : VmfFsGlobalFocusQuery {
     std::size_t calls{};
     std::uint8_t al{255};
@@ -167,40 +135,30 @@ struct Fixture {
     VmfFsStateOwner owner{2U, 99U}, other_owner{7U, 88U};
     VmfFsModeOwner first{13U, std::uint8_t{200}, std::uint8_t{5}},
         second{43U, std::uint8_t{66}, std::uint8_t{8}}, third;
-    VmfFsFrokChild child{std::uint8_t{255}};
-    VmfFsFrokRoot root{&child};
-    std::array<VmfFsCollectionItem, 3> items{{{0xffffffffU}, {0x2000U}, {0U}}};
     VmfFsTutorialLink link{std::uint8_t{9}}, other_link{std::uint8_t{8}};
     VmfFsTutorialEnclosing enclosing{&link}, other_enclosing{&other_link};
     VmfFsTutorialOwner world{0x17U, &enclosing},
         other_world{0x17U, &other_enclosing};
     VmfFsGlobalState state{&owner, std::uint8_t{0}};
     VmfFsGlobalGlobals globals;
-    Call fc80, a0110, fcc0, feb0, tail40, tail80;
-    Collection collection, replacement;
+    Call fc80, a0110, fcc0, feb0;
     Query query;
     Apply apply{query};
     Tutorial tutorial;
     std::array<std::byte, 4>
         key{}; // Fixture storage, not inferred F07C88 contents.
-    int argument{42}, end_argument{99};
+    int argument{42};
     VmfFsGlobalInputs inputs{state, globals};
     Fixture() {
-        globals.root_11403d0 = &root;
         globals.owner_114c04c = &first;
         globals.owner_114c048 = &argument;
-        globals.owner_10e75f0 = &end_argument;
         globals.owner_10e72f0 = &world;
         globals.tutorial_flag_141194d = std::uint8_t{7};
         globals.focus = {4U, 71U, 72U, 73U};
-        collection.rows = {&items[0], nullptr, &items[2]};
         inputs.call_99fc80 = &fc80;
         inputs.call_9a0110 = &a0110;
         inputs.call_99fcc0 = &fcc0;
         inputs.call_99feb0 = &feb0;
-        inputs.call_866040 = &tail40;
-        inputs.call_866080 = &tail80;
-        inputs.collection_114b0c0 = &collection;
         inputs.constant_f07c88 = key.data();
         inputs.focus_query_4409c0 = &query;
         inputs.focus_apply_441200 = &apply;
@@ -240,13 +198,11 @@ void phase(VmfFsGlobalContext& context, Fixture& fixture, Phase wanted) {
 }
 void classifier_and_unknowns() {
     scenario = "classifier and unknowns";
-    const std::array<std::pair<std::string_view, std::uint32_t>, 15> names{
+    const std::array<std::pair<std::string_view, std::uint32_t>, 13> names{
         {{"avno", 0x61766e6fU},
          {"avye", 0x61767965U},
          {"cams", 0x63616d73U},
          {"clms", 0x636c6d73U},
-         {"frca", 0x66726361U},
-         {"frok", 0x66726f6bU},
          {"gein", 0x6765696eU},
          {"geou", 0x67656f75U},
          {"mcin", 0x6d63696eU},
@@ -259,7 +215,7 @@ void classifier_and_unknowns() {
     for (const auto& [text, expected] : names) {
         check(take(classify_vmf_command4(text)) == expected &&
                   identify_vmf_global_branch(expected) != Branch::unknown,
-              "all fifteen native comparison keys recognized");
+              "all thirteen published comparison keys recognized");
     }
     const std::array<std::uint32_t, 4> signed_codes{0x80424344U, 0xff804344U,
                                                     0xffff8044U, 0xffffff80U};
@@ -366,81 +322,6 @@ void delegates_states_and_modes() {
         complete(exit, f);
         check(f.second.byte_31 == std::uint8_t{0},
               "new command really reloads current mode owner");
-    }
-}
-void collection_and_bits() {
-    scenario = "collection count, fixed object, flags and frok bits";
-    for (unsigned value = 0; value < 256; ++value) {
-        Fixture f;
-        f.child.flags_8 = static_cast<std::uint8_t>(value);
-        f.collection.size = -1;
-        VmfFsGlobalContext context("frok", nullptr);
-        complete(context, f, 1);
-        const auto got = *f.child.flags_8;
-        check((got & 1U) == (value & 1U) && ((got >> 1U) & 1U) == (value & 1U),
-              "bit0 preserved and copied to bit1");
-        check((got & 0x1cU) == 0 && (got & 0xe0U) == (value & 0xe0U),
-              "bits2..4 cleared, bits5..7 preserved for all256 inputs");
-        check(f.collection.counts == 1 && f.collection.lookups == 0 &&
-                  f.tail80.calls == 1,
-              "negative signed count skips lookup, not terminal helper");
-    }
-    for (const auto text : {"frca", "frok"}) {
-        for (const auto count : {0, -2147483647 - 1, 3}) {
-            Fixture f;
-            f.collection.size = count;
-            VmfFsGlobalContext context(text, nullptr);
-            complete(context, f);
-            check(f.collection.counts == 1 &&
-                      f.collection.lookups == (count > 0 ? 3U : 0U),
-                  "count captured once and signed loop bound honored");
-            check(
-                f.tail40.calls ==
-                        (context.snapshot().branch == Branch::frca ? 1U : 0U) &&
-                    f.tail80.calls ==
-                        (context.snapshot().branch == Branch::frok ? 1U : 0U),
-                "correct native terminal helper selected");
-            if (count > 0)
-                check(f.collection.indices[0] == 0 &&
-                          f.collection.indices[1] == 1 &&
-                          f.collection.indices[2] == 2 &&
-                          f.items[0].flags_ac4 == 0xffffdfffU,
-                      "indexed lookup includes NULL item, masks only bit13");
-        }
-    }
-    {
-        Fixture f;
-        f.items[0].flags_ac4.reset();
-        f.collection.on_count = [&] {
-            f.inputs.collection_114b0c0 = &f.replacement;
-        };
-        VmfFsGlobalContext context("frca", nullptr);
-        check(run(context, f).status == Status::pending &&
-                  f.collection.lookups == 1,
-              "item pointer captured before unresolved flags");
-        check(run(context, f).status == Status::pending &&
-                  f.collection.lookups == 1,
-              "waiting item flags never replay lookup");
-        f.items[0].flags_ac4 = 0xffffffffU;
-        f.collection.size = 0; // Captured native count remains3.
-        complete(context, f);
-        check(f.collection.lookups == 3 && f.replacement.counts == 0 &&
-                  f.replacement.lookups == 0,
-              "SAME fixed collection and saved count retained after callback "
-              "mutation");
-    }
-    {
-        Fixture f;
-        f.inputs.collection_114b0c0.reset();
-        VmfFsGlobalContext context("frok", nullptr);
-        check(run(context, f).status == Status::pending &&
-                  f.child.flags_8 == std::uint8_t{227},
-              "frok prefix executes before missing collection");
-        f.child.flags_8 = std::uint8_t{31};
-        f.inputs.collection_114b0c0 = &f.collection;
-        complete(context, f);
-        check(f.child.flags_8 == std::uint8_t{31},
-              "frok prefix not replayed after resolving collection");
     }
 }
 void focus_and_tutorial() {
@@ -676,7 +557,6 @@ int main() {
     static_assert(!std::is_move_constructible_v<VmfFsGlobalContext>);
     classifier_and_unknowns();
     delegates_states_and_modes();
-    collection_and_bits();
     focus_and_tutorial();
     guarded_pool_and_faults();
     real_composition();

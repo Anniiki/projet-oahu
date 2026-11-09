@@ -31,9 +31,15 @@ class TestService final : public StartupServiceBase {
     ModeInitOutcome initialize(GameModeRuntime&) override {
         return ModeInitOutcome::native_rejected;
     }
-    void on_forward_pass() override {}
-    void on_reverse_pass() override {}
-    void on_shutdown() override {}
+    ModeCallOutcome on_forward_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_reverse_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_shutdown() override {
+        return ModeCallOutcome::native_returned;
+    }
 };
 
 struct Ports final : Driver980AF0Ports {

@@ -227,3 +227,22 @@ add_test(NAME display_injected_exclusive_pending
         --work-root "${CMAKE_BINARY_DIR}/display-startup-fixtures"
         --mode exclusive)
 set_tests_properties(display_injected_exclusive_pending PROPERTIES TIMEOUT 35 RUN_SERIAL TRUE)
+
+add_executable(tdur_frametime_recorder_test
+    tests/frametime_recorder_test.cpp src/frametime_recorder.cpp)
+target_include_directories(tdur_frametime_recorder_test PRIVATE include)
+target_compile_options(tdur_frametime_recorder_test PRIVATE
+    /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
+add_test(NAME observation_frametime_statistics COMMAND tdur_frametime_recorder_test)
+set_tests_properties(observation_frametime_statistics PROPERTIES TIMEOUT 15)
+foreach(case enabled invalid missing-display missing-installation host-log source-log)
+    add_test(NAME observation_frametime_${case}
+        COMMAND "${Python3_EXECUTABLE}" -I -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_display_startup_fixture.py"
+            --launcher "$<TARGET_FILE:tdur_observe_launch>"
+            --witness "$<TARGET_FILE:tdur_display_startup_witness>"
+            --dll "$<TARGET_FILE:tdur_observation_proxy>"
+            --work-root "${CMAKE_BINARY_DIR}/display-startup-fixtures"
+            --frametime ${case})
+    set_tests_properties(observation_frametime_${case} PROPERTIES TIMEOUT 35 RUN_SERIAL TRUE)
+endforeach()

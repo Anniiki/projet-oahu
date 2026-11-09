@@ -181,7 +181,7 @@ struct Vector {
 // not strtof and not a loop copied from the C++ implementation. The private
 // generation/provenance data are vmf-number-tests/core-oracle-frozen.json.
 // SSE evidence10:
-// ev_15f0cce6a2fb910768bae6f1e7a9c76885f3b0d79766fde3ac844098739fc097.
+// 15f0cce6a2fb910768bae6f1e7a9c76885f3b0d79766fde3ac844098739fc097.
 constexpr std::array<Vector, 127> vectors{{
     {std::string_view{"", 0}, 0x00000000U, false},
     {std::string_view{"+", 1}, 0x00000000U, false},

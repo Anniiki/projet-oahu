@@ -2,7 +2,7 @@
 
 // Driver 0x9A5D20 (chargement externe).
 // Corps corroboré : 142 instructions, 451 octets, 9A5D20..9A5EE2, preuve
-// ev_9f085db4...b8c3, enveloppe égale à l'officiel. Tous les appelés
+// 9f085db4...b8c3, enveloppe égale à l'officiel. Tous les appelés
 // (609780, 6097B0, 609800, 609710, 609760, 9A4BD0, [9EC258], slot +0x20 de
 // l'allocateur, 9A5730, 674E0C) restent des ports : aucune VA n'est appelée.
 //

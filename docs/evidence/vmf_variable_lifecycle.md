@@ -4,7 +4,7 @@
 
 The primary reference remains the official PC MC 1.66 A executable, SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The contracts below come from the Rea exports of the secondary Paradise binary
+The contracts below come from the static analysis exports of the secondary Paradise binary
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 The dictionary helpers were already corroborated in the official 1479-byte
 batch. This integration adds no new official observation of the wrappers or
@@ -12,11 +12,11 @@ of an in-game invocation.
 
 | Routine | Fact used | Private export |
 | --- | --- | --- |
-| `445BA0` | Type 2 branch, then type 1, then text; value before name | `reprise-2026-10-30/rea/vmf-action-interpreter/session/59-procedure_assembly.json` |
-| `449240/449290/4492E0` | Classification, then setter, then OR `200h` on the target | `reprise-2026-10-31/rea/vmf-text-services/session/18,20,22-procedure_assembly.json` |
-| `443700/443770/4437F0` | NULL name or NULL insertion: return without assignment | `reprise-2026-10-31/rea/vmf-host-context/session-v2/29,30,31-procedure_assembly.json` |
-| `448910` | If `200h` is set: scope cleanup, then node cleanup | `reprise-2026-10-31/rea/vmf-display-lifecycle/session/45-procedure_assembly.json` |
-| `4438D0` | Ordered scan/compaction, scope 0 selects the non-zero entries | `reprise-2026-10-31/rea/vmf-display-lifecycle/session/57-procedure_assembly.json` |
+| `445BA0` | Type 2 branch, then type 1, then text; value before name | `reprise-2026-10-30/vmf-action-interpreter/session/59-assembly.json` |
+| `449240/449290/4492E0` | Classification, then setter, then OR `200h` on the target | `reprise-2026-10-31/vmf-text-services/session/18,20,22-assembly.json` |
+| `443700/443770/4437F0` | NULL name or NULL insertion: return without assignment | `reprise-2026-10-31/vmf-host-context/session-v2/29,30,31-assembly.json` |
+| `448910` | If `200h` is set: scope cleanup, then node cleanup | `reprise-2026-10-31/vmf-display-lifecycle/session/45-assembly.json` |
+| `4438D0` | Ordered scan/compaction, scope 0 selects the non-zero entries | `reprise-2026-10-31/vmf-display-lifecycle/session/57-assembly.json` |
 
 These paths are relative to `<private-evidence>`. The envelopes keep their
 EvidenceID/SHA256; two earlier reviews separate the literal catalogue from

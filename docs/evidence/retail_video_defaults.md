@@ -30,9 +30,9 @@ x86 VA, preferred base `0x00400000`:
 - Secondary Platinum/Paradise: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-The Rea/Ghidra 12.2 investigation of the secondary uses the
+The Ghidra 12.2 investigation of the secondary uses the
 `paradise-video-config` snapshot. Local outputs are under
-`<private-evidence>/reprise-2026-10-30/rea/paradise-video-defaults/`:
+`<private-evidence>/reprise-2026-10-30/paradise-video-defaults/`:
 
 | Files | Question established |
 | --- | --- |
@@ -63,7 +63,7 @@ memory `996850/512` then `996a50/303`, that is the complete body of 815 bytes.
 Both ranges are identical to both disks. Respective SHAs:
 `30669f7bbbf3f0bf284fa5fd37d9f98269bcac1f85003dfddbd70dc28c625453`
 and `70010eb1fdc6aa7b6c53b6471158194680bccfbf28d77c004221d4b1f8fd12be`.
-Report: `<isolated-copies>/slot0/20261030T090308-28852/code-helpers/comparisons.json`.
+Report: `<isolated-copies>/20261030T090308-28852/code-helpers/comparisons.json`.
 
 ## Three sets of values
 

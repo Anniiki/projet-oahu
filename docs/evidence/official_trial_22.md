@@ -2,7 +2,7 @@
 
 ## Observation and preservation
 
-Private batch `<isolated-copies>/slot0/20261030T172644-24736/`; PID
+Private batch `<isolated-copies>/20261030T172644-24736/`; PID
 31176, creation FILETIME 134378548139721974. The job object terminates the
 process at the 120-second deadline (code 1460), then the slot is released. The
 6 697 reference files and the 17 digests of the source savegames remain
@@ -57,4 +57,4 @@ The independent review also had the header reads themselves bounded: an
 unknown loader refuses before any read, DOS after four bytes, an unknown
 e_lfanew after eight, without following its value. The measured profile
 requests exactly the seven expected RVAs. The final review no longer reports
-any P1/P2 defect.
+any blocking defect.

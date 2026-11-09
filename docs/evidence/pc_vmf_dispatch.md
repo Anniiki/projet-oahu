@@ -2,7 +2,7 @@
 
 ## Reference and scope
 
-Rea/Ghidra 12.2 analysis of the **local secondary**, SHA-256
+Ghidra 12.2 analysis of the **local secondary**, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 The official PC MC 1.66 A executable remains the primary reference; its earlier
 captures do not transitively corroborate the new bodies below.
@@ -15,7 +15,7 @@ secondary. The 84-byte WhatZoom body is identical in the two
 [compared on-disk executables](vmf_primary_file_comparison.md), without
 promotion of its jump table or of its callees.
 
-Single private session: `<private-evidence>/reprise-2026-10-30/rea/ui-map-input-dispatch/session/`.
+Single private session: `<private-evidence>/reprise-2026-10-30/ui-map-input-dispatch/session/`.
 The JSON files preserve identity, Evidence IDs and provider limits.
 The study uses the previous snapshot and targeted queries; no OpenTDU engine
 code is imported.
@@ -81,9 +81,9 @@ and the branches, `42..44` for the rebase. Each prefix is the ordinal of the
 corresponding JSON file in the session.
 
 Evidence examples: dispatcher
-`ev_74fec9dcbae64fe9e3fd8c5dd4163880c2dddda8e82b6bb27cc1c3c6a020e4b2`,
-advance `ev_1b3d602a8e99f46d46147131976e3dc641c270bd6710a2f339ad39a30f491cc4`,
-rebase `ev_cc68039ea2be484a2083f9ce6df911268b996208fa56d934bb1dc6b25c501c93`.
+`74fec9dcbae64fe9e3fd8c5dd4163880c2dddda8e82b6bb27cc1c3c6a020e4b2`,
+advance `1b3d602a8e99f46d46147131976e3dc641c270bd6710a2f339ad39a30f491cc4`,
+rebase `cc68039ea2be484a2083f9ce6df911268b996208fa56d934bb1dc6b25c501c93`.
 
 The [bounded, owning C++ reader](vmf_movie_reader.md) is now integrated.
 Script execution and the context services remain to be reconstructed.

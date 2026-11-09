@@ -61,7 +61,7 @@ preserved; the original installation and source saves were unchanged.
 The access violation's cause remains unknown. These witness fixes
 **do not establish that the actual new-game failure is resolved**.
 
-Rea's static inspection of official PC MC 1.66 A identifies
+The static inspection of official PC MC 1.66 A identifies
 `SHGetFolderPathA`, `OpenProcessToken` and a profile-list literal. Its
 reference inventories did not establish the running game's caller or
 token argument. A corresponding path in OpenTDU is a secondary lead,

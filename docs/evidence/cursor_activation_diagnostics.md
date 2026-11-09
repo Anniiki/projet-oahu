@@ -7,11 +7,9 @@ The reference remains PC MC 1.66 A, SHA-256
 
 ## Enablement and recorded data
 
-Use `tools/observe_official_start.py --cursor-metadata` with the existing
-`--d3d12-display` diagnostic configuration and its required installation,
-copy and output arguments. This option is rejected in a play session.
-The wrapper removes any inherited `TDUR_CURSOR_DIAGNOSTICS` value and sets it
-to `1` only for an explicit request. The proxy attaches nothing when the
+This feature does not launch the game by itself. It is enabled through the
+`TDUR_CURSOR_DIAGNOSTICS` environment variable, alongside the D3D12 display
+diagnostic configuration. The proxy attaches nothing when the
 variable is absent; any present value other than exactly `1` refuses startup.
 
 Four Win32 operations are classified: `ShowCursor`, `SetCursor`, `ClipCursor`

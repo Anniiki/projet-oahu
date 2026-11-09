@@ -182,9 +182,15 @@ struct Rig {
         ModeInitOutcome initialize(GameModeRuntime&) override {
             return ModeInitOutcome::native_rejected;
         }
-        void on_forward_pass() override {}
-        void on_reverse_pass() override {}
-        void on_shutdown() override {}
+        ModeCallOutcome on_forward_pass() override {
+            return ModeCallOutcome::native_returned;
+        }
+        ModeCallOutcome on_reverse_pass() override {
+            return ModeCallOutcome::native_returned;
+        }
+        ModeCallOutcome on_shutdown() override {
+            return ModeCallOutcome::native_returned;
+        }
     } self;
 
     Rig() {
@@ -422,9 +428,15 @@ void test_writes_around_callbacks() {
 
 struct TestService final : Service9b1df0 {
     using Service9b1df0::Service9b1df0;
-    void on_forward_pass() override {}
-    void on_reverse_pass() override {}
-    void on_shutdown() override {}
+    ModeCallOutcome on_forward_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_reverse_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_shutdown() override {
+        return ModeCallOutcome::native_returned;
+    }
 };
 
 struct Lifecycle final : ModeLifecyclePorts {

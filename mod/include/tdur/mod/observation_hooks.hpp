@@ -5,6 +5,7 @@
 // Called only from this statically imported observer's process attach.
 // Config is process-local environment supplied before process creation.
 bool TdurInstallObservationHooks() noexcept;
+bool TdurObservationFrametimesEnabled() noexcept;
 void TdurObservationRecord(const char* event, DWORD error,
                            const wchar_t* path = nullptr,
                            const char* reason = nullptr,

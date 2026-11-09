@@ -12,17 +12,17 @@ and main-image return RVA `005A4885`. The 17 locked source-save files and all
 
 ## Primary code correlation
 
-At image base `00400000`, the observed return maps to `9A4885`. Rea confirms a
+At image base `00400000`, the observed return maps to `9A4885`. Static analysis confirms a
 six-byte indirect CALL at `9A487F`, immediately before `TEST EAX,EAX`. The hook
 observation identifies the API actually reached. The static computed target
 associated with the indirect slot is not independently established as its
 runtime destination.
 
 Ghidra has decoded instructions here without assigning a function at `9A4840`.
-A bounded walk of provider-decoded instruction lengths and direct jump targets
+A bounded walk of Ghidra-decoded instruction lengths and direct jump targets
 reached 76 instructions and two returns, `9A48CE` and `9A4925`, with no unresolved
 jump or exit from the declared window. Calls were assumed to return for this
-traversal; this is not a provider assertion of a complete function body.
+traversal; this is not a Ghidra assertion of a complete function body.
 
 The observed path requests token access `200EC`, passes folder selector `8005`
 (`CSIDL_PERSONAL` with create), token, flags 0 and an output buffer. A negative

@@ -7,7 +7,7 @@ Its concrete frame can be borrowed by the real child path `89DD60`.
 ## Official reference
 
 The complete body `89BF80..89C06F`, 240 bytes, is corroborated by existing
-evidence from the PC MC1.66A primary, the secondary and Rea. SHA-256 of the
+evidence from the PC MC1.66A primary, the secondary and static analysis. SHA-256 of the
 body:
 `35544d0b4b0f83204eed219a1e3ca3943250fff0156299f69597d31c861434dc`.
 Identity of the primary:

@@ -32,7 +32,7 @@ Addresses are x86 VAs, base `00400000`.
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
 The new private evidence is in
-`<private-evidence>/reprise-2026-10-30/rea/physics-thread-adapter/`:
+`<private-evidence>/reprise-2026-10-30/physics-thread-adapter/`:
 `session/`, `disk-comparisons.json`, `evidence-index.json` and the bounded
 assemblies. No commercial byte is added to the repository.
 
@@ -46,7 +46,7 @@ assemblies. No commercial byte is added to the repository.
 | `606FF0/16`, `47DA40/158` | Differ on disk; official/secondary memory agreement established by closed trial 20, without editing these ranges |
 | `607000/5` | Differs on disk; no official memory corroboration of this range is inferred here |
 
-The new Rea read of the integrator covers 3 700 bytes (`02`) and its
+The new static analysis read of the integrator covers 3 700 bytes (`02`) and its
 last byte (`05`); their concatenation equals exactly the 3 701 bytes
 of both files on disk. The final `RET 0Ch` is at `81EE42` and ends at
 `81EE44`.
@@ -56,15 +56,15 @@ at `81E15D..81E15F`; the check of the full span includes them.
 Main evidence:
 
 - integrator bounds, `12`:
-  `ev_cc8f3ba7bc6e403ca9fc837bb08aa34488a6e8e82e38cbbd831ebf5e7a491eb2`;
+  `cc8f3ba7bc6e403ca9fc837bb08aa34488a6e8e82e38cbbd831ebf5e7a491eb2`;
 - complete assembly, `13`:
-  `ev_4615750fb6a82287b5b98d1f88812648ac34f7d798e463141d2ba0f75ed1fc32`;
+  `4615750fb6a82287b5b98d1f88812648ac34f7d798e463141d2ba0f75ed1fc32`;
 - complete raw worker, `27`:
-  `ev_56fce3de403ee7f2fcee68309e3fafa506f04fb7e7adb99896c52df20f81c844`;
+  `56fce3de403ee7f2fcee68309e3fafa506f04fb7e7adb99896c52df20f81c844`;
 - complete raw cleanup, `28`:
-  `ev_52964f84947b4df4f259475ae6f63020cb0ff121b8e6ba5a86795f02a6c25e4e`;
+  `52964f84947b4df4f259475ae6f63020cb0ff121b8e6ba5a86795f02a6c25e4e`;
 - termination helper, `21`:
-  `ev_1a7f130618ca0375e5706eb798153e2554c1cddb30a327e5a29ce32f717cf3bb`.
+  `1a7f130618ca0375e5706eb798153e2554c1cddb30a327e5a29ce32f717cf3bb`.
 
 These are static observations and comparisons with earlier captures,
 not an execution observation of the complete integrator.
@@ -72,7 +72,7 @@ No protection mechanism is studied or modified.
 
 Runtime complement (official trial 20): trial `20261030T134824-33340`,
 PID `29576`, official reference verified and locked. The private folder
-`<isolated-copies>/slot0/20261030T134824-33340/` keeps
+`<isolated-copies>/20261030T134824-33340/` keeps
 `code-helpers/{observations,comparisons}.json`, the captured binaries,
 `physics-context.json`, `timing-scalars.json` and the logs. The sizes
 and SHAs of the 67 captures, 14 863 bytes in all, were rechecked. The eight
@@ -181,7 +181,7 @@ and its official body in memory remains to be verified.
 
 ## Complete integrator body: locks, TLS and FPU
 
-The 874 instructions of the Rea AddressSet contain 35 direct calls,
+The 874 instructions of the static analysis AddressSet contain 35 direct calls,
 two virtual calls and two QPF/QPC IAT calls. The full span was also
 disassembled with MSVC `dumpbin` 14.44.35229.0.
 
@@ -342,12 +342,12 @@ validations. Its handled exceptions are **C++ under `/EHsc`**: no
 recovery of Havok SEH, no rollback of the native world and no guaranteed
 release of foreign locks after such a fault are promised.
 
-The Rea session reused the existing snapshot. The 36 retained calls
+The static analysis session reused the existing snapshot. The 36 retained calls
 include three assembly requests without an attributed function (worker,
 cleanup, caller `97BF20`); their failures are kept and the worker/cleanup
 are supported by raw reads and bounded assemblies. The last optional
 batch on the mode setter was rejected locally for a non-array JSON,
-before the Rea call. The `finally` block nevertheless **exported the bundle
+before the static analysis call. The `finally` block nevertheless **exported the bundle
 and closed the session with a snapshot**; both results are kept.
 No game, build, hook or source file was modified or executed
 during this investigation.

@@ -197,7 +197,7 @@ established through their own path before being implemented.
 
 ## Preserved evidence and remaining boundary
 
-Private evidence: `<private-evidence>/reprise-2026-10-30/rea/texture-bindings/`.
+Private evidence: `<private-evidence>/reprise-2026-10-30/texture-bindings/`.
 The single session reuses the closed `material-bindings` snapshot, then is
 **exported and closed** after 72 operations. The bundle keeps 1 013 pieces of
 evidence, including the imported ones. `verify-findings.py` checks the two PE
@@ -205,16 +205,16 @@ SHAs, the AddressSets, the retained raw reads, the before/after banks and the
 asset results; it opens no process. Results are in
 `disk-comparisons.json`, `asset-native-contract.json` and `evidence-index.json`.
 
-| Rea evidence | Subject |
+| Static analysis evidence | Subject |
 | --- | --- |
-| `ev_61d114575182bf018177f25324f5752b171c16b6fceffa2b1c090204f1ace76a` | `15`, assembly of `505060`, keys and BMAP cache |
-| `ev_cfb8f8b65767e5ffe2deb597d011fc7f1aa03214fe3e1f16777837f015fa2867` | `63`, assembly of `509590`, MAT → PAR |
-| `ev_0d81117de08a1a242a428520f29a9b4013c68d8b311dd93f07d6b600aa2333a7` | `59`, assembly of `602100`, PAR type dispatch |
-| `ev_6184dbb9e820339ed96fd881e3da89c4cd9bc1d447ca18f0cb38d0900d6c31c8` | `44`, assembly of `601F90`, PAR → LAY → ordinal binding |
-| `ev_baa0680b56a1772b6ee980d9d670482f094953bb3df522d4090f432d9ef41e09` | `26`, assembly of `5F5A30`, samplers and cache |
-| `ev_e9ef5a6c6cef5bff34250a4c9d17004ca666f78e670fbc37a4244d66dc657208` | `52`, assembly of `5FC380`, runtime texture and SetTexture |
-| `ev_bbf5b866db2aac2c97d09640983ba186ea1a1a1492d79d04d2bb7cfc083c361c` | `11`, `614DF0 = RET 4`, limit of the nominal callback |
-| `ev_0314c5f5339a2117da27290b7b9d65bf89890756e9c23581cb33c62625b6bf9f` | `60`, assembly of `5050E0`, auxiliary slot pointer |
+| `61d114575182bf018177f25324f5752b171c16b6fceffa2b1c090204f1ace76a` | `15`, assembly of `505060`, keys and BMAP cache |
+| `cfb8f8b65767e5ffe2deb597d011fc7f1aa03214fe3e1f16777837f015fa2867` | `63`, assembly of `509590`, MAT → PAR |
+| `0d81117de08a1a242a428520f29a9b4013c68d8b311dd93f07d6b600aa2333a7` | `59`, assembly of `602100`, PAR type dispatch |
+| `6184dbb9e820339ed96fd881e3da89c4cd9bc1d447ca18f0cb38d0900d6c31c8` | `44`, assembly of `601F90`, PAR → LAY → ordinal binding |
+| `baa0680b56a1772b6ee980d9d670482f094953bb3df522d4090f432d9ef41e09` | `26`, assembly of `5F5A30`, samplers and cache |
+| `e9ef5a6c6cef5bff34250a4c9d17004ca666f78e670fbc37a4244d66dc657208` | `52`, assembly of `5FC380`, runtime texture and SetTexture |
+| `bbf5b866db2aac2c97d09640983ba186ea1a1a1492d79d04d2bb7cfc083c361c` | `11`, `614DF0 = RET 4`, limit of the nominal callback |
+| `0314c5f5339a2117da27290b7b9d65bf89890756e9c23581cb33c62625b6bf9f` | `60`, assembly of `5050E0`, auxiliary slot pointer |
 
 `runtime-catalog-v1.json` supplied the **12 reads / 1 258 bytes** of the
 exclusive `assets-textures` profile integrated separately.
@@ -224,7 +224,7 @@ probe.
 
 ## Trial 23: bounded official corroboration
 
-Closed trial: `<isolated-copies>/slot0/20261030T174712-27428/`.
+Closed trial: `<isolated-copies>/20261030T174712-27428/`.
 PID **33928**, creation FILETIME **`134378560639742868`**, identical in
 the suspended PID, the launcher report and the code observations. Base
 `00400000`, SHA of the official file rechecked, file locked during the
@@ -234,7 +234,7 @@ released, that the **6 697 reference files** are unchanged and that the
 fingerprints of the **17 saves** are identical.
 
 The independent recheck rereads the twelve `.bin` files, the two complete
-PEs, the private catalog, the Rea results and the closed reports. It
+PEs, the private catalog, the static analysis results and the closed reports. It
 recomputes the SHAs, the byte-by-byte differences against the official disk
 image and the bounds. The twelve ranges are readable, **exactly equal to the
 secondary** and all different from the official file on disk:
@@ -257,7 +257,7 @@ secondary** and all different from the official file on disk:
 The ten AddressSets are contiguous and their inclusive size matches the
 capture exactly; no gap is added. The `60235B` excerpt starts and ends at
 instruction boundaries of the retained listing. The six bytes of `512490`
-match the Rea raw read: `MOV EAX,FAD8F0 ; RET`. The appearance of this small
+match the static analysis raw read: `MOV EAX,FAD8F0 ; RET`. The appearance of this small
 body does not turn the span into a function attested by Ghidra.
 
 None of these twelve ranges intersects our five known adaptations, totaling

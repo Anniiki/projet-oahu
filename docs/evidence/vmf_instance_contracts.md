@@ -8,13 +8,13 @@ This static evidence does not establish an invocation in the official game.
 The [C++ runtime](vmf_display_runtime.md) now carries the instance lifetimes;
 the complete wiring to the scripts and to the rendering remains to be done.
 The exports come from the private batch
-`reprise-2026-10-31/rea/vmf-host-context/`; the resource oracles provide
+`reprise-2026-10-31/vmf-host-context/`; the resource oracles provide
 values, without establishing a live instance or its scheduling.
 
 ## Construction and capacity
 
 Vtable F3F7BC: first pointer 448790. This wrapper has no function recognized
-by Ghidra; its 96 bytes, read with Rea and DUMPBIN, agree. It attaches the
+by Ghidra; its 96 bytes, read with static analysis and DUMPBIN, agree. It attaches the
 parent and the resource, then calls 4487F0, recognized with 282 contiguous
 bytes (resolution 25, assembly 27). The initializer establishes:
 

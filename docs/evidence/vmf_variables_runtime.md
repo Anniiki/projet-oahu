@@ -3,27 +3,27 @@
 ## Result and identity
 
 The **12 ranges, 1479 bytes**, representing the eleven procedures of the
-[C++ dictionary](vmf_variables.md), match exactly the secondary analyzed in
-Rea. None of these ranges equals the official executable on disk at the same
+[C++ dictionary](vmf_variables.md), match exactly the secondary analyzed
+statically. None of these ranges equals the official executable on disk at the same
 VAs; the cause of this difference is not determined by this trial. This is
 evidence that the code is present, not that it is called or of its behavior
 in game.
 
 Official PC MC 1.66 A: SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Rea secondary:
+Analyzed secondary:
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-Private batch: `<isolated-copies>/slot0/20261031T063150-35772`, target
+Private batch: `<isolated-copies>/20261031T063150-35772`, target
 PID 34920, creation FILETIME 134379019452590151, image at `00400000`.
 The executable actually observed is the private copy
-`slot0/20261030T035944-25460/game/TestDriveUnlimited.exe`, verified and locked
+`20261030T035944-25460/game/TestDriveUnlimited.exe`, verified and locked
 with the official SHA. PID 35772 belongs to the Python observer;
 the source installation remains `<installation>`.
 
 ## Exclusive ranges
 
-The compiled profile `ui-vmf-variables` of `tdur_probe_code` requests only:
+The compiled profile `ui-vmf-variables` of the unpublished code probe requests only:
 
 | Function | Inclusive VAs | Bytes |
 | --- | --- | --- |
@@ -47,11 +47,11 @@ The captures are successive observations, not an atomic snapshot.
 
 ## Source, checks and preservation
 
-Rea resumed the verified snapshot `vmf-text-services`, resolved the eight
+The static analysis resumed the verified snapshot `vmf-text-services`, resolved the eight
 missing bounds and exported the twelve ranges. **23 successful requests**; the
 1479 bytes agree with the secondary PE and DUMPBIN. The three earlier
 resolutions are reused after a fingerprint check. The artifacts remain
-private in `reprise-2026-10-31/rea/vmf-variable-dictionary/`. The new closed
+private in `reprise-2026-10-31/vmf-variable-dictionary/`. The new closed
 snapshot has SHA-256
 `52f1c2a24083ccf57939557f8e9cae52e22f0948b464cf5e00fe9ad968177cae`.
 

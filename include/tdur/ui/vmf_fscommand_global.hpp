@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tdur/ui/vmf_fscommand_router.hpp"
-#include "tdur/ui/vmf_menu_movie.hpp"
 
 #include <array>
 #include <span>
@@ -14,8 +13,6 @@ enum class VmfFsGlobalBranch {
     avye,
     cams,
     clms,
-    frca,
-    frok,
     gein,
     geou,
     mcin,
@@ -35,13 +32,6 @@ VmfFsGlobalBranch identify_vmf_global_branch(std::uint32_t code) noexcept;
 
 struct VmfFsStateOwner {
     std::optional<std::uint32_t> state_c, field_38;
-};
-using VmfFsCollectionItem = VmfMenuMovieState;
-struct VmfFsFrokChild {
-    std::optional<std::uint8_t> flags_8;
-};
-struct VmfFsFrokRoot {
-    std::optional<VmfFsFrokChild*> child_90;
 };
 struct VmfFsModeOwner {
     std::optional<std::uint32_t> dword_2c;
@@ -71,9 +61,8 @@ struct VmfFsGlobalState {
     std::optional<std::uint8_t> saved_8;
 };
 struct VmfFsGlobalGlobals {
-    std::optional<VmfFsFrokRoot*> root_11403d0;
     std::optional<VmfFsModeOwner*> owner_114c04c;
-    std::optional<void*> owner_114c048, owner_10e75f0;
+    std::optional<void*> owner_114c048;
     std::optional<VmfFsTutorialOwner*> owner_10e72f0;
     // Fixed writable cells: an unknown previous value does not prevent a
     // native store. Unknown values are required only before actual reads.
@@ -87,21 +76,6 @@ class VmfFsGlobalCall {
     // intact; this caller does not dereference it. The callee owns its policy.
     virtual std::expected<void, VmfFsCommandError>
     invoke(void* argument) noexcept = 0;
-};
-class VmfFsGlobalCollection {
-  public:
-    virtual ~VmfFsGlobalCollection() = default;
-    // Complete99A9A0/99A780 on SAME fixed logical114B0C0, selector1.
-    // count is the signed interpretation of99A9A0's32-bit matching count
-    // Capture it once; never use lookup's NULL as a loop sentinel.
-    // item is a fresh, side-effect-free lookup by FILTERED rank: nonzero
-    // byte2E0 and groupAD4 == selector, in storage order. It returns the last
-    // match for an absent rank, NULL only when no row matches (99A780).
-    // Only after lookup completion may a known NULL item be skipped.
-    virtual std::expected<std::int32_t, VmfFsCommandError>
-    count(std::uint32_t selector) noexcept = 0;
-    virtual std::expected<VmfFsCollectionItem*, VmfFsCommandError>
-    item(std::uint32_t selector, std::int32_t index) noexcept = 0;
 };
 class VmfFsGlobalFocusQuery {
   public:
@@ -132,8 +106,7 @@ struct VmfFsGlobalInputs {
     VmfFsGlobalState& state;
     VmfFsGlobalGlobals& globals;
     std::optional<VmfFsGlobalCall*> call_99fc80, call_9a0110, call_99fcc0,
-        call_99feb0, call_866040, call_866080;
-    std::optional<VmfFsGlobalCollection*> collection_114b0c0;
+        call_99feb0;
     std::optional<const void*> constant_f07c88;
     std::optional<VmfFsGlobalFocusQuery*> focus_query_4409c0;
     std::optional<VmfFsGlobalFocusApply*> focus_apply_441200;
@@ -146,14 +119,6 @@ enum class VmfFsGlobalPhase {
     state_clear,
     state_set,
     leaf_call,
-    frok_root,
-    frok_child,
-    frok_flags,
-    collection,
-    count,
-    loop_lookup,
-    loop_flags,
-    post_owner,
     mode_owner,
     mcin_dword,
     mcin_byte,
@@ -188,13 +153,14 @@ struct VmfFsGlobalSnapshot {
     VmfFsGlobalPhase phase{};
     VmfFsGlobalBranch branch{};
     std::size_t steps{}, calls{}, writes{};
-    std::int32_t loop_count{}, loop_index{};
     std::optional<std::uint8_t> result_al;
     std::string_view waiting_for;
     bool faulted{};
 };
-// Whole99B7A0 control/data effects, disk-primary/secondary796B/2ranges;
-// gap3B excluded. The review corroborates static bytes, not runtime execution.
+// 99B7A0 control/data effects for the thirteen published keys, from the
+// disk-primary/secondary796B/2ranges; gap3B excluded. The other native keys
+// stay outside this reconstruction and finish like unknown codes (AL0).
+// The review corroborates static bytes, not runtime execution.
 // See docs/evidence/vmf_fscommand_global.md. Helpers remain mandatory complete
 // service bodies. The old445CB0 capture does not corroborate this body.
 // Inputs/state/globals/pointees are stable serialized borrowed objects and
@@ -224,15 +190,10 @@ class VmfFsGlobalContext {
     void select(VmfFsGlobalBranch branch) noexcept;
     void finish(std::uint8_t result) noexcept;
     void after_tutorial_selection() noexcept;
-    void next_item() noexcept;
     std::string_view command_;
     const void* userdata_{};
     VmfFsStateOwner* owner4_{};
     VmfFsModeOwner* mode_{};
-    VmfFsFrokRoot* frok_root_{};
-    VmfFsFrokChild* frok_child_{};
-    VmfFsCollectionItem* item_{};
-    VmfFsGlobalCollection* collection_{};
     VmfFsTutorialOwner* tutorial_owner_{};
     VmfFsTutorialEnclosing* enclosing_{};
     VmfFsTutorialLink* link_{};
@@ -251,7 +212,7 @@ class VmfFsGlobalContext {
 // begin classifies ONCE. Unknown codes finish AL0 without any slot/services;
 // recognized calls keep that choice even if command bytes later change.
 // A complete command shorter than four bytes also finishes AL0: its NUL
-// boundary cannot produce any of the fifteen keys, whatever lies beyond it.
+// boundary cannot produce any recognized key, whatever lies beyond it.
 // Slot remains occupied during run/release, pool closes before teardown.
 // Discard released pointers; no ABA guarantee. Never destroy during a callback.
 // Adapter storage allocates at construction only; helper allocation policies

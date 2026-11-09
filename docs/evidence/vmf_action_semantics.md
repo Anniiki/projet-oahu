@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-Rea batch `rea/vmf-action-interpreter/session/`, secondary PC SHA-256
+Static analysis batch `vmf-action-interpreter/session/`, secondary PC SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 The AddressSets and the assembly listings take precedence over pseudocode,
 which sometimes loses SSE computations and register parameters. No commercial
@@ -119,8 +119,8 @@ remain to be established. Do not replace these unknowns with the SWF4 model
 
 Key evidence of the batch: assembly listings 10..13,20..34,58..60,96/98/99/108..110;
 resolutions 61..77 and 87/88/94; pseudocode 35..57,80..85,89..93,95/97/105..107.
-Examples: hash `ev_f77c4d11ee3f18f8709e937c3b257acac92afbbf9af3081abe66fe5f1bb564c5`,
-consumed key `ev_3c743ed923dd87473bd72b816c42b311097ae8da47287bb9f1c6e2924cbcfd36`.
+Examples: hash `f77c4d11ee3f18f8709e937c3b257acac92afbbf9af3081abe66fe5f1bb564c5`,
+consumed key `3c743ed923dd87473bd72b816c42b311097ae8da47287bb9f1c6e2924cbcfd36`.
 
 ## Recovered link to the zoom requests
 

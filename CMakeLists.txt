@@ -43,6 +43,37 @@ add_library(tdur_startup_services STATIC src/game/startup_services.cpp)
 target_link_libraries(tdur_startup_services PUBLIC tdur_game_mode_lifecycle)
 tdur_compile_options(tdur_startup_services)
 
+add_library(tdur_startup_service_cycles STATIC src/game/startup_service_cycles.cpp)
+target_link_libraries(tdur_startup_service_cycles PUBLIC tdur_startup_services)
+tdur_compile_options(tdur_startup_service_cycles)
+
+add_library(tdur_startup_service_preparations STATIC
+    src/game/startup_service_preparations.cpp)
+target_link_libraries(tdur_startup_service_preparations PUBLIC
+    tdur_startup_service_cycles)
+tdur_compile_options(tdur_startup_service_preparations)
+
+add_library(tdur_startup_world_loaders STATIC src/game/startup_world_loaders.cpp)
+target_link_libraries(tdur_startup_world_loaders PUBLIC
+    tdur_startup_service_preparations)
+tdur_compile_options(tdur_startup_world_loaders)
+
+add_library(tdur_startup_area_resource STATIC src/game/startup_area_resource.cpp)
+target_link_libraries(tdur_startup_area_resource PUBLIC tdur_startup_world_loaders)
+tdur_compile_options(tdur_startup_area_resource)
+
+add_library(tdur_startup_sector_resource STATIC src/game/startup_sector_resource.cpp)
+target_link_libraries(tdur_startup_sector_resource PUBLIC tdur_startup_area_resource)
+tdur_compile_options(tdur_startup_sector_resource)
+
+add_library(tdur_startup_world_sync STATIC src/game/startup_world_sync.cpp)
+target_link_libraries(tdur_startup_world_sync PUBLIC tdur_startup_world_loaders)
+tdur_compile_options(tdur_startup_world_sync)
+
+add_library(tdur_startup_mode_queue STATIC src/game/startup_mode_queue.cpp)
+target_link_libraries(tdur_startup_mode_queue PUBLIC tdur_startup_world_sync)
+tdur_compile_options(tdur_startup_mode_queue)
+
 add_library(tdur_startup_9b1df0_tail STATIC src/game/startup_9b1df0_tail.cpp)
 target_link_libraries(tdur_startup_9b1df0_tail PUBLIC tdur_startup_services)
 tdur_compile_options(tdur_startup_9b1df0_tail)
@@ -309,8 +340,6 @@ tdur_compile_options(tdur_vmf_help_services)
 add_library(tdur_vmf_host_commands STATIC src/ui/vmf_fscommand.cpp)
 target_sources(tdur_vmf_host_commands PRIVATE src/ui/vmf_fscommand_router.cpp)
 target_sources(tdur_vmf_host_commands PRIVATE src/ui/vmf_fscommand_global.cpp)
-
-target_sources(tdur_vmf_host_commands PRIVATE src/ui/vmf_fscommand_collection.cpp)
 target_include_directories(tdur_vmf_host_commands PUBLIC include)
 target_link_libraries(tdur_vmf_host_commands PUBLIC tdur_vmf_menu_registry)
 tdur_compile_options(tdur_vmf_host_commands)
@@ -445,6 +474,52 @@ if(BUILD_TESTING)
         tdur_compile_options(startup_services_test)
         add_test(NAME startup_services COMMAND startup_services_test)
         set_tests_properties(startup_services PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_service_cycles_test tests/startup_service_cycles_test.cpp)
+        target_link_libraries(startup_service_cycles_test PRIVATE
+            tdur_startup_service_cycles)
+        tdur_compile_options(startup_service_cycles_test)
+        add_test(NAME startup_service_cycles COMMAND startup_service_cycles_test)
+        set_tests_properties(startup_service_cycles PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_service_preparations_test
+            tests/startup_service_preparations_test.cpp)
+        target_link_libraries(startup_service_preparations_test PRIVATE
+            tdur_startup_service_preparations)
+        tdur_compile_options(startup_service_preparations_test)
+        add_test(NAME startup_service_preparations
+            COMMAND startup_service_preparations_test)
+        set_tests_properties(startup_service_preparations PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_world_loaders_test tests/startup_world_loaders_test.cpp)
+        target_link_libraries(startup_world_loaders_test PRIVATE tdur_startup_world_loaders)
+        tdur_compile_options(startup_world_loaders_test)
+        add_test(NAME startup_world_loaders COMMAND startup_world_loaders_test)
+        set_tests_properties(startup_world_loaders PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_area_resource_test tests/startup_area_resource_test.cpp)
+        target_link_libraries(startup_area_resource_test PRIVATE tdur_startup_area_resource)
+        tdur_compile_options(startup_area_resource_test)
+        add_test(NAME startup_area_resource COMMAND startup_area_resource_test)
+        set_tests_properties(startup_area_resource PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_sector_resource_test tests/startup_sector_resource_test.cpp)
+        target_link_libraries(startup_sector_resource_test PRIVATE tdur_startup_sector_resource)
+        tdur_compile_options(startup_sector_resource_test)
+        add_test(NAME startup_sector_resource COMMAND startup_sector_resource_test)
+        set_tests_properties(startup_sector_resource PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_world_sync_test tests/startup_world_sync_test.cpp)
+        target_link_libraries(startup_world_sync_test PRIVATE tdur_startup_world_sync)
+        tdur_compile_options(startup_world_sync_test)
+        add_test(NAME startup_world_sync COMMAND startup_world_sync_test)
+        set_tests_properties(startup_world_sync PROPERTIES TIMEOUT 20)
+
+        add_executable(startup_mode_queue_test tests/startup_mode_queue_test.cpp)
+        target_link_libraries(startup_mode_queue_test PRIVATE tdur_startup_mode_queue)
+        tdur_compile_options(startup_mode_queue_test)
+        add_test(NAME startup_mode_queue COMMAND startup_mode_queue_test)
+        set_tests_properties(startup_mode_queue PROPERTIES TIMEOUT 20)
 
         add_executable(startup_lifecycle_binding_test
             tests/startup_lifecycle_binding_test.cpp)
@@ -975,12 +1050,6 @@ if(BUILD_TESTING)
     tdur_compile_options(vmf_fscommand_global_test)
     add_test(NAME vmf_fscommand_global COMMAND vmf_fscommand_global_test)
     set_tests_properties(vmf_fscommand_global PROPERTIES TIMEOUT 45)
-    add_executable(vmf_fscommand_collection_test tests/vmf_fscommand_collection_test.cpp)
-    target_link_libraries(vmf_fscommand_collection_test PRIVATE
-        tdur_vmf_host_commands tdur_vmf_menu_data)
-    tdur_compile_options(vmf_fscommand_collection_test)
-    add_test(NAME vmf_fscommand_collection COMMAND vmf_fscommand_collection_test)
-    set_tests_properties(vmf_fscommand_collection PROPERTIES TIMEOUT 45)
     add_executable(vmf_catalog_test tests/vmf_catalog_test.cpp)
     target_link_libraries(vmf_catalog_test PRIVATE tdur_vmf_catalog)
     tdur_compile_options(vmf_catalog_test)
@@ -1033,6 +1102,12 @@ if(BUILD_TESTING)
     set_tests_properties(vmf_properties PROPERTIES TIMEOUT 45)
     set_tests_properties(vmf_image_bindings vmf_number_conversion vmf_number_format vmf_value_stack vmf_scalar_execution
         PROPERTIES TIMEOUT 45)
+    add_executable(vmf_host_url_test tests/vmf_host_url_test.cpp)
+    target_link_libraries(vmf_host_url_test PRIVATE tdur_vmf_frame_player
+        tdur_vmf_host_commands tdur_vmf_host_variables)
+    tdur_compile_options(vmf_host_url_test)
+    add_test(NAME vmf_host_url COMMAND vmf_host_url_test)
+    set_tests_properties(vmf_host_url PROPERTIES TIMEOUT 45)
 
     add_executable(adaptive_automatic_test tests/adaptive_automatic_test.cpp)
     target_link_libraries(adaptive_automatic_test PRIVATE tdur_adaptive_automatic)

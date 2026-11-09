@@ -1,7 +1,7 @@
 # Notification helpers in the official process
 
 On 31/10/2026, an isolated trial of 100.227 seconds launched the official
-MC1.66A copy via the launcher and the workspace slot using coop-anything.
+MC1.66A copy via the launcher in an isolated copy.
 The primary executable retains its SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 No menu action, remote invocation, or protection modification
@@ -9,13 +9,13 @@ was performed.
 
 ## Bounded reading
 
-The exclusive `ui-vmf-child-helpers` profile of `tdur_probe_code` reads two
+The exclusive `ui-vmf-child-helpers` profile of the unpublished code probe reads two
 complete bodies: 451C90/115B and 416450/82B. Four scalars of 4 bytes
 cover the imports 9EC104, 9EC36C, 9EC378 and the suffix F04DC8, totaling 213 bytes
 at most. Pages must belong to the main image and have the
 required type. No imported pointer is followed by the reader.
 
-The 197 bytes of code correspond to the bodies analyzed with Rea on the
+The 197 bytes of code correspond to the bodies analyzed statically on the
 secondary reference. They differ from the primary on disk; no cause
 for this difference is inferred. The suffix word is A7000000 and
 corresponds to both files on disk.

@@ -14,6 +14,8 @@ struct DisplayHookOptions {
     bool install_factory_detour = true;
     // Bounded resource descriptions only: no pixels or retained COM references.
     bool observe_resource_metadata = false;
+    // Opt-in CPU timings, bounded summaries through the supplied log callback.
+    bool observe_frametimes = false;
     // Presentation dimensions follow the output; render dimensions remain
     // the host engine's responsibility.
     DisplayPreferences display;

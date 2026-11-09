@@ -44,6 +44,13 @@ enum class Phase {
     after_child,
     done
 };
+// Modern guard of one resume, cancellation or binding change; no native
+// counterpart (the native callback is synchronous inside 443AF0).
+struct ActiveGuard {
+    bool& active;
+    explicit ActiveGuard(bool& flag) noexcept : active(flag) { active = true; }
+    ~ActiveGuard() { active = false; }
+};
 std::uint32_t dword(std::span<const std::byte> data,
                     assets::VmfProfile profile) noexcept {
     std::uint32_t value = 0;
@@ -90,11 +97,32 @@ struct VmfFramePlayer::Storage {
     std::optional<VmfScriptContext> script;
     std::optional<std::uint32_t> background;
     VmfFramePlayerState state = VmfFramePlayerState::idle;
+    VmfHostActions* host{}; // Borrowed, bound by bind_host_actions.
+    bool active{};          // In resume, a host cancellation or destruction.
 
     Storage(VmfProgramPtr p, std::unique_ptr<VmfDisplayRuntime> d, VmfStack s,
             VmfFramePlayerLimits l)
         : program(std::move(p)), display(std::move(d)), stack(std::move(s)),
           limits(l) {}
+    ~Storage() { close(); }
+    Storage(const Storage&) = delete;
+    Storage& operator=(const Storage&) = delete;
+
+    bool in_flight() const noexcept {
+        return script && script->snapshot().host_call.has_value();
+    }
+    // Terminal abandonment of the bound host's in-flight call, at most once:
+    // afterwards the context holds no ticket.
+    void abandon() noexcept {
+        if (host && in_flight())
+            (void)cancel_vmf_host_action(*script, *host);
+    }
+    // Destruction: callbacks of the abandonment are refused like during
+    // resume (invalid_state), never run against a player being destroyed.
+    void close() noexcept {
+        active = true;
+        abandon();
+    }
 
     std::size_t record_at(std::uint64_t offset) const noexcept {
         const auto records = program->movie().records();
@@ -205,6 +233,7 @@ struct VmfFramePlayer::Storage {
     }
     VmfFramePlayerError fail(VmfFramePlayerError value,
                              VmfFrameCounters counters) noexcept {
+        abandon();
         state = VmfFramePlayerState::faulted;
         value.counters = counters;
         if (depth != 0)
@@ -227,7 +256,12 @@ struct VmfFramePlayer::Storage {
 
 VmfFramePlayer::VmfFramePlayer(std::unique_ptr<Storage> storage) noexcept
     : storage_(std::move(storage)) {}
-VmfFramePlayer::~VmfFramePlayer() = default;
+// The in-flight call is abandoned while the player is still whole, so a
+// release callback that calls back is refused by Storage::active.
+VmfFramePlayer::~VmfFramePlayer() {
+    if (storage_)
+        storage_->close();
+}
 
 Result<std::unique_ptr<VmfFramePlayer>>
 VmfFramePlayer::create(VmfProgramPtr program,
@@ -442,14 +476,59 @@ VmfFramePlayer::inspect_timeline(VmfInstanceHandle owner) const noexcept {
     return result;
 }
 
+Result<void> VmfFramePlayer::bind_host_actions(VmfHostActions& host) noexcept {
+    auto& s = *storage_;
+    if (s.active)
+        return std::unexpected(
+            error(Code::invalid_state, "VMF playback is resuming"));
+    if (s.in_flight())
+        return std::unexpected(
+            error(Code::invalid_state, "VMF host action is in flight"));
+    s.host = &host;
+    return {};
+}
+Result<void> VmfFramePlayer::unbind_host_actions() noexcept {
+    auto& s = *storage_;
+    if (s.active)
+        return std::unexpected(
+            error(Code::invalid_state, "VMF playback is resuming"));
+    if (s.in_flight())
+        return std::unexpected(
+            error(Code::invalid_state, "VMF host action is in flight"));
+    s.host = nullptr;
+    return {};
+}
+Result<void> VmfFramePlayer::cancel_host_action() noexcept {
+    auto& s = *storage_;
+    if (s.active)
+        return std::unexpected(
+            error(Code::invalid_state, "VMF playback is resuming"));
+    if (!s.host || !s.in_flight())
+        return std::unexpected(
+            error(Code::invalid_state, "VMF playback has no host action"));
+    const ActiveGuard guard(s.active);
+    const auto cancelled = cancel_vmf_host_action(*s.script, *s.host);
+    s.state = VmfFramePlayerState::faulted;
+    if (!cancelled) {
+        auto why = error(Code::execution, "VMF host action cancellation");
+        why.execution_error = cancelled.error();
+        return std::unexpected(why);
+    }
+    return {};
+}
+
 Result<VmfFrameReport> VmfFramePlayer::resume(VmfFrameBudget budget) noexcept {
     auto& s = *storage_;
+    if (s.active)
+        return std::unexpected(
+            error(Code::invalid_state, "VMF playback is already resuming"));
     if (s.state != VmfFramePlayerState::running)
         return std::unexpected(
             error(Code::invalid_state, "VMF playback is not running"));
     if (budget.actions.text_bytes > 16'777'216)
         return std::unexpected(
             error(Code::invalid_limits, "VMF playback text budget"));
+    const ActiveGuard guard(s.active);
     VmfFrameCounters counters;
     const auto stop = [&](VmfFrameStop why) { return s.report(why, counters); };
     const auto fail = [&](VmfFramePlayerError why) {
@@ -630,9 +709,21 @@ Result<VmfFrameReport> VmfFramePlayer::resume(VmfFrameBudget budget) noexcept {
                 const VmfExecutionLimits remaining{
                     budget.actions.instructions - counters.instructions,
                     budget.actions.text_bytes - counters.text_bytes,
-                    budget.actions.skipped_actions - counters.skipped_actions};
+                    budget.actions.skipped_actions - counters.skipped_actions,
+                    budget.actions.host_steps - counters.host_steps};
+                // A bound host uses the same backend selection; unbound, the
+                // three historical calls below are unchanged.
+                const auto backend = s.limits.properties
+                                         ? VmfScriptBackend::properties
+                                     : s.display->variable_dictionary()
+                                         ? VmfScriptBackend::owned_variables
+                                         : VmfScriptBackend::targets;
                 const auto result =
-                    s.limits.properties
+                    s.host
+                        ? execute_vmf_actions_with_host(*s.display, *s.script,
+                                                        s.stack, *s.host,
+                                                        backend, remaining)
+                    : s.limits.properties
                         ? execute_vmf_actions_with_properties(
                               *s.display, *s.script, s.stack, remaining)
                     : s.display->variable_dictionary()
@@ -645,6 +736,7 @@ Result<VmfFrameReport> VmfFramePlayer::resume(VmfFrameBudget budget) noexcept {
                         result.error().instructions_executed;
                     counters.skipped_actions += result.error().actions_skipped;
                     counters.text_bytes += result.error().text_bytes_consumed;
+                    counters.host_steps += result.error().host_steps_consumed;
                     auto why =
                         error(Code::execution, "VMF queued script execution");
                     why.execution_error = result.error();
@@ -653,6 +745,7 @@ Result<VmfFrameReport> VmfFramePlayer::resume(VmfFrameBudget budget) noexcept {
                 counters.instructions += result->instructions_executed;
                 counters.text_bytes += result->text_bytes_consumed;
                 counters.skipped_actions += result->actions_skipped;
+                counters.host_steps += result->host_steps_consumed;
                 switch (result->status) {
                 case VmfExecutionStatus::instruction_limit:
                     return stop(VmfFrameStop::instruction_limit);
@@ -660,6 +753,8 @@ Result<VmfFrameReport> VmfFramePlayer::resume(VmfFrameBudget budget) noexcept {
                     return stop(VmfFrameStop::scan_limit);
                 case VmfExecutionStatus::needs_host:
                     return stop(VmfFrameStop::needs_host);
+                case VmfExecutionStatus::host_pending:
+                    return stop(VmfFrameStop::host_pending);
                 case VmfExecutionStatus::ended:
                     break;
                 }

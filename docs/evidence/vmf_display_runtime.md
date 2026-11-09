@@ -145,7 +145,7 @@ The execution results and the review are recorded in the private batches
 The harness passes **2526 checks without failure on x64 and Win32**, on both
 profiles. A preflight of 74 checks validates the synthetic files before
 calling the runtime. The additional review passes 60 assertions per
-architecture and finds no confirmed P1/P2 within this scope. The common
+architecture and finds no confirmed blocking defect within this scope. The common
 operations are tested without ordinary allocation; the factories and
 snapshots are also subjected to controlled allocation failures.
 

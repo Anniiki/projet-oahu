@@ -3,9 +3,9 @@
 ## Independent sources
 
 Routines 433DF0/87B and 434AB0/40B come from private exports `05/06`
-in `reprise-2026-10-31/rea/vmf-focus-services/session/`. The subject is
+in `reprise-2026-10-31/vmf-focus-services/session/`. The subject is
 the secondary PC Paradise f452afcd…de6ed; `exact-byte-validation.json`
-compares Rea/PE/DUMPBIN bytes. No keyboard/gamepad role is inferred
+compares disassembly/PE/DUMPBIN bytes. No keyboard/gamepad role is inferred
 from identifier 0.
 
 Independent oracles were frozen before this C++ code: 16 lookups and

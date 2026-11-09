@@ -9,7 +9,7 @@ from the secondary Paradise PE, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 No new official invocation or XEX equivalence is established.
 
-The exports live in `rea/vmf-target-resolution/session/`, under the private
+The exports live in `vmf-target-resolution/session/`, under the private
 evidence of October 31, 2026. Earlier pseudocode serves as a map; the branches
 below are reread in the assembly listings and the exported tables:
 
@@ -65,7 +65,7 @@ the execution context owns the resulting current target.
 ## Target failure and recovery scan
 
 `444090`, evidence
-`ev_fdb463e54c531d23d683e1cbfbd2c03fbcd0ff4c68fdb52c5030fcf2c7d9ded6`,
+`fdb463e54c531d23d683e1cbfbd2c03fbcd0ff4c68fdb52c5030fcf2c7d9ded6`,
 sets `Q.advance=0`, advances at least once from the failed action, then scans
 linearly until End, `8B` or `20`. It keeps the IP on that recovery action.
 The dispatcher suppresses the common advance once and then sets its flag back
@@ -79,7 +79,7 @@ fallback. The next `8B/20` starts again from the captured origin.
 ## Labels: comparison and frames
 
 `448990`, evidence
-`ev_968af76f8bc2d7eb2bcea7db6a2b9e3e12215cebcbf580f2b0140715ab1da1b4`,
+`968af76f8bc2d7eb2bcea7db6a2b9e3e12215cebcbf580f2b0140715ab1da1b4`,
 receives T in ESI and the text in EBX. It saves current and the record
 cursor, starts a temporary current at 1, then begins from `R+DWORD[R+14]`,
 with `R=[T+18]`. The tables confirm End=0, ShowFrame=1, sprite=39 and
@@ -100,8 +100,8 @@ match wins. A live cached timeline can be queried without being reactivated.
 
 The comparison calls `_strnicmp` with count=63. The secondary import is
 `MSVCR71.dll`, IAT RVA `5EC258`, hence VA `9EC258` for base `400000`; proof
-`paradise-game/01-inspect_pe_imports.json`, evidence
-`ev_322f791f1bcd2fc418461e0e5a0727575714ee5ccff444d9c557b215e61f03f7`.
+`paradise-game/01-pe-imports.json`, evidence
+`322f791f1bcd2fc418461e0e5a0727575714ee5ccff444d9c557b215e61f03f7`.
 The predicate stops at NUL and ignores suffixes beyond the first 63 bytes.
 The direct `8C` operand is not subject to the Push truncation at 31; nor does
 it pass through a numeric conversion or a path resolver.
@@ -115,7 +115,7 @@ official locale. The UCRT/MSVCR71 equivalence for non-ASCII bytes remains
 unproven. No UTF-8 decoding or Unicode casefold is introduced.
 
 `444490`, evidence
-`ev_e5dc17b4f0050c70a9390d200d7ec1ffd4b504913d3f65166bb0f8211a23227d`,
+`e5dc17b4f0050c70a9390d200d7ec1ffd4b504913d3f65166bb0f8211a23227d`,
 treats the result as signed:
 
 - Positive result: clamp to the WORD C of the own resource, assignment of

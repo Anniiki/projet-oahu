@@ -4,9 +4,9 @@
 
 Reference PC MC1.66A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Isolated copy, slot 0, PID **30964**, creation FILETIME
+Isolated copy, PID **30964**, creation FILETIME
 **134378597540409344**. Private batch
-`<isolated-copies>/slot0/20261030T184840-33116`.
+`<isolated-copies>/20261030T184840-33116`.
 
 The exclusive `assets-shaders` profile reads eleven code windows totaling
 **1,541 bytes** and a table of **2,048 bytes**. The eleven windows are
@@ -41,7 +41,7 @@ the whole of `602100`. No dynamic program state is invented.
 An independent verification rereads the eleven files, the two PEs, the table,
 the PID/creation metadata, the hashes and the end of the Job, without any new
 access to the process. Private evidence
-`rea/shader-selection/runtime24-verification.json`, SHA-256
+`shader-selection/runtime24-verification.json`, SHA-256
 `84c34b2d991131c2405d7060635f7adf0da3d361692a13ddea92c81d2ca143c2`.
-The helper's Rea session is exported and closed; no commercial data is
+The helper's static analysis session is exported and closed; no commercial data is
 incorporated into the repository.

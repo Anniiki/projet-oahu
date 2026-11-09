@@ -76,7 +76,7 @@ measure this total work.
 
 ## Fidelity and references
 
-Source: assemblies in Rea batch `rea/vmf-action-interpreter/session/`:
+Source: assemblies in static analysis batch `vmf-action-interpreter/session/`:
 exports 11..13,24..34 for operations and Jump/If contracts from the
 preceding batch. Secondary SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
@@ -137,3 +137,18 @@ menu. These entries do not represent the game's actual scheduling or state.
 Dominant first boundaries are Stop 10787, GetVariable 4228, Play 3317
 and SetTarget 2633. They motivate the next sprite-context and variable
 port. CTest: `vmf_scalar_execution`; integrated x64 suite **58/58**.
+
+## Entry with host
+
+`execute_vmf_actions_with_host` reuses the backend of a persistent entry point
+(`targets`, `owned_variables` or `properties`) and additionally calls a
+`VmfHostActions` for GetURL `83` and GetURL2 `9A`, as `443AF0` calls
+`445CB0` and `445D40`: **29 opcodes and 7 boundaries** with `targets`, **31 and
+5** with `owned_variables`, **32 and 4** with `properties` and a bound
+dictionary (`22`, `26`, `9E`, `9F`). Without a host, or if the host declines the
+opcode or has no remaining capacity, the current `needs_host` stop is preserved
+and nothing is consumed. A call that has started but not finished returns
+`host_pending`, with the cursor on the GetURL; the next resumption replays no
+operand. The other entry points keep their contracts; the
+[host bridge](vmf_host_url.md) gives the evidence, order of effects, modern
+contracts and limits.

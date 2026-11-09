@@ -18,9 +18,9 @@ fidelity of that alias.
 Secondary PC reference: entry `0x00442330`, last observed instruction
 `0x00442520`. Binary SHA-256:
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Normative source: export 86 `procedure_assembly` of the private batch
-`rea/vmf-action-interpreter/session/`, evidence
-`ev_0d7705644be9457fc8e35b84a1a9158fd1b2f9c8690f4dc6f26ca567340dda4e`.
+Normative source: export 86 `assembly` of the private batch
+`vmf-action-interpreter/session/`, evidence
+`0d7705644be9457fc8e35b84a1a9158fd1b2f9c8690f4dc6f26ca567340dda4e`.
 The pseudocode export 35 helps locate the calls; the port keeps the order
 of the SSE operations of the assembly.
 

@@ -47,7 +47,7 @@ implicit replay.
 The two complete bodies, **217 bytes**, match the official MC1.66A binary on
 disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The Rea/PE/DUMPBIN evidence and its files are verified again.
+The disassembly/PE/DUMPBIN evidence and its files are verified again.
 
 MSVC Release C++latest, `/W4 /WX /permissive- /utf-8`: **27 suites pass on
 x64 and Win32**, including 31 targeted checks. They cover each index, the

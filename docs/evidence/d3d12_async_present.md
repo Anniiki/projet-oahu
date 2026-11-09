@@ -127,7 +127,7 @@ constituting an FPS gain or a measure of regularity. The parent batch
 
 Full CPU/GPU frametimes, compositor latency, VRR, display changes and
 streaming remain to be measured separately. This evidence defines no global
-threshold of acceptable stutter. An independent review finds no new P1/P2
+threshold of acceptable stutter. An independent review finds no new blocking
 issue under the single-owner contract; it runs no additional tests.
 
 Review points: [MeshViewer: commands and samplers](../../src/render/d3d12/mesh_viewer.cpp#L352),

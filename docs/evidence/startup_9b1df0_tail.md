@@ -27,7 +27,7 @@ call. This component alone must not replace that whole initializer.
 
 ## Evidence and limits
 
-Rea Listing graphs contain 242 instructions for `980AF0` and 186 for `9B1DF0`.
+Static analysis Listing graphs contain 242 instructions for `980AF0` and 186 for `9B1DF0`.
 An independent check matched every instruction and evidence identifier to the
 original observations, checked entry reachability and verified that all
 intraprocedural edges stay within the observed graphs. Opaque calls remain

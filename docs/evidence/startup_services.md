@@ -22,12 +22,14 @@ returns within the observed window; their callees can still be unresolved.
 | `9B3F80` | 12 | Owner assignment and flag clear |
 | `9B40C0`, `9B4060` | Helpers | Allocation and bounded BD/AD initialization fill |
 
-`980AF0` now has a closed graph but no complete C++ driver here. The separate
-[`9B1DF0` caller driver](startup_9b1df0.md) reuses its reconstructed tail while
-retaining explicit interfaces for its callees. Services at indices 1, 4, 5 and
-10 have no file-backed table established here. Other lifecycle
-callbacks remain pure virtual: no empty successful implementation stands in for
-a reconstructed service. The controller integration test uses a test witness.
+The separate [980AF0 driver](startup_driver_980af0.md) and
+[9B1DF0 driver](startup_9b1df0.md) compose their reconstructed bodies while
+retaining explicit interfaces for unresolved callees. Services at indices 1, 4, 5 and
+10 have no file-backed table established here. The
+[service cycle module](startup_service_cycles.md) supplies the forward, reverse
+and shutdown bodies for the `982C40` and `9B3F80` adapters, with two mandatory
+preparation ports. Other service-specific cycles remain abstract; no empty
+successful implementation stands in for an unknown body.
 
 ## State and callback ordering
 
@@ -52,10 +54,10 @@ These refusals concern invalid native states, not authentication or connectivity
 
 ## Evidence and validation
 
-Rea Listing observations from `bootstrap-services-v1` supply seven complete and
+Static analysis Listing observations from `bootstrap-services-v1` supply seven complete and
 two partial entry graphs. Helper assembly evidence identifiers are
-`ev_d89c30ebb33ba30bdda07c18bb6750ad5686edb3b9144139d67f436e2bbdface`
-and `ev_69c84d5e5d48147e51c7d2ec91fea8a3c5e0b90fa72fdffa9bda76364ec08317`.
+`d89c30ebb33ba30bdda07c18bb6750ad5686edb3b9144139d67f436e2bbdface`
+and `69c84d5e5d48147e51c7d2ec91fea8a3c5e0b90fa72fdffa9bda76364ec08317`.
 The verified file constant at `F4165C` is float 1.0. Raw evidence stays local.
 
 Run `startup_services` and `game_mode_lifecycle` with CTest in the x64 build.

@@ -124,7 +124,7 @@ cmake --build build --config Release --target vmf_notification_child_test
 ctest --test-dir build -C Release -R '^vmf_notification_child$' --output-on-failure
 ```
 
-PE, Rea and DUMPBIN agree on the 128 bytes of the 89DD60 body with
+PE, static analysis and DUMPBIN agree on the 128 bytes of the 89DD60 body with
 the official MC1.66A primary on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 Private evidence: `reprise-2026-10-31/vmf-notification-child-runtime-v1/`.

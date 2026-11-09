@@ -2,7 +2,7 @@
 
 ## Status and data used
 
-This controller addresses the improvement requested by Anniiki: upshifts at low
+This controller implements an improved shift policy: upshifts at low
 rpm in gentle driving, at higher rpm in sustained driving, consistent pick-up
 and downshifts. **It is not a recovered original routine.** The thresholds,
 filters and delays below are a new, tunable proposal. The module reuses no

@@ -9,7 +9,7 @@ resumptions. The real parent `89E060` and the other effects remain required.
 
 Reference: PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The complete body `89E330..89E4E6`, 439 bytes, matches both the secondary's Rea
+The complete body `89E330..89E4E6`, 439 bytes, matches both the secondary's static analysis
 exports and the primary on disk. SHA-256:
 `e31f7041288dbaa206e384f2be95c596dceff7bf24225830c91c54c6acde1801`.
 The four strings referenced at `F161D0`, `F161E0`, `F161F0` and `F16204`
@@ -18,7 +18,7 @@ loader; they are not distributed in the sources.
 
 Answers, Evidence identifiers and fingerprints stay out of Git in
 `vmf-child-dispatch-runtime-v2/native-proof.json` and `data-proof.json`.
-This cross-check reuses a Rea session that was already closed. No new game
+This cross-check reuses a static analysis session that was already closed. No new game
 launch, native call or game memory reading is performed.
 
 ## Branches and captures

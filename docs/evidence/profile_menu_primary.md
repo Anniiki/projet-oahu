@@ -2,7 +2,7 @@
 
 Reference: official PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Rea/Ghidra 12.2 inspected 23 connected profile/menu procedures in one read-only
+Ghidra 12.2 inspected 23 connected profile/menu procedures in one read-only
 session. The original executable hash remained unchanged after closure.
 
 Instruction addresses and normalized listing text match the supplied secondary

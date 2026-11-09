@@ -10,7 +10,7 @@ does not yet constitute a playable menu or any online feature.
 
 Primary reference: PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The Rea exports of the secondary
+The static analysis exports of the secondary
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`
 are cross-checked against the primary on disk:
 

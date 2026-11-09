@@ -60,7 +60,7 @@ Storages, services and receivers must stay alive and must not be moved.
 
 This modern adapter does not carry the profiling fields and the 606EB0 timer
 of the 606B60/606B90 wrappers. It does not claim to reproduce their binary
-object. Earlier Rea evidence of the wrappers shows their calls to Windows
+object. Earlier static analysis evidence of the wrappers shows their calls to Windows
 critical sections and their additional statistics writes.
 
 A modern language or copy error keeps the effects already performed and
@@ -87,7 +87,7 @@ ctest --test-dir build -C Release -R '^vmf_notification_(queue|record)$' --outpu
 The four complete bodies, 498 bytes, match the official primary
 MC1.66A on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-PE, Rea and DUMPBIN are cross-checked. Six frozen sources and six preserved
+PE, static analysis and DUMPBIN are cross-checked. Six frozen sources and six preserved
 sensitive files are recorded outside Git in
 `<private-evidence>/reprise-2026-10-31/vmf-notification-queue-runtime-v2/`.
 

@@ -28,7 +28,7 @@ of both cells; no targeted call to the CRT or to the game is executed.
 The reader's self-tests pass in Release x64 and Win32. The comparator checks
 the eight bytes, the identities, the before/after snapshots and the hashes of
 the frozen sources. The 6697 references and 17 verified saves are
-unchanged; the coop-anything workspace slot is released. Private evidence is
+unchanged; the isolated copy is released. Private evidence is
 kept in
 `<private-evidence>/reprise-2026-10-31/vmf-formatter-imports-official-v1/`,
 notably `comparison.json` and `probe-validation.json`.
@@ -60,7 +60,7 @@ establish the execution of the lookup path.
 The `ui-vmf-format-numeric` profile reads two complete bodies: `40C1A0`,
 20 bytes, and `674EB4`, 117 bytes. It also reads the non-executable DWORD
 `9EC34C`, **141 bytes in total**, without following its value as a pointer.
-Both loaded bodies match the Rea results for the secondary reference; their
+Both loaded bodies match the static analysis results for the secondary reference; their
 bytes differ from the primary on disk.
 
 The isolated trial of 01/11/2026, PID 33516, lasts 100.211 seconds. The

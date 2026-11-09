@@ -23,7 +23,7 @@ SHA-256 of the **`.2DM` members**:
 - 300_C: `8f82f6a38740a84eed3c82c413d53853ed3304c4e5ded6e06d7bde212b004d07`.
 - A3: `bc9fd52b333bd46f291e547c5532bf4706f8c6652f66d49575e7ff268000584d`.
 
-The existing JSON files `rea/material-bindings/asset-samples.json` and
+The existing JSON files `material-bindings/asset-samples.json` and
 `material-layout-references.json` were read before any new read. This
 supplementary survey opens only the three payloads at the known offsets and
 sizes; no other member is searched for or decoded. The SHA-256 digests of
@@ -189,5 +189,5 @@ For the first supported C++ sub-format:
 These guards are not presented as checks recovered from a native routine.
 The C++ reader and its fixtures are written separately. This step produced
 only the private inventory and the present document: no game, probe, target
-process or Rea session was involved; no personal key or account data is
+process or static analysis session was involved; no personal key or account data is
 read.

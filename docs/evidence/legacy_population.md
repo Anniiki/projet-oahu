@@ -20,15 +20,15 @@ Files: `include/tdur/game/legacy_population.hpp`,
 
 ## Provenance and limits of the evidence
 
-The existing Rea exports of
-`<private-evidence>/reprise-2026-10-30/rea/paradise-ai-time/` are
+The existing static analysis exports of
+`<private-evidence>/reprise-2026-10-30/paradise-ai-time/` are
 reused without a new session:
 
 | Item | Evidence |
 | --- | --- |
-| `34-procedure_assembly.json` | `ev_0f418358e66e57d22a5c13036633e836ba7b613977b82f9f2bf0fc82909ffaac`; instructions and order of effects |
-| `35-procedure_pseudo_code.json` | `ev_88791fc517fbaabe85f0e7f437ca40e797bc947cdf0bbe30981c18f418bfb2ef`; secondary reading track |
-| `disk-comparisons.json`, entry `90C760` | `ev_2ae84503f55ae0a374fdd6c87831b8cd775fc9b74b813f7fd2593a1625711668`; contiguous body of 360 bytes, `0090C760..0090C8C7` |
+| `34-assembly.json` | `0f418358e66e57d22a5c13036633e836ba7b613977b82f9f2bf0fc82909ffaac`; instructions and order of effects |
+| `35-pseudocode.json` | `88791fc517fbaabe85f0e7f437ca40e797bc947cdf0bbe30981c18f418bfb2ef`; secondary reading track |
+| `disk-comparisons.json`, entry `90C760` | `2ae84503f55ae0a374fdd6c87831b8cd775fc9b74b813f7fd2593a1625711668`; contiguous body of 360 bytes, `0090C760..0090C8C7` |
 
 The image initially analyzed is the Platinum/Paradise secondary,
 SHA-256 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.

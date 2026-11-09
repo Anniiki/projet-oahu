@@ -24,17 +24,17 @@ x86 VA addresses, base `0x00400000`:
 - Secondary image of the Platinum/Paradise patch: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-Rea/Ghidra 12.2 evidence is kept under
-`<private-evidence>/reprise-2026-10-30/rea/paradise-video-config/`.
+Ghidra 12.2 evidence is kept under
+`<private-evidence>/reprise-2026-10-30/paradise-video-config/`.
 The secondary session resumes from the `paradise-focus-timing` snapshot; its
 60 successful calls are exported to a bundle and a snapshot, then closed.
 The bounded disassemblies `video-callbacks.asm.txt`, `hdri-callback.asm.txt`
-and `video-mode-tail.asm.txt` complete the Rea readings where the callbacks
+and `video-mode-tail.asm.txt` complete the static analysis readings where the callbacks
 are not recognized as functions. They come from MSVC dumpbin 14.44.35229.0,
 without executing the image.
 
 The closed official trial `20261030T083003-25076`, PID 9424, provides
-`<isolated-copies>/slot0/20261030T083003-25076/code-helpers/comparisons.json`:
+`<isolated-copies>/20261030T083003-25076/code-helpers/comparisons.json`:
 
 | Memory ranges compared | Observed equivalence |
 | --- | --- |
@@ -87,7 +87,7 @@ embedded selection attested in the secondary image. The private argument
 must carry another name or an explicit path. Example of a native token to pass:
 
 ```text
--system <isolated-copies>\slot0\RUN\documents\SystemPC-private.ini
+-system <isolated-copies>\RUN\documents\SystemPC-private.ini
 ```
 
 The embedded block `F9C460/0x357`, **855 bytes**, is identical between the

@@ -49,7 +49,7 @@ diagnostics.
 
 The bodies 716D30/318B and 716CF0/59B match the official primary on disk;
 451C90/115B matches the loaded official process. The latter differs on
-disk. Rea, PE and DUMPBIN cover the 492 bytes of the three bodies. The
+disk. Static analysis, PE and DUMPBIN cover the 492 bytes of the three bodies. The
 [isolated memory verification](official_notification_helpers_runtime.md)
 also confirms the suffix and the `strncpy` import.
 

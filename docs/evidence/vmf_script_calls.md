@@ -11,8 +11,8 @@ This batch adds no evidence of a call, of in-game script reading or of Xbox
 compatibility. The in-memory code equalities documented earlier do not extend
 to the called functions.
 
-Private evidence is under `reprise-2026-10-31/rea/vmf-script-calls/`: fifteen
-successful queries, export and session closure, then a Rea / secondary PE /
+Private evidence is under `reprise-2026-10-31/vmf-script-calls/`: fifteen
+successful queries, export and session closure, then a disassembly / secondary PE /
 DUMPBIN comparison of **1,384 bytes**, five ranges and four bodies:
 
 | Routine | Inclusive ranges and sizes |

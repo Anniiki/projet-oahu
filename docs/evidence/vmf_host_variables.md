@@ -4,8 +4,8 @@
 
 The module reconstructs the read path of 440E00 in the secondary PE,
 SHA256 f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed.
-Private evidence: reprise-2026-10-31/rea/vmf-host-callback-v2/session/39/43/44,
-that is resolution, instructions and 166 bytes PE/Rea/DUMPBIN.
+Private evidence: reprise-2026-10-31/vmf-host-callback-v2/session/39/43/44,
+that is resolution, instructions and 166 bytes PE/disassembly/DUMPBIN.
 The [official menu corroboration](official_menu_bindings_runtime.md)
 now confirms the bytes of this getter, of the three host setters and of
 9AB950. This establishes their presence in the process, not their execution.
@@ -50,7 +50,7 @@ displayed screen, server access or co-op mode is validated here.
 
 ## Writes from the root
 
-Additional private evidence: rea/vmf-common-sbdd-v1/session, requests
+Additional private evidence: vmf-common-sbdd-v1/session, requests
 21..33 and 39..47. 440B00 calls 449240 then 443770 to copy the text;
 440AB0 calls 4492E0 then the already reconstructed link setter 4437F0.
 440BA0 formats with MSVCR71::sprintf, import 9EC378, format %d at F0A258,
@@ -92,7 +92,7 @@ The keys and constants are checked in the instructions and in the PE:
 
 This access modifies no variable or flag and publishes no partial mask on
 error. It executes neither the following bindings of 9AB950 nor sbdd.
-The Rea batch is closed: eleven bodies/2164 bytes PE/Rea/DUMPBIN, twelve
+The static analysis batch is closed: eleven bodies/2164 bytes PE/disassembly/DUMPBIN, twelve
 ranges, nine bytes of gaps excluded. A 15-byte epilogue is checked separately.
 Of 2456 bytes read, 2428 are backed by the file; 28 come from the PE's virtual
 zero-fill. These zeros are not values observed in the running game.

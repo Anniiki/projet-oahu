@@ -29,10 +29,10 @@ and the external commands remain explicit.
 ## Evidence and new handlers
 
 The [native phases](vmf_scheduler.md) and the [queue](vmf_script_calls.md) are
-the previous references. The new private batch `rea/vmf-frame-player/`
+the previous references. The new private batch `vmf-frame-player/`
 concerns the Paradise secondary, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Rea/PE/DUMPBIN agree on **512 bytes of code windows**; 392 bytes of vtables,
+Disassembly/PE/DUMPBIN agree on **512 bytes of code windows**; 392 bytes of vtables,
 the previous tables and the assembly listing of `4418B0` close the dispatch
 of the 17 types accepted by the reader.
 
@@ -100,6 +100,19 @@ commands for requests, without modifying current manually. Serialise the
 accesses; during a suspended invocation, only explicit queueing is allowed
 among external mutations. No reentrancy or general restoration of state
 after a callback is promised.
+
+`bind_host_actions` lends the player a `VmfHostActions`, normally
+`VmfFsHostActions`: the drain then calls the [entry with host](vmf_host_url.md)
+with the same backend choice (`properties`, otherwise the owned dictionary,
+otherwise targets) and a host step budget accumulated across the resumption. A
+call that has started but not finished stops the resumption in `host_pending`,
+with script and cursor preserved; the next resumption continues it without
+replaying anything. Binding, unbinding and `cancel_host_action` are refused
+during a resumption or an in-flight call; during host callbacks, only display
+mutations and `enqueue_script` are allowed. A player fault or the player's
+destruction abandons the in-flight call exactly once; callbacks from this abort
+are refused as during a resumption. When unbound, each path keeps its
+`needs_host` boundary; no production code binds a host yet.
 
 The queues and the dispatch stack are preallocated at creation. The capacities
 are modern settings, distinct from the unknown native value `G+14`.

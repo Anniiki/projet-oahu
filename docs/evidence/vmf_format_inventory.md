@@ -2,10 +2,9 @@
 
 ## Scope and provenance
 
-Static study of 30 October 2026. It complements
-[the donor inventory](xbox360_controller_inventory.md): **20 Xbox VMF and
+Static study of 30 October 2026, on **20 Xbox VMF and
 19 PC VMF**, i.e. **23,844,792 bytes**. The Xbox files come from the banks
-already extracted in the `xbox360-controller-inventory` batch; the PC files are
+already extracted by an earlier unpublished inventory; the PC files are
 the members of the inventoried local official installation, not a new
 extraction from the DVD. No VMF, game, XEX or script is executed.
 
@@ -179,23 +178,23 @@ The candidate SWF reading of the keyboard bits gives `flags>>9 & 0x7F`: codes
 unknown; no controller assignment is invented.
 
 On the secondary native side, the coordinated batch
-`rea/ui-map-input-dispatch/session/` is based on the Paradise PE SHA-256
+`ui-map-input-dispatch/session/` is based on the Paradise PE SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`:
 
 - `443AF0/760` reads 16-bit opcodes, separates values below `0x80` and above,
   then dispatches notably `83→445CB0`, `96→444510`, `99→445560`,
   `9D→4455B0`. The post-processing calls `443A90` if the state DWORD
-  `+10==1`, then resets that DWORD to 1. Sources: `25-resolve_containing_procedure`
-  and `29-procedure_pseudo_code`, evidence
-  `ev_74fec9dcbae64fe9e3fd8c5dd4163880c2dddda8e82b6bb27cc1c3c6a020e4b2`.
+  `+10==1`, then resets that DWORD to 1. Sources: `25-containing-function`
+  and `29-pseudocode`, evidence
+  `74fec9dcbae64fe9e3fd8c5dd4163880c2dddda8e82b6bb27cc1c3c6a020e4b2`.
 - `445CB0/144` validates `FSCommand:` over ten bytes; the suffix is passed
   to the callback `[global10E8078+9C8]` with userdata `[+9CC]`. Sources:
-  `12-procedure_assembly` and `16-procedure_pseudo_code`, evidence
-  `ev_4aba5265111b804d5e5c075189c193b30575b341e8cd8b08109207b167835894`.
+  `12-assembly` and `16-pseudocode`, evidence
+  `4aba5265111b804d5e5c075189c193b30575b341e8cd8b08109207b167835894`.
 - `8DC790/84` writes `/:WhatZoom` through `440BA0`: the states `[this+240]`
   `1,2,3,4,5` give `5,4,3,2,1` respectively. Sources:
-  `11-procedure_assembly`, `15-procedure_pseudo_code`, table `17-read_bytes`;
-  evidence `ev_0272aba170aef62307290b454e95674ef31e694a7d65fe8d11443bb7e83d7f35`.
+  `11-assembly`, `15-pseudocode`, table `17-byte-read`;
+  evidence `0272aba170aef62307290b454e95674ef31e694a7d65fe8d11443bb7e83d7f35`.
 
 The dispatcher agrees with the 16-bit opcode grammar; this does not yet
 demonstrate its internal strategy for translating the deltas, nor the whole
@@ -295,6 +294,6 @@ not on its own satisfy the reproduction of these behaviours.
   review clarifications.
 
 The outputs are created exclusively and the previous ones preserved. Do not
-commit these resources, banks, PDFs or large reports. No new native Rea
+commit these resources, banks, PDFs or large reports. No new native static analysis
 session was opened for this study; the existing analysis session remains the
 only one.

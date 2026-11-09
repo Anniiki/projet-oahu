@@ -16,9 +16,9 @@ Both bodies differ from official MC1.66A on disk, SHA-256
 identified official process, equal to the secondary. It also confirms
 all 256 table entries; code presence does not prove execution.
 
-A single Rea session reuses the closed snapshot from the
+A single static analysis session reuses the closed snapshot from the
 program study. It is exported and closed after nine operations;
-private batch `<private-evidence>/reprise-2026-10-30/rea/shader-variant-hash/`.
+private batch `<private-evidence>/reprise-2026-10-30/shader-variant-hash/`.
 AddressSets are complete and contiguous; no original function or
 game resource is executed for this reconstruction.
 

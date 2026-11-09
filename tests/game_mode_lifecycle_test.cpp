@@ -28,6 +28,9 @@ struct Member final : ModeSubsystem {
     bool initialized = true;
     GameModeRuntime* seen_owner = nullptr;
     std::function<void()> forward, reverse, shutdown;
+    ModeCallOutcome forward_outcome = ModeCallOutcome::native_returned;
+    ModeCallOutcome reverse_outcome = ModeCallOutcome::native_returned;
+    ModeCallOutcome shutdown_outcome = ModeCallOutcome::native_returned;
     Member(int number, GameModeRuntime& owner, std::vector<std::string>& log)
         : id(number), state(owner), trace(log) {}
     std::string number() const { return std::to_string(id); }
@@ -38,21 +41,27 @@ struct Member final : ModeSubsystem {
         return initialized ? ModeInitOutcome::initialized
                            : ModeInitOutcome::native_rejected;
     }
-    void on_forward_pass() override {
+    ModeCallOutcome on_forward_pass() override {
         trace.push_back("f" + number());
         if (forward)
             forward();
+
+        return forward_outcome;
     }
-    void on_reverse_pass() override {
+    ModeCallOutcome on_reverse_pass() override {
         trace.push_back("r" + number());
         if (reverse)
             reverse();
+
+        return reverse_outcome;
     }
-    void on_shutdown() override {
+    ModeCallOutcome on_shutdown() override {
         trace.push_back("s" + number() + ":" +
                         std::to_string(state.subsystem_count));
         if (shutdown)
             shutdown();
+
+        return shutdown_outcome;
     }
 };
 
@@ -285,6 +294,39 @@ void final_increment_after_end() {
     }
 }
 
+void refused_cycle_preserves_partial_state() {
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        GameModeRuntime state;
+        Ports ports(state);
+        state.subsystem_slots = {ports.members[0], ports.members[1],
+                                 ports.members[2]};
+        state.subsystem_count = 3;
+        if (cycle == 0) {
+            ports.members[0]->forward_outcome = ModeCallOutcome::modern_refusal;
+            ports.members[0]->forward = [&] { state.subsystem_count = 1; };
+            CHECK(forward_mode_subsystems(state) ==
+                  ModeLifecycleStatus::modern_refusal);
+            CHECK((ports.trace == std::vector<std::string>{"f0"}));
+            CHECK(state.subsystem_count == 1);
+        } else if (cycle == 1) {
+            ports.members[2]->reverse_outcome = ModeCallOutcome::modern_refusal;
+            ports.members[2]->reverse = [&] { state.subsystem_count = 0; };
+            CHECK(reset_mode_subsystems(state) ==
+                  ModeLifecycleStatus::modern_refusal);
+            CHECK((ports.trace == std::vector<std::string>{"r2"}));
+            CHECK(state.subsystem_count == 0);
+        } else {
+            ports.members[2]->shutdown_outcome =
+                ModeCallOutcome::modern_refusal;
+            ports.members[2]->shutdown = [&] { state.subsystem_count = 42; };
+            CHECK(shutdown_mode_subsystems(state) ==
+                  ModeLifecycleStatus::modern_refusal);
+            CHECK((ports.trace == std::vector<std::string>{"s2:2"}));
+            CHECK(state.subsystem_count == 42);
+        }
+    }
+}
+
 void invalid_registry() {
     GameModeRuntime state;
     Ports ports(state);
@@ -318,6 +360,7 @@ int main(int argc, char** argv) {
     live_passes();
     shutdown_live_registration();
     final_increment_after_end();
+    refused_cycle_preserves_partial_state();
     invalid_registry();
     std::cout << checks << " checks, " << failures << " failures\n";
     return failures ? 1 : 0;

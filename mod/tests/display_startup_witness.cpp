@@ -97,7 +97,9 @@ int main() {
                                 D3DCOLOR_ARGB(255, 15, 29, 180), 1.0F, 0),
                   "Clear witness");
             Check(device->EndScene(), "EndScene witness");
-            Check(device->Present(nullptr, nullptr, nullptr, nullptr),
+            Check(frame == 2
+                      ? swap->Present(nullptr, nullptr, nullptr, nullptr, 0)
+                      : device->Present(nullptr, nullptr, nullptr, nullptr),
                   "deferred-hook DXGI presentation");
         }
         MONITORINFO monitor{};
@@ -125,7 +127,9 @@ int main() {
                              "display-startup-proof.json");
         report << "{\"success\":true,\"exe_initializer_factory\":true,"
                   "\"on12\":true,\"native_d3d12\":true,\"presents\":3,"
-                  "\"borderless\":true,\"hidden\":true,\"unfocused\":true}\n";
+                  "\"borderless\":true,\"hidden\":true,\"unfocused\":true,"
+                  "\"error_mode\":"
+               << GetErrorMode() << "}\n";
         if (!report)
             throw std::runtime_error("cannot write private startup proof");
         std::cout << "PASS injected display startup gate, real On12, 3 "

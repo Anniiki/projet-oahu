@@ -19,6 +19,61 @@ std::uint32_t bits(__m128 value) noexcept {
         _mm_cvtsi128_si32(_mm_castps_si128(value)));
 }
 
+// Modern reentry guard of a script context, no native counterpart.
+struct RunningGuard {
+    bool& running;
+    explicit RunningGuard(bool& flag) noexcept : running(flag) {
+        running = true;
+    }
+    ~RunningGuard() { running = false; }
+};
+// Uniform abandonment rule (modern): no fault is published while the context
+// names a live host slot. The host's answer is ignored; the ticket is dropped.
+// Host errors follow the same rule: a host that already freed the slot
+// refuses this defensive cancel by generation, one that kept it frees it.
+void abandon_host_call(VmfScriptSnapshot* state,
+                       VmfHostActions* actions) noexcept {
+    if (!state || !state->host_call)
+        return;
+    if (actions)
+        (void)actions->cancel(*state->host_call);
+    state->host_call.reset();
+}
+// Error naming the context's cursor, built without changing any state. As a
+// refusal it leaves no fault and keeps an in-flight ticket.
+VmfExecutionError refusal(const VmfScriptSnapshot& state,
+                          VmfExecutionErrorCode code,
+                          std::string_view detail) noexcept {
+    VmfExecutionError error{};
+    error.code = code;
+    error.script_index = state.cursor.script_index;
+    error.action_index = state.cursor.next_action;
+    error.detail = detail;
+    return error;
+}
+// GetURL83 guards: both literals inside the validated movie and a NUL source
+// byte right after the URL. The movie reader already guarantees them; they
+// are modern guards here, not native facts.
+std::optional<std::pair<std::string_view, std::string_view>>
+literal_url(const assets::VmfMovie& movie,
+            const assets::VmfAction& action) noexcept {
+    if (!action.strings[0] || !action.strings[1])
+        return std::nullopt;
+    const auto url = movie.bytes(*action.strings[0]);
+    const auto target = movie.bytes(*action.strings[1]);
+    const auto source = movie.source_bytes();
+    const auto end =
+        std::uint64_t{action.strings[0]->offset} + action.strings[0]->size;
+    if (!url || !target || end >= source.size() ||
+        source[static_cast<std::size_t>(end)] != std::byte{})
+        return std::nullopt;
+    return std::pair{
+        std::string_view(reinterpret_cast<const char*>(url->data()),
+                         url->size()),
+        std::string_view(reinterpret_cast<const char*>(target->data()),
+                         target->size())};
+}
+
 struct Runner {
     const assets::VmfMovie& movie;
     const assets::VmfScript& script;
@@ -30,9 +85,12 @@ struct Runner {
     std::size_t text_used{};
     std::uint16_t opcode{};
     std::size_t skipped{};
+    VmfHostActions* actions{};
+    std::size_t host_used{};
 
     VmfExecutionError fail(VmfExecutionErrorCode code, std::string_view detail,
                            std::optional<VmfStackError> nested = {}) noexcept {
+        abandon_host_call(host, actions);
         cursor.faulted = true;
         if (host)
             host->phase = VmfScriptPhase::faulted;
@@ -45,7 +103,33 @@ struct Runner {
                 detail,
                 {},
                 skipped,
-                text_used};
+                text_used,
+                {},
+                {},
+                host_used};
+    }
+    // The in-flight ticket was refused by the supplied host: no fault, no
+    // change, the ticket stays (foreign host, stale ticket or reentry).
+    VmfExecutionError refuse(std::string_view detail,
+                             const VmfHostActionError& nested) const noexcept {
+        VmfExecutionError error{VmfExecutionErrorCode::host,
+                                cursor.script_index,
+                                cursor.next_action,
+                                executed,
+                                opcode,
+                                {},
+                                detail};
+        error.actions_skipped = skipped;
+        error.text_bytes_consumed = text_used;
+        error.host_error = nested;
+        error.host_steps_consumed = host_used;
+        return error;
+    }
+    VmfExecutionError host_failure(std::string_view detail,
+                                   const VmfHostActionError& nested) noexcept {
+        auto error = fail(VmfExecutionErrorCode::host, detail);
+        error.host_error = nested;
+        return error;
     }
     VmfExecutionError stack_failure(VmfStackError error) noexcept {
         return fail(VmfExecutionErrorCode::stack, "VMF operand stack error",
@@ -78,8 +162,32 @@ struct Runner {
             return std::unexpected(stack_failure(value.error()));
         return *value;
     }
-    VmfExecutionReport report(VmfExecutionStatus status) const noexcept {
-        return {status, executed, text_used, opcode, skipped};
+    VmfExecutionReport
+    report(VmfExecutionStatus status,
+           std::optional<VmfHostActionStatus> host_status = {}) const noexcept {
+        return {status,  executed,  text_used,  opcode,
+                skipped, host_used, host_status};
+    }
+    // Settles one begin_url/resume report. nullopt: the host call really
+    // finished, so the caller counts the GetURL and advances (443A90).
+    std::optional<std::expected<VmfExecutionReport, VmfExecutionError>>
+    settle(const VmfHostActionReport& outcome, std::size_t budget) noexcept {
+        if (outcome.steps > budget)
+            return std::unexpected(fail(VmfExecutionErrorCode::host,
+                                        "VMF host exceeded its budget"));
+        switch (outcome.status) {
+        case VmfHostActionStatus::finished:
+            host_used += outcome.steps;
+            host->host_call.reset();
+            host->phase = VmfScriptPhase::execute;
+            return std::nullopt;
+        case VmfHostActionStatus::step_limit:
+        case VmfHostActionStatus::waiting:
+            host_used += outcome.steps;
+            return report(VmfExecutionStatus::host_pending, outcome.status);
+        }
+        return std::unexpected(fail(VmfExecutionErrorCode::host,
+                                    "VMF host reported an invalid status"));
     }
 };
 std::expected<VmfExecutionReport, VmfExecutionError>
@@ -89,9 +197,11 @@ execute(const assets::VmfMovie &movie, VmfExecutionCursor &cursor,
         VmfScriptSnapshot *host = nullptr,
         VmfTargetLookupLimits target_limits = {},
         const VmfVariables *variables = nullptr, bool write_variables = false,
-        bool properties = false) noexcept {
+        bool properties = false, VmfHostActions* actions = nullptr,
+        const VmfProgramPtr* program = nullptr) noexcept {
     const auto invalid = [&](VmfExecutionErrorCode code,
                              std::string_view detail) {
+        abandon_host_call(host, actions);
         cursor.faulted = true;
         if (host)
             host->phase = VmfScriptPhase::faulted;
@@ -109,6 +219,7 @@ execute(const assets::VmfMovie &movie, VmfExecutionCursor &cursor,
         return invalid(VmfExecutionErrorCode::invalid_limits,
                        "VMF text budget exceeds exact StringLength domain");
     Runner runner{movie, script, cursor, stack, limits, host};
+    runner.actions = actions;
     if (cursor.ended) {
         if (movie.actions()[script.first_action + cursor.next_action].opcode !=
             0)
@@ -121,6 +232,36 @@ execute(const assets::VmfMovie &movie, VmfExecutionCursor &cursor,
         const auto& action =
             movie.actions()[script.first_action + cursor.next_action];
         runner.opcode = action.opcode;
+        if (host && host->phase == VmfScriptPhase::awaiting_host) {
+            // In-flight GetURL (run refused this phase without a host): the
+            // same host call continues and nothing is replayed. Its single
+            // instruction is counted only at the call's real completion.
+            if (runner.executed == limits.instructions)
+                return runner.report(VmfExecutionStatus::instruction_limit);
+            const auto budget = limits.host_steps - runner.host_used;
+            const auto resumed = actions->resume(*host->host_call, budget);
+            if (!resumed) {
+                const auto code = resumed.error().code;
+                if (code == VmfHostActionErrorCode::invalid_ticket ||
+                    code == VmfHostActionErrorCode::reentry)
+                    return std::unexpected(
+                        runner.refuse("VMF host rejected the in-flight ticket",
+                                      resumed.error()));
+                // Any other error faults: the uniform abandonment rule sends
+                // one defensive cancel for the ticket and ignores the answer.
+                return std::unexpected(runner.host_failure(
+                    "VMF host action failed", resumed.error()));
+            }
+            if (auto stop = runner.settle(*resumed, budget))
+                return std::move(*stop);
+            ++runner.executed;
+            if (cursor.next_action + 1 >= script.action_count)
+                return std::unexpected(
+                    runner.fail(VmfExecutionErrorCode::invalid_program,
+                                "VMF action stream lacks End"));
+            ++cursor.next_action;
+            continue;
+        }
         if (host && host->phase == VmfScriptPhase::skip_to_target) {
             if (action.opcode == 0 || action.opcode == 0x8b ||
                 action.opcode == 0x20) {
@@ -626,10 +767,110 @@ execute(const assets::VmfMovie &movie, VmfExecutionCursor &cursor,
             }
             break;
         }
+        case 0x83:
+        case 0x9a: {
+            // 443AF0 dispatches 83 to 445CB0 (literal URL only, in EAX; the
+            // target is not passed) and 9A to 445D40, synchronously; its
+            // common tail then calls 443A90 when Q+10 is 1 and reads the next
+            // opcode in the same loop (secondary f452, static analysis session
+            // ui-map-input-dispatch/29, evidence 74fec9dc..., full id in
+            // docs/evidence/pc_vmf_dispatch.md). That export is Ghidra
+            // pseudocode: the 9A case label is read there only, its jump
+            // table was not disassembled. 445D40 pops target then URL
+            // through 44B250, never reads the flags byte, then runs 445CB0's
+            // sequence (V1 DUMPBIN listings, docs/evidence/vmf_host_url.md).
+            // 443AF0/760, 445CB0/144 and 445D40/162 are classified
+            // official_memory_equal: presence, not execution.
+            // Modern choices: reservation before any pop, capacity reported
+            // as needs_host, host_pending with a ticket, budgets and URL
+            // charging, refusal of empty/sprite pops, bounded URL window with
+            // a final NUL, terminal abandonment, refusals without change.
+            if (!host || !actions || !actions->accepts(action.opcode))
+                return runner.report(VmfExecutionStatus::needs_host);
+            const bool literal = action.opcode == 0x83;
+            std::string_view url;
+            std::string_view url_target;
+            if (literal) {
+                const auto operands = literal_url(movie, action);
+                if (!operands)
+                    return std::unexpected(
+                        runner.fail(VmfExecutionErrorCode::invalid_program,
+                                    "VMF GetURL operand is invalid"));
+                url = operands->first;
+                url_target = operands->second;
+            } else if (action.payload.size != 1) {
+                return std::unexpected(
+                    runner.fail(VmfExecutionErrorCode::invalid_program,
+                                "VMF GetURL operand is invalid"));
+            }
+            const auto ticket = actions->reserve(action.opcode);
+            if (!ticket) {
+                if (ticket.error().code == VmfHostActionErrorCode::capacity)
+                    return runner.report(VmfExecutionStatus::needs_host);
+                return std::unexpected(runner.host_failure(
+                    "VMF host reservation rejected", ticket.error()));
+            }
+            std::optional<VmfTextReference> backing;
+            if (literal) {
+                if (!runner.charge(url.size())) {
+                    (void)actions->cancel(*ticket);
+                    return std::unexpected(runner.text_failure());
+                }
+            } else {
+                // pop_text never mutates on refusal: a failed target pop
+                // consumed nothing; a failed URL pop keeps the target pop.
+                const auto discarded = stack.pop_text();
+                if (!discarded) {
+                    (void)actions->cancel(*ticket);
+                    return std::unexpected(
+                        runner.stack_failure(discarded.error()));
+                }
+                auto popped = stack.pop_text();
+                if (!popped) {
+                    (void)actions->cancel(*ticket);
+                    return std::unexpected(
+                        runner.stack_failure(popped.error()));
+                }
+                // Resolve only after both pops, as StringAdd: a numeric URL
+                // reuses the scratch its numeric target was formatted into.
+                const auto extent = popped->extent_bytes();
+                const char* const first = popped->c_str();
+                if (extent == 0 || first[extent - 1] != '\0') {
+                    (void)actions->cancel(*ticket);
+                    return std::unexpected(runner.stack_failure(
+                        {VmfStackErrorCode::invalid_reference,
+                         "VMF GetURL2 URL lacks a final NUL"}));
+                }
+                if (!runner.charge(popped->text().size())) {
+                    (void)actions->cancel(*ticket);
+                    return std::unexpected(runner.text_failure());
+                }
+                url = std::string_view(first, extent);
+                backing = std::move(*popped);
+            }
+            // Published BEFORE begin_url: callbacks observe the call in flight.
+            host->phase = VmfScriptPhase::awaiting_host;
+            host->host_call = *ticket;
+            VmfHostUrlRequest request;
+            request.opcode = action.opcode;
+            request.url = url;
+            request.target = url_target;
+            if (literal && program)
+                request.program = *program;
+            request.url_backing = std::move(backing);
+            request.script_index = cursor.script_index;
+            request.action_index = cursor.next_action;
+            const auto budget = limits.host_steps - runner.host_used;
+            const auto begun = actions->begin_url(*ticket, request, budget);
+            if (!begun) // Faulted with one defensive cancel, answer ignored.
+                return std::unexpected(runner.host_failure(
+                    "VMF host action failed", begun.error()));
+            if (auto stop = runner.settle(*begun, budget))
+                return std::move(*stop);
+            break; // Really finished: the common tail counts and advances.
+        }
         case 0x22:
         case 0x26:
-        case 0x83:
-        case 0x9a:
         case 0x9e:
         case 0x9f:
             return runner.report(VmfExecutionStatus::needs_host);
@@ -744,11 +985,21 @@ execute_vmf_actions(VmfDisplayRuntime &display, VmfScriptContext &context,
 std::expected<VmfExecutionReport, VmfExecutionError>
 VmfScriptContext::run(VmfDisplayRuntime &display, VmfStack &stack,
                       VmfExecutionLimits limits, const VmfVariables *variables,
-                      bool write_variables, bool properties) noexcept {
+                      bool write_variables, bool properties,
+                      VmfHostActions* actions) noexcept {
     auto &state = state_;
+    if (running_)
+        return std::unexpected(
+            refusal(state, VmfExecutionErrorCode::host,
+                    "VMF script context is already running"));
+    if (state.phase == VmfScriptPhase::awaiting_host && !actions)
+        return std::unexpected(refusal(state, VmfExecutionErrorCode::host,
+                                       "VMF host action is in flight"));
+    const RunningGuard guard(running_);
     const auto reject_context =
         [&](VmfExecutionErrorCode code, std::string_view detail,
             std::optional<VmfDisplayRuntimeError> reason = {}) {
+            abandon_host_call(&state, actions);
             state.cursor.faulted = true;
             state.phase = VmfScriptPhase::faulted;
             return std::unexpected(VmfExecutionError{code,
@@ -775,7 +1026,7 @@ VmfScriptContext::run(VmfDisplayRuntime &display, VmfStack &stack,
     }
     return execute(program_->movie(), state.cursor, stack, limits, &display, {},
                    &state, target_limits_, variables, write_variables,
-                   properties);
+                   properties, actions, &program_);
 }
 
 std::expected<VmfExecutionReport, VmfExecutionError>
@@ -792,6 +1043,55 @@ execute_vmf_actions_with_properties(VmfDisplayRuntime &display,
                                     VmfExecutionLimits limits) noexcept {
     return context.run(display, stack, limits, display.variable_dictionary(),
                        true, true);
+}
+
+std::expected<VmfExecutionReport, VmfExecutionError>
+execute_vmf_actions_with_host(VmfDisplayRuntime& display,
+                              VmfScriptContext& context, VmfStack& stack,
+                              VmfHostActions& host, VmfScriptBackend backend,
+                              VmfExecutionLimits limits) noexcept {
+    // Exactly the arguments of the historical entry of each backend.
+    switch (backend) {
+    case VmfScriptBackend::targets:
+        return context.run(display, stack, limits, nullptr, false, false,
+                           &host);
+    case VmfScriptBackend::owned_variables:
+        return context.run(display, stack, limits,
+                           display.variable_dictionary(), true, false, &host);
+    case VmfScriptBackend::properties:
+        return context.run(display, stack, limits,
+                           display.variable_dictionary(), true, true, &host);
+    }
+    return std::unexpected(refusal(context.state_,
+                                   VmfExecutionErrorCode::invalid_limits,
+                                   "VMF script backend is invalid"));
+}
+
+std::expected<void, VmfExecutionError>
+cancel_vmf_host_action(VmfScriptContext& context,
+                       VmfHostActions& host) noexcept {
+    auto& state = context.state_;
+    if (context.running_)
+        return std::unexpected(
+            refusal(state, VmfExecutionErrorCode::host,
+                    "VMF script context is already running"));
+    if (!state.host_call)
+        return std::unexpected(
+            refusal(state, VmfExecutionErrorCode::invalid_cursor,
+                    "VMF context has no host action in flight"));
+    // Foreign release code may run inside cancel: reentry stays refused.
+    const RunningGuard guard(context.running_);
+    const auto cancelled = host.cancel(*state.host_call);
+    state.host_call.reset();
+    state.cursor.faulted = true;
+    state.phase = VmfScriptPhase::faulted;
+    if (!cancelled) {
+        auto error = refusal(state, VmfExecutionErrorCode::host,
+                             "VMF host rejected the abandoned ticket");
+        error.host_error = cancelled.error();
+        return std::unexpected(error);
+    }
+    return {};
 }
 
 } // namespace tdur::ui

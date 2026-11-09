@@ -83,8 +83,7 @@ milestones. If the project interests you, a GitHub star helps its visibility.
 
 ## Contributing and evidence
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) and the
-[subsystem workflow](docs/development_batches.md). Each reconstruction records
+Read [CONTRIBUTING.md](CONTRIBUTING.md). Each reconstruction records
 its source executable, addresses, bounds and unresolved dependencies.
 Matching bytes establish presence, not execution or a finished game feature.
 Protection, activation and reference game data remain unchanged.

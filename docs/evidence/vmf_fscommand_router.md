@@ -8,13 +8,13 @@ remains the official PC MC 1.66 A executable, SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 These two routines are established only in the secondary
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-The earlier PE/Rea checks attest their complete bodies, SHA256 respectively
+The earlier PE/disassembly checks attest their complete bodies, SHA256 respectively
 `ef5f71670531f9ccdee5fe8ad5f5fe24c82e564d5b31ae63594fd3ee159fdca3`
 and `4e0ba9ebd795874a8330a74e14fb416308ef60762c53cd0641edf6aee2157d38`.
 
 Private evidence: `reprise-2026-10-31/vmf-fscommand-router-runtime-v1/`,
-exports `rea/vmf-host-callback-v2/session/13-procedure_assembly.json` and
-`17-procedure_assembly.json`, the earlier `exact-byte-validation.json` of the
+exports `vmf-host-callback-v2/session/13-assembly.json` and
+`17-assembly.json`, the earlier `exact-byte-validation.json` of the
 same batch. The official 144-byte capture of `445CB0` does not corroborate
 these routines. This batch required no new access to the game, the process or
 the executable.
@@ -57,7 +57,7 @@ After hand-back the pointer is discarded: no protection against its reuse
 after the slot is reassigned is claimed. Serialise all operations of the pool
 and of the dependencies, preserve object stability and service affinity.
 
-The bodies of the fifteen global commands `99B7A0`, the film receivers and
+The bodies of the global commands `99B7A0`, the film receivers and
 the diagnostic remain separate. This router chooses no assumed receiver for
 `PC_LOG_IN`, does not pop GetURL and does not advance the VMF cursor.
 The commercial player stays at its explicit boundary of missing services.

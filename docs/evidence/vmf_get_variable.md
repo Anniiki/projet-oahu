@@ -4,24 +4,24 @@
 
 The primary reference is the official PC MC 1.66 A executable, SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The Rea assembly used comes from the secondary Paradise
+The static analysis assembly used comes from the secondary Paradise
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 Official trial 25 had corroborated the body of the handler `445A60` (305 bytes).
 The October 31 batch corroborated the bodies `4491A0` (145 bytes) and `4490E0`
 (184 bytes). This attests their presence, without attesting that they are
 called in game. The wrapper `449070` remains secondary evidence in this batch.
 
-| Routine | Retained fact | Private Rea export |
+| Routine | Retained fact | Private static analysis export |
 | --- | --- | --- |
-| `445A60` | Pops the name, calls the wrapper, empty text on failure | `vmf-variable-dictionary/session/23-procedure_assembly.json` |
-| `449070` | Name present: scope lookup; null name: sprite | `vmf-host-context/session-v2/17-procedure_assembly.json` |
-| `4491A0` | First colon takes priority, otherwise slash or local name | `vmf-text-services/session/12-procedure_assembly.json` |
-| `4490E0` | Target lookup passed by value, optional outputs null here | `vmf-text-services/session/14-procedure_assembly.json` |
-| `443620` | Pushes a typed value, false if the variable is absent | `vmf-action-interpreter/session/58-procedure_assembly.json` |
+| `445A60` | Pops the name, calls the wrapper, empty text on failure | `vmf-variable-dictionary/session/23-assembly.json` |
+| `449070` | Name present: scope lookup; null name: sprite | `vmf-host-context/session-v2/17-assembly.json` |
+| `4491A0` | First colon takes priority, otherwise slash or local name | `vmf-text-services/session/12-assembly.json` |
+| `4490E0` | Target lookup passed by value, optional outputs null here | `vmf-text-services/session/14-assembly.json` |
+| `443620` | Pushes a typed value, false if the variable is absent | `vmf-action-interpreter/session/58-assembly.json` |
 
 The first four paths are under
-`<private-evidence>/reprise-2026-10-31/rea/`, the last one under
-`reprise-2026-10-30/rea/`. The envelopes keep the EvidenceID and SHA256.
+`<private-evidence>/reprise-2026-10-31/`, the last one under
+`reprise-2026-10-30/`. The envelopes keep the EvidenceID and SHA256.
 The handler loads `F035DF` before `44B2E0` on failure. A static read of both
 PE files confirms a NUL at that address, with no new live observation.
 

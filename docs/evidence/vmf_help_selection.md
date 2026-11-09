@@ -4,7 +4,7 @@
 
 The port covers the decisions of 9812C0, the 32 routing identifiers of
 980FB0, the name lookup 99A490 and its composition 99A950.
-The four complete AddressSets total 1 192 bytes. The Rea and DUMPBIN reads
+The four complete AddressSets total 1 192 bytes. The static analysis and DUMPBIN reads
 are cross-checked against the PE sections of both files:
 
 - Primary PC MC 1.66 A: SHA256
@@ -17,7 +17,7 @@ strings (284 bytes) are identical in both files on disk.
 These comparisons prove neither their execution nor a usable screen.
 Private evidence:
 `<private-evidence>/reprise-2026-10-31/vmf-common-help-runtime-v1`,
-`static-proof.json`; Rea session vmf-common-help-v1, 54 requests.
+`static-proof.json`; static analysis session vmf-common-help-v1.
 
 ## Resumable selector
 

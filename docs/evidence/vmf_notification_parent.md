@@ -11,7 +11,7 @@ The connection to the complete hosts remains to be provided.
 ## Official reference
 
 The complete body `89E060..89E209`, 426 bytes, matches between the primary
-official PC MC 1.66 A executable, the secondary and the Rea export. SHA-256 of
+official PC MC 1.66 A executable, the secondary and the static analysis export. SHA-256 of
 the body:
 `c3f44b5586d74e63e64cc000495fd0a1d4ad278b82a6c21889eb6580c048cc75`.
 The primary keeps its SHA-256

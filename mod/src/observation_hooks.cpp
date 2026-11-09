@@ -41,6 +41,7 @@ std::array<wchar_t, Capacity> privateRoot{};
 std::array<char, MAX_PATH> privateAnsi{};
 std::array<wchar_t, Capacity> sourceRoot{};
 std::array<wchar_t, Capacity> sourceInstallation{};
+bool frameTimesEnabled = false;
 std::array<std::array<wchar_t, Capacity>, 26> nativeVolumes{};
 HANDLE logFile = INVALID_HANDLE_VALUE;
 SRWLOCK logLock = SRWLOCK_INIT;
@@ -383,11 +384,6 @@ NTSTATUS NTAPI ObserveNativeCreateFile(
                 std::wstring_view(inputPath.data(), length),
                 attributes->RootDirectory != nullptr);
             bool forward = service.has_value();
-#ifdef TDUR_MUTANT_BLOCK_AFD
-            if (service == tdur::mod::NativeServiceKind::afd_endpoint) {
-                forward = false;
-            }
-#endif
             if (forward) {
                 const auto result = realNativeCreateFile(
                     handle, access, attributes, status, allocation,
@@ -808,8 +804,18 @@ void TdurObservationRecord(const char* event, DWORD error, const wchar_t* path,
     SetLastError(saved);
 }
 
+bool TdurObservationFrametimesEnabled() noexcept { return frameTimesEnabled; }
+
 bool TdurInstallObservationHooks() noexcept {
     InternalCall internal;
+    std::array<wchar_t, 4> frameTimes{};
+    const auto frameTimesLength =
+        GetEnvironmentVariableW(L"TDUR_FRAMETIME_DIAGNOSTICS",
+                                frameTimes.data(), DWORD(frameTimes.size()));
+    frameTimesEnabled = frameTimesLength == 1 && frameTimes[0] == L'1';
+    if (frameTimesLength && !frameTimesEnabled &&
+        !(frameTimesLength == 1 && frameTimes[0] == L'0'))
+        return false;
     if (!ReadRoot(L"TDUR_PRIVATE_DOCUMENTS", privateRoot) ||
         !ReadRoot(L"TDUR_SOURCE_DOCUMENTS", sourceRoot) ||
         _wcsicmp(privateRoot.data(), sourceRoot.data()) == 0 ||
@@ -844,6 +850,32 @@ bool TdurInstallObservationHooks() noexcept {
         !CanonicalPath(logInput.data(), logPath) ||
         !Prefix(logPath.data(), privateRoot.data())) {
         return false;
+    }
+    if (frameTimesEnabled) {
+        std::array<wchar_t, 4> display{};
+        if (GetEnvironmentVariableW(L"TDUR_D3D12_DISPLAY", display.data(),
+                                    DWORD(display.size())) != 1 ||
+            display[0] != L'1' || sourceInstallation[0] == L'\0')
+            return false;
+        // Reject both installation folders before opening a diagnostic file.
+        // CanonicalPath rejects aliases through reparse points as for I/O.
+        std::array<wchar_t, Capacity> executable{}, canonical{};
+        const auto used = GetModuleFileNameW(nullptr, executable.data(),
+                                             DWORD(executable.size()));
+        if (!used || used >= executable.size() ||
+            !CanonicalPath(executable.data(), canonical))
+            return false;
+        auto* separator = std::wcsrchr(canonical.data(), L'\\');
+        if (!separator)
+            return false;
+        *separator = L'\0'; // Drive-root executable: Prefix also accepts C:.
+        const bool sourceDriveRoot =
+            std::wcslen(sourceInstallation.data()) == 3 &&
+            CompareStringOrdinal(logPath.data(), 3, sourceInstallation.data(),
+                                 3, TRUE) == CSTR_EQUAL;
+        if (Prefix(logPath.data(), canonical.data()) || sourceDriveRoot ||
+            Prefix(logPath.data(), sourceInstallation.data()))
+            return false;
     }
     logFile = CreateFileW(logPath.data(), FILE_APPEND_DATA,
                           FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,

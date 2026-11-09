@@ -10,7 +10,7 @@ from the secondary PC binary, SHA-256
 It does not constitute an official invocation or an equivalence with the Xbox
 code. The Xbox data remains a distinct resource profile.
 
-Private evidence under `<private-evidence>/reprise-2026-10-31/rea/`:
+Private evidence under `<private-evidence>/reprise-2026-10-31/`:
 
 - `vmf-display-lifecycle/session/47`, `61`, `73`: 448E60, 4476C0, 448B20;
   their bytes are covered by the
@@ -18,15 +18,15 @@ Private evidence under `<private-evidence>/reprise-2026-10-31/rea/`:
 - `vmf-host-context/session-v2/27`, `32`: initializer 4487F0 and 4418B0.
 - `vmf-runtime-scheduler/session/05..32`: predicate 446A60, driver 441DF0,
   selection tables, vtables, End/Action wrappers and constants. The session
-  closed normally after 32 requests. Its
+  closed normally. Its
   `exact-byte-validation.json` covers 389 bytes of three bodies, 224 bytes
   of code windows and 217 bytes of data. The wrapper windows contain
   134 bytes of delimited bodies, excluding padding; the other 48 bytes
   overlap the period computation in 4418B0.
 - Action consumer reused, without new analysis:
-  `reprise-2026-10-30/rea/vmf-action-interpreter/session/98-procedure_assembly.json`,
+  `reprise-2026-10-30/vmf-action-interpreter/session/98-assembly.json`,
   443A60/42 bytes, evidence
-  `ev_5d55565103dfe13497dbc4abf01acb46433c7b11f4d6212088a3c38fae9f2dee`.
+  `5d55565103dfe13497dbc4abf01acb46433c7b11f4d6212088a3c38fae9f2dee`.
 
 The private review `vmf-runtime-scheduler-review/` recomputes the
 tag→branch→vtable correspondences and independently compares the JSON bytes

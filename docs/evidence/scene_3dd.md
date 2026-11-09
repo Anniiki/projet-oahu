@@ -81,7 +81,7 @@ successively equal 0 through 11; this agreement with the twelve MBNK keys
 **does not establish the complete semantics of material assignment**.
 No texture or shader is selected from that assumption.
 
-The [new Rea study](retail_material_bindings.md) establishes from the
+The [new static analysis study](retail_material_bindings.md) establishes from the
 secondary executable the unsigned16 `PRIM+0x2a` selector, fallbacks and
 MBNK-to-MAT resolution. These routines still need corroboration in official
 memory; the present reader still retains raw primitive bindings.
@@ -110,19 +110,19 @@ then RV_LR; A3_V6 lists RV_LR then RV_HR. Source order and the four
 descriptors are preserved. Neither sorting by suffix nor choosing the
 first entry is an established LOD policy.
 
-## Rea evidence and unknowns
+## Static analysis evidence and unknowns
 
-Rea statically examines the official PE with SHA-256
+Static analysis examines the official PE with SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Local evidence in `<private-evidence>/reprise-2026-10-30/rea/original-scene`:
+Local evidence in `<private-evidence>/reprise-2026-10-30/original-scene`:
 
-- `search_bytes` finds `.3DD` at `0x00f12f58`, Evidence
-  `ev_9204f872cc0f092f9d97df224c5f2523a7bb66911375fd7d5bcf2c8cf5745eb3`.
+- A byte search finds `.3DD` at `0x00f12f58`, Evidence
+  `9204f872cc0f092f9d97df224c5f2523a7bb66911375fd7d5bcf2c8cf5745eb3`.
 - `0x008ece80` constructs a `.3DD` path, Evidence
-  `ev_a971500043a38f63c6d5a71c7ba87eec8acb502627fe5768ccea7128aa53a521`.
+  `a971500043a38f63c6d5a71c7ba87eec8acb502627fe5768ccea7128aa53a521`.
   This does not document the chunk reader.
 - The `0x0050ad00` dossier, parent
-  `ev_75583aef1da48dab2ee28b8d284776199de38e2228b08a4ecd8bd0a187ecc335`,
+  `75583aef1da48dab2ee28b8d284776199de38e2228b08a4ecd8bd0a187ecc335`,
   and the pseudocode of `0x00504930` contain overlapping or truncated
   instructions. They establish neither LOD rules nor engine composition.
 
@@ -145,8 +145,8 @@ aliases and strict pairing:
 | A3_V6 | 103 | 35 | 34 | 62 | 64 |
 
 These new totals include every variant, unlike the earlier counters that
-considered only `INS+0x60`. The independent Rea inventory is retained in
-`rea/material-bindings/variant-bindings.json`.
+considered only `INS+0x60`. The independent static analysis inventory is retained in
+`material-bindings/variant-bindings.json`.
 
 All three banks retain their before/after SHA-256. Local reports:
 `build-scene-3dd/official-scenes.txt` and `official-bank-sha256.json`.

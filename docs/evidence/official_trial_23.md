@@ -2,14 +2,14 @@
 
 ## Isolated run
 
-Private isolated copy `<isolated-copies>/slot0/20261030T174712-27428/`.
+Private isolated copy `<isolated-copies>/20261030T174712-27428/`.
 PID **33928**, creation FILETIME **134378560639742868**, consistent across the
 reports. The probes correspond to local commits `13a8cd6` and `f8ffd6f`; the
 seven files of the Win32 bridge production evidence are rechecked by SHA
 before launch. The official executable remains locked and verified.
 
 The Job closes the process after **120.186 seconds**, timeout code 1460.
-The coop-anything slot is released; the **6 697 reference files and 17 source
+The isolated copy is released; the **6 697 reference files and 17 source
 savegame hashes are unchanged**. The temporary bridge uses the legacy x86
 client; this trial is not a run of the final native x64/D3D12 client.
 
@@ -46,7 +46,7 @@ for a native call**. No reference counter is read.
 The exclusive `assets-textures` profile reads **12 ranges / 1 258 bytes**: ten
 complete AddressSets and two selected excerpts. All are readable, equal to the
 same windows of the secondary and different from the official file on disk.
-The SHAs of both PEs and their physical windows match the private Rea catalog.
+The SHAs of both PEs and their physical windows match the private static analysis catalog.
 No range contains a bridge adaptation.
 
 The ten bodies are `505060/121`, `505700/71`, `509590/29`, `601F90/363`,

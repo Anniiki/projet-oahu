@@ -10,12 +10,12 @@ active menu. The business meaning of field FA remains open.
 Primary reference: PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 The complete 74-byte body, `8986B0..8986F9`, is cross-checked against the
-primary, the secondary and the Rea exports. SHA-256:
+primary, the secondary and the static analysis exports. SHA-256:
 `64526a37a80655bc95275d5fab2512435b10c0ab7cc6d769a7e83fb73a0bd507`.
 The NUL-terminated key at `F0A8F8`, fifteen bytes, also matches. Its text
 must be supplied by the installation loader.
 
-The twelve-request Rea session is exported and closed. It also establishes
+The twelve-request static analysis session is exported and closed. It also establishes
 240 bytes of [89BF80](vmf_notification_effect_bf80.md) and 556 of
 [89DB30](vmf_notification_effect_db30.md), integrated in later batches.
 The evidence for the 870 bytes alone did not constitute a delivery of the

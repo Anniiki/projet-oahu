@@ -48,7 +48,7 @@ readers and the assembly pass **1 079 and 62 checks** respectively on x64
 and Win32 with the three banks. Fixtures include noncommutative composition
 order, shared references, reindexing of two GEOMs, UVs, entry choice,
 zero/four/five entries, missing REAL, missing MBNK, budgets and W. The
-independent review finds no P1/P2 defect.
+independent review finds no blocking defect.
 
 The RX 6950 XT GPU and WARP each pass six readbacks at predetermined pixels:
 two objects, reversed order, single selection, shared geometry and explicit
@@ -64,5 +64,5 @@ unchanged. The historical local group BODY_HR keeps its fingerprint
 
 Private evidence: `scene-mesh-cpp/official-assembly-v2/`, logs
 `final-*-cpu-tests-v3.log`, `root-ctest-v3.log` and the
-`rea/material-bindings/` study. No commercial asset is committed and no game
+`material-bindings/` study. No commercial asset is committed and no game
 executable is launched by these validations.

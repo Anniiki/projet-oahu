@@ -9,12 +9,12 @@ contracts. `GetProperty` (`22`) remains to be ported.
 
 Secondary PC static reference, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-The private batches `reprise-2026-10-31/rea/vmf-property-host-v1/` and
+The private batches `reprise-2026-10-31/vmf-property-host-v1/` and
 `vmf-property-math-v1/` keep the sources and manifests:
 
 - The tables at `443E6C/443DE8` link `23` to `4464A0` and `22` to `445DF0`.
-  The first batch compares 5 494 bytes of PE/Rea/DUMPBIN code and 328 bytes of
-  PE/Rea tables and constants. Its 2 471 bytes outside recognized AddressSets
+  The first batch compares 5 494 bytes of PE/disassembly/DUMPBIN code and 328 bytes of
+  PE/disassembly tables and constants. Its 2 471 bytes outside recognized AddressSets
   are switch branches. Ghidra still classifies `445F4D` as data.
 - The complement closes `442C70`, `448070`, `44B2C0` and the `_CIacos` thunk:
   four bodies, 194 bytes, plus 92 bytes of tables and constants. The import

@@ -38,12 +38,12 @@ for the future sprite push by the `449070` wrapper.
 
 Analyzed secondary executable: SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Private exports `reprise-2026-10-31/rea/vmf-text-services/session/`:
+Private exports `reprise-2026-10-31/vmf-text-services/session/`:
 
-- `12-procedure_assembly.json`, classifier `4491A0..449230`, 145 bytes,
-  evidence `ev_d28e107828510579d7075e3491a5a763d55542e7f18c26ba4a821c61cb817c40`;
-- `14-procedure_assembly.json`, resolver `4490E0..449197`, 184 bytes,
-  evidence `ev_ea7e9d2053932f45691c4f94583429b4620633c2e8c9afbcc74c0ef4d9b25a21`.
+- `12-assembly.json`, classifier `4491A0..449230`, 145 bytes,
+  evidence `d28e107828510579d7075e3491a5a763d55542e7f18c26ba4a821c61cb817c40`;
+- `14-assembly.json`, resolver `4490E0..449197`, 184 bytes,
+  evidence `ea7e9d2053932f45691c4f94583429b4620633c2e8c9afbcc74c0ef4d9b25a21`.
 
 The secondary PE identifies the import `009EC348` as `MSVCR71.dll!strchr`.
 The import name is checked from the PE thunks, without assuming a search for
@@ -60,13 +60,13 @@ references close no text or focus service.
 The official PC MC 1.66 A executable carries SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 Exclusive profile `ui-vmf-variable-references`: **two ranges, 329 bytes**,
-matching the two Rea/PE/DUMPBIN references of the previous text batch.
+matching the two disassembly/PE/DUMPBIN references of the previous text batch.
 Ordered sum:
 `26499ae44e80182cc340ae0f70a254ab31481d8b52780511e9031f5a3029548c`.
 
-Private batch `<isolated-copies>/slot0/20261031T065728-10592`, target PID 19608,
+Private batch `<isolated-copies>/20261031T065728-10592`, target PID 19608,
 creation FILETIME 134379034551153645, image 00400000; Python observer PID 10592.
-The executed private copy remains `slot0/20261030T035944-25460/game/` with the
+The executed private copy remains `20261030T035944-25460/game/` with the
 official SHA, verified and locked. After 100.155 seconds, the Job reaches its
 expected timeout (code 1460) and the slot is released. The observer's audit
 receipts report **6697 references and 17 source saves unchanged**.

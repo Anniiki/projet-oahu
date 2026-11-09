@@ -574,9 +574,8 @@ int launch(const Options& value) {
     const std::string dll = value.dll.string();
     if (!DetourCreateProcessWithDllExW(
             value.executable.c_str(), command.data(), nullptr, nullptr, FALSE,
-            CREATE_SUSPENDED | CREATE_DEFAULT_ERROR_MODE, nullptr,
-            value.executable.parent_path().c_str(), &startup, &created,
-            dll.c_str(), nullptr)) {
+            CREATE_SUSPENDED, nullptr, value.executable.parent_path().c_str(),
+            &startup, &created, dll.c_str(), nullptr)) {
         win_error("Create observed private process");
     }
     Handle process(created.hProcess);
@@ -600,8 +599,9 @@ int launch(const Options& value) {
         value.pid_file,
         "{\"pid\":" + std::to_string(created.dwProcessId) +
             ",\"creation_filetime\":" + std::to_string(creation_filetime) +
+            ",\"inherited_error_mode\":" + std::to_string(GetErrorMode()) +
             ",\"suspended\":true}\n");
-    // The Python wrapper registers this exact PID with coop-anything gameslot
+    // The Python wrapper registers this exact PID with the isolated copy
     // before publishing the resume marker. No game code runs before that step.
     const auto registration_deadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(15);
@@ -713,6 +713,10 @@ int launch(const Options& value) {
 } // namespace
 
 int wmain(int argc, wchar_t* argv[]) {
+    // Keep loader failures and crashes noninteractive in this owned process
+    // tree. CREATE_DEFAULT_ERROR_MODE would undo this for the child.
+    SetErrorMode(GetErrorMode() | SEM_FAILCRITICALERRORS |
+                 SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
     try {
         return launch(options(argc, argv));
     } catch (const std::exception& error) {

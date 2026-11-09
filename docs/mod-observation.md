@@ -7,9 +7,9 @@ neither game startup, D3D12 rendering nor working co-op.
 
 ## Reference and provenance
 
-The official x86 PE analyzed by Rea has SHA-256
+The official x86 PE analyzed statically has SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Local project evidence `rea/original/02-inspect_pe_imports.json` identifies
+Local project evidence `original/02-pe-imports.json` identifies
 `DirectInput8Create`, along with Shell32 imports `SHGetFolderPathA`,
 `SHFileOperationA`, `ShellExecuteA` and `ShellExecuteExA`.
 
@@ -20,7 +20,7 @@ unmodified in `mod/src/vendor/detours`, at commit
 `1dbd4ea281d73d478aa8d09a8b83fbd265f715f7`. `PROVENANCE.json` contains
 file checksums, with the original MIT license.
 
-The method applies local coop-anything playbooks: proxy DLL, private
+The method applies local isolated-trial procedures: proxy DLL, private
 copies, process slot, save locking and checksum comparison. This module
 does not yet install a network bridge or synchronization mechanism.
 

@@ -4,7 +4,7 @@
 
 The first complete ring of direct calls from `81DFD0` has been reread:
 27 distinct targets, including 21 new bodies representing 31,065 bytes
-of Rea AddressSets. No explicit FS/GS access and no instruction setting the
+of static analysis AddressSets. No explicit FS/GS access and no instruction setting the
 x87/MXCSR control were found in these bodies. **This does not prove that
 their descendants, virtual calls or callbacks are thread-independent.**
 
@@ -33,14 +33,14 @@ x86 VA, base `00400000`.
 
 The `physics-thread-adapter` and `paradise-physics-owner` exports were
 reused. The new private evidence is in
-`<private-evidence>/reprise-2026-10-30/rea/physics-thread-dependencies/`:
+`<private-evidence>/reprise-2026-10-30/physics-thread-dependencies/`:
 `session/`, `asm/`, `callee-index.json`, `disk-comparisons.json`,
 `pe-tls-metadata.json` and `evidence-index.json`. Each new body studied,
 selected instruction or table read is compared with both disks over its
 exact ranges; AddressSet gaps are not treated as read code.
 
-The Rea catalog of the integrator's callees, output `02`, carries the ID
-`ev_ee81003c02ea209f66a378368dfc58581cf03cf7d5c47a87a37a9b6ec1641678`.
+The static analysis catalog of the integrator's callees, output `02`, carries the ID
+`ee81003c02ea209f66a378368dfc58581cf03cf7d5c47a87a37a9b6ec1641678`.
 The six bodies carried over from the previous phase are `852AA0`, `606B60`,
 `606B90`, `84B3D0`, `8E45D0` and `47DA40`.
 
@@ -62,7 +62,7 @@ by `20261030T134824-33340`, PID `29576`, base `00400000`:
 | `5026F0` | 5 | Thunk with a terminal jump: its short body does not close its dependency |
 
 The private evidence is in
-`<isolated-copies>/slot0/20261030T134824-33340/`:
+`<isolated-copies>/20261030T134824-33340/`:
 `code-helpers/observations.json`, `comparisons.json` and the associated `.bin` files.
 The 67 files total 14,863 bytes; their sizes and SHA-256 were
 rechecked against the catalog. For the eight bodies above,
@@ -71,7 +71,7 @@ explain the match. Their difference from the official disk remains
 recorded; the memory corroboration does not erase it.
 
 For `43BD90`, the exact intervals are `[43BD90,43BF29)` and
-`[43BF30,43BFC0)`. They cover the 553 bytes of the Rea AddressSet, including the
+`[43BF30,43BFC0)`. They cover the 553 bytes of the static analysis AddressSet, including the
 `JMP 43BF30` at `43BF27`, but not the seven bytes `43BF29..43BF2F` excluded
 from that AddressSet. **This is not a contiguous 560-byte capture.**
 The two SHAs correspond to the two blocks of `disk-comparisons.json`.
@@ -83,16 +83,16 @@ nor the values of objects in memory.
 ## TLS: local absence, differing imports, no invented attach
 
 The **static** TLS PE directory has RVA zero and size zero on both
-files. This reading of PE metadata is kept separate from the Rea
+files. This reading of PE metadata is kept separate from the static analysis
 outputs. It concerns neither DLLs, nor dynamic TLS, nor values
 initialized on demand by a library.
 
 The import inventories differ: the official executable exposes `TlsAlloc`,
 `TlsFree`, `TlsSetValue` and `TlsGetValue`, absent from the secondary inventory.
-Reused evidence: original `02-inspect_pe_imports`,
-`ev_3e7c5df8a2b931e7e3be61bdf0296228e88009e9dd39f0ce31aea573b3ce2b57`,
-and secondary `89-inspect_pe_imports`,
-`ev_c4b22329685fe5056c278dd21ba29814c951531ed5cae7c76d0b392235c94b72`.
+Reused evidence: original `02-pe-imports`,
+`3e7c5df8a2b931e7e3be61bdf0296228e88009e9dd39f0ce31aea573b3ce2b57`,
+and secondary `89-pe-imports`,
+`c4b22329685fe5056c278dd21ba29814c951531ed5cae7c76d0b392235c94b72`.
 These imports are not attributed to Havok without evidence. They are not
 followed outside the gameplay bodies corroborated in this investigation. It is
 therefore not concluded that the original does not use TLS.
@@ -124,7 +124,7 @@ not proof of the player's live binding. `4D46E0` still has virtual
 and direct calls: reading it does not close the whole engine.
 
 The global `FAC040` is used by allocation in this construction.
-Rea typed references locate its three writes in `475CE0/63`.
+Static analysis typed references locate its three writes in `475CE0/63`.
 In this secondary body, the old object is decremented and may receive
 a virtual call `+2C`, then the global is replaced. **This global setter
 is not a thread TLS attach.** Calling it again to "initialize the
@@ -234,6 +234,6 @@ and its stability until the drain, then the positive thread/FPU
 obligations of that target. Code corroboration creates neither an implicit
 TLS policy nor a need to explore an unbounded graph.
 No new probe or dedicated trial was created
-or launched in this phase. The single Rea session executed 68 operations,
+or launched in this phase. The single static analysis session executed 68 operations,
 kept 28 new assembly listings and 44 range comparisons. The bundle and
 the snapshot were exported, then the session closed successfully.

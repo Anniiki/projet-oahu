@@ -5,7 +5,7 @@
 Static inventory of 30 October 2026 over the **39 attested VMF copies**: 20
 Xbox 2.5 and 19 PC 2.8, **23,844,792 bytes**, described in
 [vmf_format_inventory.md](vmf_format_inventory.md). No action, host command,
-window, console, game or GPU is executed. No new Rea session is opened; the
+window, console, game or GPU is executed. No new static analysis session is opened; the
 analysis of the native handlers is kept separately, outside this note.
 
 The corpus contains **27,685 streams**: 18,822 timelines and 8,863 button
@@ -141,7 +141,7 @@ conditions and instructions remain private in
 ## Native deviations: do not substitute a standard SWF engine
 
 Earlier native analysis provided anchors in
-`rea/vmf-action-interpreter/session/`, for the **secondary binary f452** only at
+`vmf-action-interpreter/session/`, for the **secondary binary f452** only at
 this stage: SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 They are not promoted transitively by captures of other bodies.

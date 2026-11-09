@@ -9,7 +9,7 @@ yet constitute playable commercial menus.
 
 Reference: PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The answers from the exported and closed Rea session `vmf-child-services-v1`
+The answers from the exported and closed static analysis session `vmf-child-services-v1`
 are compared with the two files on disk:
 
 | Complete body | Size | SHA-256 |

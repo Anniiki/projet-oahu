@@ -14,6 +14,7 @@ if(NOT TARGET tdur_detours)
 endif()
 add_library(tdur_display_hooks STATIC "${TDUR_DISPLAY_HOOK_ROOT}/mod/src/display_hooks.cpp"
     "${TDUR_DISPLAY_HOOK_ROOT}/mod/src/cursor_diagnostics_core.cpp"
+    "${TDUR_DISPLAY_HOOK_ROOT}/mod/src/frametime_recorder.cpp"
     "${TDUR_DISPLAY_HOOK_ROOT}/mod/src/foreground_cursor_core.cpp")
 target_link_libraries(tdur_display_hooks PUBLIC tdur_display_backend PRIVATE tdur_detours comctl32)
 target_compile_options(tdur_display_hooks PRIVATE /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)

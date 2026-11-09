@@ -1,8 +1,11 @@
 """Exercise the actual injected display gate on a source-owned D3D9 fixture."""
 import argparse
+import ctypes
+from ctypes import wintypes
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import time
@@ -13,11 +16,43 @@ def hashes(root):
             for p in sorted(root.rglob("*")) if p.is_file()}
 
 
+def visible_owned_windows(pids):
+    """Read-only check restricted to this fixture and its loader error title."""
+    user = ctypes.WinDLL("user32", use_last_error=True)
+    callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
+    user.EnumWindows.restype = wintypes.BOOL
+    user.IsWindowVisible.argtypes = [wintypes.HWND]
+    user.IsWindowVisible.restype = wintypes.BOOL
+    user.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+    user.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    found = []
+
+    @callback_type
+    def inspect(window, _):
+        if not user.IsWindowVisible(window):
+            return True
+        pid = wintypes.DWORD()
+        user.GetWindowThreadProcessId(window, ctypes.byref(pid))
+        title = ctypes.create_unicode_buffer(512)
+        user.GetWindowTextW(window, title, len(title))
+        if pid.value in pids or "tdur_display_startup_witness.exe" in title.value:
+            found.append(int(window))
+        return True
+
+    if not user.EnumWindows(inspect, 0):
+        raise ctypes.WinError(ctypes.get_last_error())
+    return found
+
+
 def main():
     parser = argparse.ArgumentParser()
     for name in ("launcher", "witness", "dll", "work-root"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--mode", choices=("borderless", "exclusive"), default="borderless")
+    parser.add_argument("--frametime", default="off", choices=(
+        "off", "enabled", "invalid", "missing-display", "missing-installation",
+        "host-log", "source-log"))
     args = parser.parse_args()
     witness = args.witness.resolve(strict=True)
     if witness.name != "tdur_display_startup_witness.exe":
@@ -30,6 +65,13 @@ def main():
     saves.mkdir(parents=True)
     private.mkdir()
     installation.mkdir()
+    if args.frametime == "source-log":
+        private = installation / "private-documents"
+        private.mkdir()
+    if args.frametime == "host-log":
+        target = private / witness.name
+        shutil.copyfile(witness, target)
+        witness = target
     (installation / "canary.bin").write_bytes(b"source-owned installation fixture\n")
     for index in range(17):
         (saves / f"canary{index}.sav").write_bytes(f"save fixture {index}\n".encode())
@@ -43,11 +85,28 @@ def main():
                TDUR_D3D12_DISPLAY="1", TDUR_DISPLAY_MODE=args.mode,
                TDUR_RETAIL_BACKGROUND="1",
                TDUR_RETAIL_MAX_GRAPHICS="1")
+    env.pop("TDUR_FRAMETIME_DIAGNOSTICS", None)
+    rejected = args.frametime not in ("off", "enabled")
+    if args.frametime != "off":
+        env["TDUR_FRAMETIME_DIAGNOSTICS"] = "1"
+    if args.frametime == "invalid":
+        env["TDUR_FRAMETIME_DIAGNOSTICS"] = "yes"
+    if args.frametime == "missing-display":
+        env.pop("TDUR_D3D12_DISPLAY")
+    if args.frametime == "missing-installation":
+        env.pop("TDUR_SOURCE_INSTALLATION")
     command = [str(args.launcher.resolve(strict=True)), "--exe", str(witness),
                "--dll", str(args.dll.resolve(strict=True)),
                "--source-documents", str(source), "--private-documents", str(private),
                "--source-saves", str(saves), "--log", str(log), "--report", str(report),
                "--pid-file", str(pid_file), "--resume-file", str(resume), "--max-seconds", "15"]
+    # This owned process and its children only: loader refusal must return an
+    # exit status instead of waiting for the unattended Windows error dialog.
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.SetErrorMode.argtypes = [ctypes.c_uint]
+    kernel.SetErrorMode.restype = ctypes.c_uint
+    kernel.GetErrorMode.restype = ctypes.c_uint
+    previous_error_mode = kernel.SetErrorMode(kernel.GetErrorMode() | 0x8003)
     child = subprocess.Popen(command, env=env, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, text=True,
                              creationflags=subprocess.CREATE_NO_WINDOW)
@@ -59,18 +118,55 @@ def main():
             time.sleep(0.025)
         identity = json.loads(pid_file.read_text(encoding="utf-8"))
         assert identity["suspended"]
+        assert identity["inherited_error_mode"] & 0x8003 == 0x8003
         assert not (private / "display-startup-proof.json").exists()
+        resumed_at = time.monotonic()
         resume.write_text("source-owned fixture registered\n", encoding="ascii")
-        stdout, stderr = child.communicate(timeout=20)
+        window_checks = 0
+        while True:
+            window_checks += 1
+            assert not visible_owned_windows({identity["pid"], child.pid}), "owned fixture exposed a window"
+            if child.poll() is not None:
+                break
+            assert time.monotonic() - resumed_at < 20, "fixture deadline exceeded"
+            time.sleep(0.01)
+        stdout, stderr = child.communicate(timeout=1)
+        elapsed = time.monotonic() - resumed_at
         assert child.returncode == 0, stdout + stderr
         result = json.loads(report.read_text(encoding="utf-8"))
         assert result["pid"] == identity["pid"] and not result["timed_out"]
-        assert result["exit_code"] == 0, "fixture failed; inspect " + str(root)
+        assert (result["exit_code"] != 0) == rejected, "unexpected exit; inspect " + str(root)
         assert result["locked_save_files"] == 17 and result["source_saves_unchanged"]
-        assert hashes(source) == before and hashes(installation) == installation_before
+        assert hashes(source) == before
+        if args.frametime != "source-log":
+            assert hashes(installation) == installation_before
+        else:
+            assert hashlib.sha256((installation / "canary.bin").read_bytes()).hexdigest() == installation_before["canary.bin"]
+        if rejected:
+            assert result["exit_code"] == 0xC0000142
+            assert not log.exists(), "refused configuration opened its diagnostic log"
+            assert not (private / "display-startup-proof.json").exists()
+            (root / "result.json").write_text(json.dumps({
+                "game_executed": False, "success": True, "refusal": args.frametime,
+                "exit_code": result["exit_code"], "diagnostic_file_created": False,
+                "elapsed_seconds": elapsed, "window_checks": window_checks,
+                "visible_owned_windows": 0, "error_mode": identity["inherited_error_mode"],
+                "evidence_directory": str(root)}, indent=2) + "\n", encoding="utf-8")
+            print("PASS refusal before diagnostics: " + args.frametime + "; " + str(root))
+            return
         proof = json.loads((private / "display-startup-proof.json").read_text(encoding="utf-8"))
         assert proof["success"] and proof["native_d3d12"] and proof["presents"] == 3
+        assert proof["error_mode"] & 0x8003 == 0x8003
         trace = log.read_text(encoding="utf-8")
+        summaries = [line for line in trace.splitlines() if "event=frametime-summary " in line]
+        assert bool(summaries) == (args.frametime == "enabled")
+        if summaries:
+            assert len(summaries) == 1
+            fields = dict(part.split("=", 1) for part in summaries[0].split() if "=" in part)
+            assert fields["calls"] == "3" and fields["durations"] == "3"
+            assert fields["intervals"] == "2" and fields["failed"] == "0"
+            assert fields["invalid_clock"] == "0" and fields["reports_left"] == "127"
+            assert log.stat().st_size < 16384
         events = ["hooks-installed-pre-entry", "display-public-factory-gate-armed",
                   "display-deferred-initialization", "display-first-dxgi-frame"]
         positions = [trace.index("event=" + event) for event in events]
@@ -88,12 +184,15 @@ def main():
         (root / "result.json").write_text(json.dumps({
             "game_executed": False, "success": True, "proof": proof,
             "requested_mode": args.mode,
+            "frametime": args.frametime, "summary_count": len(summaries),
+            "visible_owned_windows": 0, "window_checks": window_checks,
             "exclusive_pending": args.mode == "exclusive",
             "source_files_unchanged": True,
             "dll_sha256": hashlib.sha256(args.dll.read_bytes()).hexdigest(),
             "evidence_directory": str(root)}, indent=2) + "\n", encoding="utf-8")
         print("PASS injected deferred D3D9On12 startup; 17 source canaries unchanged; " + str(root))
     finally:
+        kernel.SetErrorMode(previous_error_mode)
         if child.poll() is None:
             child.kill()  # Only this owned launcher; its Job closes the fixture.
             child.wait(timeout=5)

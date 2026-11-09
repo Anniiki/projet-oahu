@@ -8,7 +8,7 @@ namespace tdur::ui {
 
 enum class VmfVariableHashError { zero_capacity };
 
-// Secondary PC443390..443401, evidence ev_f77c4d11...; see the evidence doc.
+// Secondary PC443390..443401, evidence f77c4d11...; see the evidence doc.
 // Byte strings, not Unicode: first NUL or view end terminates the name.
 // The seed is the scope. Four-byte groups use explicit little-endian packing
 // and DF masks on EVERY byte. A partial group retains the preceding masked

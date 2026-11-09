@@ -10,7 +10,7 @@ does not acknowledge that command.
 
 Secondary static reference PC Paradise, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Private sources under `reprise-2026-10-31/rea/`:
+Private sources under `reprise-2026-10-31/`:
 
 - `vmf-display-lifecycle/session/49`: initializer `44BDC0`;
   `30`, `4483B0`: removal without unregistration if `resource+2E & 10`;
@@ -19,7 +19,7 @@ Private sources under `reprise-2026-10-31/rea/`:
   clearing, text initialization, then destruction of the former child.
 - `vmf-runtime-scheduler/session/07`, `4436A0`: typed copy, NUL on miss;
   `vmf-text-services/session/12/18`: classification and write `449240`.
-- Batch `reprise-2026-10-30/rea/vmf-action-interpreter/session/108/96`:
+- Batch `reprise-2026-10-30/vmf-action-interpreter/session/108/96`:
   `4435D0` calls the hash `443390`, which dereferences the name without a
   NULL guard.
 

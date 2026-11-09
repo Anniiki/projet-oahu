@@ -9,17 +9,17 @@ studied is the **secondary PC** binary, SHA256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 No official invocation or equivalence with the XEX code is inferred here.
 
-Main sources: `rea/vmf-host-context/session/`, assemblies 05/06/11/12/13.
+Main sources: `vmf-host-context/session/`, assemblies 05/06/11/12/13.
 The matching pseudocode of the `vmf-action-interpreter` batch serves as a map,
 but the signed branches and widths below come from the assemblies.
 
 | Action | Body | Evidence ID |
 |---|---|---|
-|04 NextFrame|4442C0|`ev_f9466fdc35511c2731f855ea2add3b0bdea4e3fc948650e1b73d9d6104c44b26`|
-|05 PreviousFrame|444310|`ev_ca70226658c28611f2758b01b64ffb84fb62ef95e3d434841fe558daea5a8df1`|
-|06 Play|444360|`ev_1aaf0944cb846a0bb298d348a725792c45258cdf3d27cebcd0e03aed5ff764e4`|
-|07 Stop|4443A0|`ev_aa13468e1fe63bde3e90ea37237c8185dfce5a285f3bdc53529dc5d6b265d5ac`|
-|81 GotoFrame|444110|`ev_e3893578187c3391a52a5d3898b8f2d9c107e2758e27a47aab951f9c8e76ea19`|
+|04 NextFrame|4442C0|`f9466fdc35511c2731f855ea2add3b0bdea4e3fc948650e1b73d9d6104c44b26`|
+|05 PreviousFrame|444310|`ca70226658c28611f2758b01b64ffb84fb62ef95e3d434841fe558daea5a8df1`|
+|06 Play|444360|`1aaf0944cb846a0bb298d348a725792c45258cdf3d27cebcd0e03aed5ff764e4`|
+|07 Stop|4443A0|`aa13468e1fe63bde3e90ea37237c8185dfce5a285f3bdc53529dc5d6b265d5ac`|
+|81 GotoFrame|444110|`e3893578187c3391a52a5d3898b8f2d9c107e2758e27a47aab951f9c8e76ea19`|
 
 ## Target and state spaces
 
@@ -83,20 +83,20 @@ runtime only admits current1 in 1..C+1 and requested1 in 1..C.
 
 None of the five bodies reads or writes the stack, the action IP or its
 advance flag. The common advance 443A90, assembly 40 of the
-`rea/ui-map-input-dispatch/session/` batch, is exact:
+`ui-map-input-dispatch/session/` batch, is exact:
 
 - short opcode 04..07: +2 physical bytes, +1 compact unit;
 - opcode 81 with a 2-byte WORD payload: +6 physical, +5 compact;
 - in both cases: a single action consumed.
 
 Proof for 443A90:
-`ev_1b3d602a8e99f46d46147131976e3dc641c270bd6710a2f339ad39a30f491cc4`.
+`1b3d602a8e99f46d46147131976e3dc641c270bd6710a2f339ad39a30f491cc4`.
 Its body and the two spans of the dispatcher 443AF0 have their presence
 corroborated by [trial 25](official_trial_25.md), without attested invocation.
 
-Assembly 02 of the `rea/vmf-script-calls/session/` batch closes the common
+Assembly 02 of the `vmf-script-calls/session/` batch closes the common
 steps of 443AF0, evidence
-`ev_f39bbd061fbd28e2246c82f787dccff246df3eab1afe02b167cde693ae673c19`:
+`f39bbd061fbd28e2246c82f787dccff246df3eab1afe02b167cde693ae673c19`:
 
 - 443AFF..443B07 captures T in Q+14; Q+10 receives 1 at 443B18.
 - The CALLs 443BB8/443BC2/443BCC/443BD6 to the four short primitives all
@@ -165,7 +165,7 @@ Budgets, backward branch, resumption, target errors and the preservation of
 the 17/12 boundaries of both entry points are checked separately. Target
 refusals before any instruction report a zero opcode and a zero counter.
 
-Independent static review: no confirmed P1/P2 defect. The 61 executable
+Independent static review: no confirmed blocking defect. The 61 executable
 targets of the project were rebuilt explicitly. CTest x64: **64/64**;
 targeted CTest Win32: **3/3** (scalar, display, timeline). These component
 checks do not demonstrate a displayed or playable menu.

@@ -103,7 +103,7 @@ physical VRR. The source surface remains 1128×634: internal resolution and the
 maximum graphics preset are not yet ported. The null focus of this first
 presentation does not validate world simulation in the background.
 
-Private evidence: `<isolated-copies>/slot0/20261030T074026-34732/`.
+Private evidence: `<isolated-copies>/20261030T074026-34732/`.
 Log 14 460 bytes, SHA-256
 `00ea9e0f91d04a50be093f5e3f6aad114167066d65748ee8fe35abfbe76264d4`;
 startup report SHA-256

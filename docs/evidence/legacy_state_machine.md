@@ -23,14 +23,14 @@ x86 VA, preferred base `00400000`:
 - Secondary Platinum/Paradise: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-The private Rea exports already available are reused from
-`reprise-2026-10-30/rea/paradise-ai-time/`:
+The private static analysis exports already available are reused from
+`reprise-2026-10-30/paradise-ai-time/`:
 
 | Export | Evidence |
 | --- | --- |
-| `152-resolve_containing_procedure.json` | Body `407FB0..407FF2`, 67 contiguous bytes |
-| `153-procedure_assembly.json` | Instructions and order of reads/writes; evidence `ev_58365819b55f6a62c80ee7a609b82b9466ba22fa43397716a4b01c43527f34d2` |
-| `263-read_bytes.json` | `407F80/3 = C2 08 00`, evidence `ev_d1cb232edb50dad23fc3bb3334d3eec3db7ffe85477bf2e9e1e617c5949f1e89` |
+| `152-containing-function.json` | Body `407FB0..407FF2`, 67 contiguous bytes |
+| `153-assembly.json` | Instructions and order of reads/writes; evidence `58365819b55f6a62c80ee7a609b82b9466ba22fa43397716a4b01c43527f34d2` |
+| `263-byte-read.json` | `407F80/3 = C2 08 00`, evidence `d1cb232edb50dad23fc3bb3334d3eec3db7ffe85477bf2e9e1e617c5949f1e89` |
 | `disk-comparisons.json` | These two bodies differ in the official binary on disk and are readable in the secondary |
 
 The closed official trials 18 (`20261030T120132-19748`) and 19
@@ -42,12 +42,12 @@ The closed official trials 18 (`20261030T120132-19748`) and 19
 | `407F80/3` | `1d10894625976bca9d8906f3ecf1e766b94e9219ec3bf1c30e02feea5e18e45a` |
 
 Reports reviewed:
-`<isolated-copies>/slot0/<run>/code-helpers/comparisons.json`,
+`<isolated-copies>/<run>/code-helpers/comparisons.json`,
 51 ranges and 12,350 bytes per trial. The equality covers the complete
 bodies, with no edits to those ranges; it does not prove their execution. No
 IAT read or protection transformation is needed for this reconstruction. The
 pseudocode serves as a lead, the assembly establishes the contract. The
-original Rea session was exported then closed; no new session is opened for
+original static analysis session was exported then closed; no new session is opened for
 this module.
 
 ## Observed ABI and layout

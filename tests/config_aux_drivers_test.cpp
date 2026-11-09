@@ -14,6 +14,7 @@
 namespace cfg = tdur::game::config;
 namespace reg = tdur::game::config_registry;
 using cfg::OpaqueWord;
+using tdur::game::ModeCallOutcome;
 
 namespace {
 
@@ -35,9 +36,15 @@ struct Service final : tdur::game::startup::StartupServiceBase {
     initialize(tdur::game::GameModeRuntime&) override {
         return tdur::game::ModeInitOutcome::initialized;
     }
-    void on_forward_pass() override {}
-    void on_reverse_pass() override {}
-    void on_shutdown() override {}
+    ModeCallOutcome on_forward_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_reverse_pass() override {
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_shutdown() override {
+        return ModeCallOutcome::native_returned;
+    }
 };
 
 struct Ctor final : reg::Constructor9896c0Ports {

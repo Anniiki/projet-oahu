@@ -12,9 +12,9 @@ menu wiring.
 
 Observed source: `00443390..00443401`, 114 contiguous bytes of the secondary,
 SHA-256 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Rea/Ghidra, export 96 `procedure_assembly` from
-`reprise-2026-10-30/rea/vmf-action-interpreter/session/`, evidence
-`ev_f77c4d11ee3f18f8709e937c3b257acac92afbbf9af3081abe66fe5f1bb564c5`.
+Ghidra, export 96 `assembly` from
+`reprise-2026-10-30/vmf-action-interpreter/session/`, evidence
+`f77c4d11ee3f18f8709e937c3b257acac92afbbf9af3081abe66fe5f1bb564c5`.
 The C++ is rewritten from the instructions, without pseudocode translation.
 
 The static comparison at the same virtual addresses yields different bytes in
@@ -30,13 +30,13 @@ excluded this callee; a separate observation now corroborates it in the
 private copy of the official executable, whose SHA-256 remains the one above.
 The official file remains the project's primary reference.
 
-The exclusive `ui-vmf-hash` profile of `tdur_probe_code` captured **114 bytes**
+The exclusive `ui-vmf-hash` profile of the unpublished code probe captured **114 bytes**
 at `00443390`, with no constants and no pointer walking. Their SHA-256 is
 `b6042e3b5cb81d63314d687c3bcfd9efd50cce48030f002f5d549bf8957e5349`:
 they match the secondary but differ from the official file on disk.
 The cause remains unknown. The presence of this code does not prove that it is called.
 
-Private trial: `<isolated-copies>/slot0/20261031T054423-28568`, PID 35112,
+Private trial: `<isolated-copies>/20261031T054423-28568`, PID 35112,
 creation FILETIME 134378990990130686, image at `00400000`. PID 28568 is that
 of the Python observer. The limit of the owned Job stopped the game after
 100.16 seconds (1460), then released the slot. The observer receipts report

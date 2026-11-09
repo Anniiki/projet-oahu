@@ -16,7 +16,7 @@ or probe and writes no commercial resource.
 
 Primary reference: the official PC MC 1.66 A executable, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`,
-16,797,696 bytes. The Rea analyses below come from the explicitly
+16,797,696 bytes. The static analyses below come from the explicitly
 identified secondary executable, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`,
 12,263,424 bytes, x86 PE at base `00400000`. **Official trial 24
@@ -278,7 +278,7 @@ file or account key was read.
 ## Evidence, scopes and official trial 24 corroboration
 
 Private batch:
-`<private-evidence>/reprise-2026-10-30/rea/shader-selection/`.
+`<private-evidence>/reprise-2026-10-30/shader-selection/`.
 `evidence-index.json` links all requests, responses and IDs;
 `paint-lr-family-inputs.json` contains the metadata of the concrete case;
 `runtime-catalog-draft.json` keeps the initial proposal;
@@ -286,33 +286,33 @@ Private batch:
 the eleven captures, two PEs, identities and table. The initial proposal is
 not rewritten as if it had already contained the new evidence.
 
-| Secondary Rea request and evidence | Decisive fact |
+| Secondary static analysis request and evidence | Decisive fact |
 | --- | --- |
-| `34`, `ev_2e41c0136224b0588a79423d07bb54ce50f7bee3c69f6f7df58e8af0cd6dd419` | `601D10`, class/caches separation |
-| `36`, `ev_79af2fe2fec478ebee24b3b29fa68a2ba471daf22ac52ce79e707d974f14743f` | `516F90`, family and PAR variants |
-| `30`, `ev_bd5d9abdad1e71f0fec7fc6c6b0b7be288161e777ae600178909dfd56ea5532b` | `517810`, lookup and fallbacks |
-| `23`, `ev_9d10a660fb3d3e3ee92a0f758c519050872c157a1166ff84c11c6595731c941b` | `602DD0`, buffer/88-byte contract to `504920` |
-| `14`, `ev_3557303e74d3ec494658e71cbc32471ef23d7fa360a1d1990297cfa60b6baa66` | `5169B0`, separation of the two key computations |
-| `04`, `ev_5e4af5f1afcb048917f59e4a03c7718c71406a33b364aee145e87bfeba01a76c` | `602D00`, exact keys and collisions |
-| `53`, `ev_a7ccbc5c2add2c50f1c3cf09320be32d2db4877d6d64364326dc17a04f9811b1` | `602AC0`, VS binding |
-| `52`, `ev_ee610efedd33c435061059eeaab2dc80fcffa952e2a014986452346aaac756ba` | `602940`, PS binding |
-| `45`, `ev_28f941ca8120891770150aec2284d1a79331d2a35c43e72bbc5d681a38d7eb01` | `5168C0`, exact BYTE transfer |
-| `46`, `ev_ab261874f515e7d7f09102bc7fe3492aa91c176a436d8a31f5359785bc5784b8` | `509490`, LAY resource key counter |
-| `19`, `ev_3ed10952759ebb8242a80544043927c0eece095d3aa541f72c0a977ca6c747f3` | `5165A0`, key/object/metadata registration |
-| `42`, `ev_aec4f17b0d63c365ac62009b49b09704b065b7753121baa246572f4429a44cf1` | 32 bytes at `9F2F80`, PS2.0 bytecode header |
+| `34`, `2e41c0136224b0588a79423d07bb54ce50f7bee3c69f6f7df58e8af0cd6dd419` | `601D10`, class/caches separation |
+| `36`, `79af2fe2fec478ebee24b3b29fa68a2ba471daf22ac52ce79e707d974f14743f` | `516F90`, family and PAR variants |
+| `30`, `bd5d9abdad1e71f0fec7fc6c6b0b7be288161e777ae600178909dfd56ea5532b` | `517810`, lookup and fallbacks |
+| `23`, `9d10a660fb3d3e3ee92a0f758c519050872c157a1166ff84c11c6595731c941b` | `602DD0`, buffer/88-byte contract to `504920` |
+| `14`, `3557303e74d3ec494658e71cbc32471ef23d7fa360a1d1990297cfa60b6baa66` | `5169B0`, separation of the two key computations |
+| `04`, `5e4af5f1afcb048917f59e4a03c7718c71406a33b364aee145e87bfeba01a76c` | `602D00`, exact keys and collisions |
+| `53`, `a7ccbc5c2add2c50f1c3cf09320be32d2db4877d6d64364326dc17a04f9811b1` | `602AC0`, VS binding |
+| `52`, `ee610efedd33c435061059eeaab2dc80fcffa952e2a014986452346aaac756ba` | `602940`, PS binding |
+| `45`, `28f941ca8120891770150aec2284d1a79331d2a35c43e72bbc5d681a38d7eb01` | `5168C0`, exact BYTE transfer |
+| `46`, `ab261874f515e7d7f09102bc7fe3492aa91c176a436d8a31f5359785bc5784b8` | `509490`, LAY resource key counter |
+| `19`, `3ed10952759ebb8242a80544043927c0eece095d3aa541f72c0a977ca6c747f3` | `5165A0`, key/object/metadata registration |
+| `42`, `aec4f17b0d63c365ac62009b49b09704b065b7753121baa246572f4429a44cf1` | 32 bytes at `9F2F80`, PS2.0 bytecode header |
 
-The complementary closed batch `rea/shader-variant-hash/session` establishes:
+The complementary closed batch `shader-variant-hash/session` establishes:
 
-| Secondary Rea evidence | Scope |
+| Secondary static analysis evidence | Scope |
 | --- | --- |
-| `02`, `ev_4136c5443a6a4ffb206dde15423629d80a1ffdd5c92edef1ff11f423cd936353` | AddressSet `504920..504924`, JMP thunk to `504980`, 5 bytes |
-| `03`, `ev_30420ae0867779de9763ff921f3ea00757b9c49118bde321d5c6162e3d310b0e` | AddressSet `504980..5049F4`, 117 bytes, contiguous |
-| `05`, `ev_e27aa9611e14d83ee9b4ce1409866959a864aa8efc07b37a666210fbe5d4492c` | Complete assembly of the computation |
-| `09`, `ev_ac251e8fb01bf1a24bcde846cb5d09fea2c8aead145325bfbd1890095da59b8a` | Table `F465D0/2048` |
+| `02`, `4136c5443a6a4ffb206dde15423629d80a1ffdd5c92edef1ff11f423cd936353` | AddressSet `504920..504924`, JMP thunk to `504980`, 5 bytes |
+| `03`, `30420ae0867779de9763ff921f3ea00757b9c49118bde321d5c6162e3d310b0e` | AddressSet `504980..5049F4`, 117 bytes, contiguous |
+| `05`, `e27aa9611e14d83ee9b4ce1409866959a864aa8efc07b37a666210fbe5d4492c` | Complete assembly of the computation |
+| `09`, `ac251e8fb01bf1a24bcde846cb5d09fea2c8aead145325bfbd1890095da59b8a` | Table `F465D0/2048` |
 
 The full assembly of `602100` is reused from the closed texture-bindings
 batch, evidence
-`ev_0d81117de08a1a242a428520f29a9b4013c68d8b311dd93f07d6b600aa2333a7`.
+`0d81117de08a1a242a428520f29a9b4013c68d8b311dd93f07d6b600aa2333a7`.
 The D3D9 contract comes from the primary declarations of the Windows SDK
 `10.0.26100.0/shared/d3d9.h` and `d3d9types.h`; slot offsets are computed
 on four-byte x86 pointers.
@@ -333,7 +333,7 @@ Ghidra AddressSets obtained explicitly:
   contiguous.
 
 Trial 24, exclusive profile `assets-shaders`, is kept under
-`<isolated-copies>/slot0/20261030T184840-33116/`. PID **30964**, creation
+`<isolated-copies>/20261030T184840-33116/`. PID **30964**, creation
 FILETIME **134378597540409344**, base `00400000`, locked official source
 SHA identical to the one above: these values match in
 `suspended-pid.json`, `startup-report.json`, `observations.json` and
@@ -390,7 +390,7 @@ management `517150/603440` and their initializers, the bytecode `9F2F80`,
 as well as all uncaptured bytes of `602100`. The presence of the VS/PS
 methods does not prove their effective binding to a live object/vtable.
 
-A single initial Rea session reused the closed snapshot of the
+A single initial static analysis session reused the closed snapshot of the
 texture-bindings batch. A request for the vtable slot `602900` was refused
 because Ghidra defined no procedure there; this refusal is not an absence
 of code. The wrapper exported then closed the session in its `finally`:
@@ -398,7 +398,7 @@ of code. The wrapper exported then closed the session in its `finally`:
 snapshot. A complementary session was then opened for the `504920/504980`
 boundary and its table alone, reusing the snapshot. Its nine operations
 and its `export-finally.json`/`close-finally.json` also confirm export and
-closure. The verification of trial 24 opened no Rea session and ran no new
+closure. The verification of trial 24 opened no static analysis session and ran no new
 game, probe or build.
 
 ## Contract for future native rendering, and limits

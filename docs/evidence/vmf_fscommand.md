@@ -5,7 +5,7 @@
 `VmfFsCommandContext` reconstructs the static body `445CB0..445D3F`
 (144 bytes). The primary reference is the official PC MC 1.66 A, SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The existing Rea export of the secondary
+The existing static analysis export of the secondary
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`
 describes this body. The historical capture of the official process in trial 25
 contains the same 144 bytes, SHA256
@@ -14,7 +14,7 @@ They differ from the primary on disk. Their presence in memory does not prove
 that this function was executed during the trial.
 
 Private evidence: `reprise-2026-10-31/vmf-fscommand-runtime-v1/native-proof.json`,
-export `rea/vmf-host-callback-v1/session/22-procedure_assembly.json` and
+export `vmf-host-callback-v1/session/22-assembly.json` and
 `reprise-2026-10-30/vmf-core-runtime-25/runtime25-comparison.json`, entry
 `vmf_fscommand`. This batch required no new access to the game or the process.
 
@@ -60,8 +60,11 @@ and film-specific receivers remain separate work, with mandatory ports.
 Declaring these ports does not recompile their bodies.
 The [default router](vmf_fscommand_router.md) is now provided with an owned
 adapter; the bodies of its handlers and of the diagnostic remain separate
-services. This module consumes no VMF action, does not pop GetURL and does not acknowledge
-`sbdd`. The commercial player still requires its real hosts.
+services. The envelope itself consumes no VMF action and does not pop; the
+executor with host and `VmfFsHostActions`, hosted in this same file, connect it
+to GetURL `83` and GetURL2 `9A` ([host bridge](vmf_host_url.md)). No `sbdd`
+receiver is provided: nothing acknowledges `sbdd` without a real receiver. The
+commercial player still requires its real hosts.
 
 ## Validation
 

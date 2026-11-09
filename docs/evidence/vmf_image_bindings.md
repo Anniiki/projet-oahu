@@ -122,7 +122,7 @@ The latest mode is a draft mode, not full C++26 conformance.
   generated from the names produced by this module.
 - The hashes of the 39 banks and of the 39 VMF copies remain identical to the
   initial inventory after both architectures. No game, XEX, VMF action, native
-  call, GPU or Rea session is executed by this batch.
+  call, GPU or static analysis session is executed by this batch.
 
 The allocation oracles observe the ordinary `operator new/new[]` of the owning
 thread, not the allocator internals. Corpus coverage proves these name

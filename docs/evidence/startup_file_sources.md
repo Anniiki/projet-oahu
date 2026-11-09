@@ -9,7 +9,7 @@ host ports for unresolved helpers; it does not call original machine addresses.
 
 Reference: official PC MC 1.66 A executable, 16,797,696 bytes, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Rea/Ghidra 12.2 supplied procedure bodies, complete instruction listings and
+Ghidra 12.2 supplied procedure bodies, complete instruction listings and
 bounded bytes. The session was exported and closed before implementation.
 The byte envelopes were compared mechanically with the same official PE image;
 all matched, and the executable's full hash remained unchanged.

@@ -40,9 +40,18 @@ struct Service final : StartupServiceBase {
             after_init();
         return result;
     }
-    void on_forward_pass() override { CHECK(false); }
-    void on_reverse_pass() override { CHECK(false); }
-    void on_shutdown() override { CHECK(false); }
+    ModeCallOutcome on_forward_pass() override {
+        CHECK(false);
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_reverse_pass() override {
+        CHECK(false);
+        return ModeCallOutcome::native_returned;
+    }
+    ModeCallOutcome on_shutdown() override {
+        CHECK(false);
+        return ModeCallOutcome::native_returned;
+    }
 };
 
 struct HelperGlobal final : HelperContextSlot {

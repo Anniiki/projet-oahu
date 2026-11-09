@@ -24,21 +24,21 @@ All addresses are x86 VAs, image base `0x00400000`.
 | PC MC 1.66 A, `<installation>/TestDriveUnlimited.exe` | `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30` | Primary reference |
 | Executable associated with the local Platinum/Paradise patch | `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed` | Secondary source, never labeled "official" |
 
-Local evidence under `<private-evidence>/reprise-2026-10-30/rea/`:
+Local evidence under `<private-evidence>/reprise-2026-10-30/`:
 
-- `original-display-timing/35-procedure_assembly.json` and
-  `36-procedure_pseudo_code.json`: loop `0x0097f260` of the original.
+- `original-display-timing/35-assembly.json` and
+  `36-pseudocode.json`: loop `0x0097f260` of the original.
 - `paradise-focus-timing/`: pump, window procedure, activation, timer,
   dispatch, physics options; bounded `*.asm.txt` listings as a complement.
 - `paradise-focus-follow/`: owners of the other activation readers, timer
   structure, physics callback and PE imports. The folder contains
-  `targeted-disk-comparisons.json`, the Rea outputs, the bundle and the
+  `targeted-disk-comparisons.json`, the static analysis outputs, the bundle and the
   snapshot.
 
-Rea uses Ghidra 12.2. Some decoded ranges are not recognized as functions:
+The static analysis uses Ghidra 12.2. Some decoded ranges are not recognized as functions:
 notably `982ac0`, `81ee50`, `81f0b0`, `433420` and `98ef90`. The decompilation
 refusals are preserved. Their reading relies on
-`inspect_native_instruction`/`read_bytes` and on a **static** MSVC complement
+instruction inspection and raw byte reads and on a **static** MSVC complement
 `dumpbin /DISASM:NOBYTES /RANGE:...`, version 14.44.35229.0. This complement
 creates no Ghidra function and does not execute the image. Both secondary
 sessions are exported and closed; the non-zero exit code preserves the
@@ -55,7 +55,7 @@ The official memory comparisons have a precise scope:
 | `20261030T081533-16432`, 19 ranges, 3 895 bytes in total | `433648/140` | Differs from the official disk, equals the secondary; SHA `83b3ef5f88e8d9c443b1320e2346a419543fcd0a6f0a25bfe518a756bb80f762` |
 | Same trial | `98ef90/107` | Equals both disks; SHA `8b522aac430471b95c9fac0a885218c6f948d52b4158e2968970a1b494fa6c16` |
 
-The original reports are in `<isolated-copies>/slot0/<run>/code-helpers/comparisons.json`.
+The original reports are in `<isolated-copies>/<run>/code-helpers/comparisons.json`.
 Equality of a prefix does not extend to neighboring functions, pointed data
 or other readers of the same flag.
 
@@ -93,7 +93,7 @@ modifies neither the time factor nor a manual pause.
 
 ## Why `16990c3` must not become a global policy
 
-The secondary references observed by Rea include the following uses. This
+The secondary references observed by static analysis include the following uses. This
 list of static references does not guarantee the absence of indirect aliases.
 
 | Reader | Effect to preserve or to examine separately |
@@ -130,7 +130,7 @@ the official 512-byte read. It does not test focus.
 
 The global object `FA3F90` carries the vptr `F03534`; its slot `+0x10`, at
 `F03544`, holds `982ac0`. It is registered at `9b4e83` through `9b4900`. The
-dispatch `9b4830` calls this slot on the selected services. Rea
+dispatch `9b4830` calls this slot on the selected services. Static analysis
 `paradise-focus-follow/75..78` establishes these links. The initial object and
 the 32 bytes of vtable are identical between the two disks.
 
@@ -193,7 +193,7 @@ delay `1000/frequency`, callback `81ee50`, user value zero and flags `1`
 (`TIME_PERIODIC`). The worker itself performs `Sleep(500)` and destroys this
 timer when a stop state requests it.
 
-The secondary imports are attested by Rea `89-inspect_pe_imports.json`:
+The secondary imports are attested by static analysis `89-pe-imports.json`:
 IAT `9ec4a8=timeSetEvent`, `9ec4ac=timeGetDevCaps`, `9ec4b0=timeGetTime`,
 `9ec4b4=timeKillEvent`, `9ec0f0=QPC`, `9ec0f4=QPF`, `9ec158=Sleep`.
 The flags/prototype correspondence is verified in the local Microsoft SDK
@@ -235,7 +235,7 @@ an isolated reentrant mathematical function.
 
 The integer `16a69f0` is incremented on entry to `81dfd0`, at
 `81dfee..81dffa`, before its lock, then used for duration statistics. The four
-references observed by Rea `91-xrefs.json` show no other writer.
+references observed by static analysis `91-references.json` show no other writer.
 A `uint32/4` read allows counting the entries between two samples, modulo
 `2^32`, without profile data. An entry may nevertheless have a zero delta or
 wait on the lock: it does not prove a completed positive integration.

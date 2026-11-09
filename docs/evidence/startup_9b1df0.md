@@ -40,7 +40,7 @@ remain available; a null-refused initialization is not reported as AL=false.
 
 The local graph gives primary evidence identifiers for each instruction.
 Its rows and complete entry reachability were independently checked against the
-original Rea observations. Revision 1 supplies the reviewed C++ driver;
+original static analysis observations. Revision 1 supplies the reviewed C++ driver;
 the initial numeric-receiver model was replaced before integration.
 
 The x64 CTests `startup_9b1df0` and `startup_9b1df0_tail` check order, full-width

@@ -56,7 +56,7 @@ leases. Fault injection is compiled only into the dedicated test executable.
 The factory mock also uses the SDK's actual `c_dfDIJoystick2`, including its
 164 descriptors and 272-byte state, with per-axis `DIPROP_RANGE` by object ID.
 It verifies independent ranges of -1000 to +1000, exact state values, unused
-fields and adjacent memory sentinels. This sequence is informed by static Rea
+fields and adjacent memory sentinels. This sequence is informed by static
 evidence from the **secondary** executable with SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`:
 `0x4354F0` sets the format, `0x4361AB` sets each axis range and `0x4365F0`

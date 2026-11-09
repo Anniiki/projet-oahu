@@ -1,6 +1,6 @@
 """Run only the source-owned x86 observer witness; never a commercial game.
 
-Coop-anything workflow applied: private copies, process identity, bounded job,
+Isolated-trial workflow applied: private copies, process identity, bounded job,
 pre-start save locks, checksums before/after, and a guard mutation twin.
 """
 from __future__ import annotations

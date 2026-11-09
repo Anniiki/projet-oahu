@@ -11,10 +11,10 @@ state or an explicit fixture; the zeros of the PE do not prove its state.
 
 The primary PC MC 1.66 A reference is identified by SHA256
 3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30.
-Rea/Ghidra also analyzes the secondary
+Ghidra also analyzes the secondary
 f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed.
 The complete bodies 9A03E0/441180/441560 total 1 065 bytes,
-cross-checked against the PE, Rea readings and DUMPBIN. This evidence count
+cross-checked against the PE, static analysis readings and DUMPBIN. This evidence count
 is not a coverage rate of the port: only the announced branches are ported.
 
 Both helpers differ from the primary on disk. An

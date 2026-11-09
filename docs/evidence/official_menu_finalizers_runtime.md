@@ -30,8 +30,8 @@ The metadata of each capture indicates its procedure group.
 
 ## Isolated trial and evidence
 
-Slot coop-anything0; batch
-<isolated-copies>/slot0/20261031T175512-11120.
+Isolated copy; batch
+<isolated-copies>/20261031T175512-11120.
 PID 9984, FILETIME 134379429479652844, base 00400000.
 The Job limited to one process stops at its deadline after 100.228 seconds.
 Two windows are enumerated; no visual inspection or UI action.
@@ -39,14 +39,13 @@ The temporary bridge is borderless D3D9On12/DXGI, distinct from the future nativ
 The prepared copy and the 6 697 reference files are verified;
 the 17 save files are isolated and then verified unchanged.
 
-Rea closes its new session of 19 requests normally: four bodies,
+The static analysis closes its new session normally: four bodies,
 581 bytes. The remainder comes from the closed batch vmf-menu-data-bindings-v1:
 four bodies, 607 bytes. The newly selected read 99CC40/131 contains
 125 bytes of body and six of alignment; the verifier separates them.
-Two batches added to the inbox after closure were not executed:
-they are not counted as evidence. No old handle is relaunched.
+No old handle is relaunched.
 
-The offline verifier rereads each capture, the AddressSets, the Rea bytes,
+The offline verifier rereads each capture, the AddressSets, the static analysis bytes,
 the two PEs and the ten DUMPBIN ranges. It checks the section and file
 bounds, the exact catalog, the successful read of each range,
 PID/FILETIME against the launcher, the snapshots and the final audits.
@@ -57,7 +56,7 @@ separately. The reads do not form an atomic snapshot.
 Private evidence: <private-evidence>/reprise-2026-10-31/vmf-menu-finalizers-official-v1.
 comparison.json carries SHA-256
 167b16800e6b2855f688a8716e059c1daa9b027aee967b3b26d33612fb547ae1
-and 55 artifact fingerprints. The closed Rea snapshot carries
+and 55 artifact fingerprints. The closed static analysis snapshot carries
 a70fa8c9aabb05817f4bcfa71fa88b8414d60430d9838ea351159eb54c9ae806.
 The trial sources, the builds, the two repository guideline files, the
 executables and the banks retain their fingerprints. The commercial bytes stay outside Git.

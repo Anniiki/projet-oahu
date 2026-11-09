@@ -180,8 +180,7 @@ nor can the zero counter be extended to the whole duration of the trial.
 The code profile records **67 ranges / 14 863 bytes**. Its 16 additions are all
 identical to the secondary and different from the official disk image, with no
 own modification in these additions. The eight physics boundaries, their
-AddressSets, the table and the five EdNet bodies are detailed in the runtime
-code helpers note.
+AddressSets and the table are kept in private evidence.
 
 Five other ranges carry the known adaptations of the project's module:
 `81EE50/5`, `996850/7`, `97F2C8/2`, `97F668/2`, `7BEC34/2`, or **18 bytes**.
@@ -225,7 +224,7 @@ trial 20 above remain attached to its former observer binary.
 its deferred classification in `winmm`, as well as 84 code reads. The figures
 below remain those of trial 20, without merging the batches.
 
-Root directory: `<isolated-copies>/slot0/20261030T134824-33340/`.
+Root directory: `<isolated-copies>/20261030T134824-33340/`.
 The commercial files and bytes stay outside Git. The fingerprints of the summary
 were rechecked against the files, as were the 67 observed files:
 

@@ -110,7 +110,8 @@ ModeLifecycleStatus forward_mode_subsystems(GameModeRuntime& state) {
         const auto member = slot(state, index);
         if (!member)
             return ModeLifecycleStatus::invalid_registry;
-        member->on_forward_pass();
+        if (member->on_forward_pass() != ModeCallOutcome::native_returned)
+            return ModeLifecycleStatus::modern_refusal;
         if (!valid_count(state))
             return ModeLifecycleStatus::invalid_registry;
     }
@@ -148,7 +149,8 @@ ModeLifecycleStatus reset_mode_subsystems(GameModeRuntime& state) {
         const auto member = slot(state, --remaining);
         if (!member)
             return ModeLifecycleStatus::invalid_registry;
-        member->on_reverse_pass();
+        if (member->on_reverse_pass() != ModeCallOutcome::native_returned)
+            return ModeLifecycleStatus::modern_refusal;
     }
     return forward_mode_subsystems(state);
 }
@@ -162,7 +164,8 @@ ModeLifecycleStatus shutdown_mode_subsystems(GameModeRuntime& state) {
         const auto member = slot(state, --state.subsystem_count);
         if (!member)
             return ModeLifecycleStatus::invalid_registry;
-        member->on_shutdown();
+        if (member->on_shutdown() != ModeCallOutcome::native_returned)
+            return ModeLifecycleStatus::modern_refusal;
     }
     state.subsystem_count = closed_subsystem_count;
     return ModeLifecycleStatus::success;

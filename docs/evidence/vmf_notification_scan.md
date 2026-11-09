@@ -51,7 +51,7 @@ by a space produces zero assignments.
 The complete body of **575 bytes**, excluding alignment, matches the official
 PC MC 1.66 A primary, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The `%d` constant is compared in both images and against the Rea result. The
+The `%d` constant is compared in both images and against the static analysis result. The
 [import trial](official_formatter_imports.md) confirms `sscanf` at cell
 `9EC370`, without a targeted invocation of the pre-scan.
 

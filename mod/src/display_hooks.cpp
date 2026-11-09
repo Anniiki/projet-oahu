@@ -1,6 +1,7 @@
 #include "tdur/mod/display_hooks.hpp"
 #include "tdur/mod/cursor_diagnostics.hpp"
 #include "tdur/mod/foreground_cursor.hpp"
+#include "tdur/mod/frametime_recorder.hpp"
 
 #include <commctrl.h>
 #include <detours.h>
@@ -72,6 +73,8 @@ struct Patch {
 };
 struct DeviceContext {
     std::recursive_mutex mutex;
+    std::unique_ptr<FrameTimeRecorder> frame_times;
+    std::uint64_t frame_time_id{};
     std::unique_ptr<DisplayBackend> backend;
     IDirect3DDevice9* device = nullptr; // Borrowed, never pins native Release.
     void* identity = nullptr;
@@ -100,6 +103,9 @@ struct Registry {
     std::map<HWND, std::shared_ptr<DeviceContext>> windows;
     std::map<void*, std::weak_ptr<DeviceContext>> swaps;
     Create9 original_create9 = nullptr;
+    FrameTimeBudget frame_time_budget;
+    std::int64_t frame_time_frequency{};
+    std::uint64_t next_frame_time_id{};
 };
 
 // Process lifetime by design. The host must explicitly detach before unloading
@@ -121,6 +127,24 @@ void Log(const char* event, HRESULT result) noexcept {
     const auto options = State().options;
     if (options.log)
         options.log(event, result, options.log_context);
+}
+
+// Called with the device lock held. The budget belongs to the process, not to
+// a device/reset/install cycle. Each bounded summary is a single log record.
+void FlushFrameTimes(DeviceContext& ctx, const char* reason,
+                     bool discontinuity) noexcept {
+    if (!ctx.frame_times)
+        return;
+    FrameTimeSummary summary;
+    if (!ctx.frame_times->flush(summary, discontinuity))
+        return;
+    std::uint32_t remaining{};
+    if (!State().frame_time_budget.take(remaining))
+        return;
+    std::array<char, 1024> event{};
+    if (format_frame_times(summary, ctx.frame_time_id, reason, remaining,
+                           event))
+        Log(event.data(), S_OK);
 }
 
 HRESULT ExceptionResult() noexcept {
@@ -338,6 +362,7 @@ void CleanupDeviceWindow(const std::shared_ptr<DeviceContext>& ctx) {
     Internal internal;
     if (ctx->window_closed && ctx->backend)
         ctx->backend->abandon_window();
+    FlushFrameTimes(*ctx, "cleanup", true);
     ctx->backend.reset();
     ctx->cleanup_requested = false;
     bool removedWindow = false;
@@ -394,6 +419,12 @@ LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam,
         const auto found = State().windows.find(window);
         if (found != State().windows.end())
             ctx = found->second;
+    }
+    if (ctx && (message == WM_ACTIVATEAPP || message == WM_ACTIVATE)) {
+        std::lock_guard deviceLock(ctx->mutex);
+        const auto savedError = GetLastError();
+        FlushFrameTimes(*ctx, "activation", true);
+        SetLastError(savedError);
     }
     if (ctx && (message == WM_NCDESTROY ||
                 (message == CleanupMessage && ctx->released))) {
@@ -584,6 +615,12 @@ HRESULT STDMETHODCALLTYPE HookCreateDevice(IDirect3D9* factory, UINT adapter,
         auto ctx = std::make_shared<DeviceContext>();
         ctx->window = window;
         ctx->owner_thread = GetCurrentThreadId();
+        if (State().options.observe_frametimes &&
+            State().frame_time_budget.available()) {
+            ctx->frame_times = std::make_unique<FrameTimeRecorder>();
+            std::lock_guard lock(State().mutex);
+            ctx->frame_time_id = ++State().next_frame_time_id;
+        }
         ctx->backend =
             std::make_unique<DisplayBackend>(window, State().options.display);
         auto actual = RenderParameters(*parameters, *ctx);
@@ -853,6 +890,7 @@ HRESULT STDMETHODCALLTYPE HookReset(IDirect3DDevice9* device,
         DeviceOperation operation(ctx);
         // Native Reset success alone is insufficient: reattachment and swap
         // tracking must also finish before presentation is permitted again.
+        FlushFrameTimes(*ctx, "reset", true);
         ctx->reset_failed = true;
         ctx->backend->prepare_device_reset();
         auto actual = RenderParameters(*parameters, *ctx);
@@ -995,6 +1033,47 @@ HRESULT PresentContext(const std::shared_ptr<DeviceContext>& ctx,
     return result;
 }
 
+HRESULT MeasuredPresent(const std::shared_ptr<DeviceContext>& ctx,
+                        const RECT* source, const RECT* destination,
+                        HWND overrideWindow, const RGNDATA* dirty,
+                        DWORD flags) {
+    if (!ctx->frame_times || !State().frame_time_budget.available())
+        return PresentContext(ctx, source, destination, overrideWindow, dirty,
+                              flags);
+    std::lock_guard lock(ctx->mutex);
+    // Keep deferred cleanup from flushing before this call has been recorded.
+    DeviceOperation operation(ctx);
+    const auto incomingError = GetLastError();
+    LARGE_INTEGER start{};
+    const bool startValid = QueryPerformanceCounter(&start) != FALSE;
+    SetLastError(incomingError);
+    const auto finish = [&](HRESULT result) {
+        const auto savedError = GetLastError();
+        LARGE_INTEGER end{};
+        const bool endValid = QueryPerformanceCounter(&end) != FALSE;
+        std::uint64_t startUs{}, endUs{};
+        const bool valid =
+            startValid && endValid &&
+            frame_time_us(start.QuadPart, State().frame_time_frequency,
+                          startUs) &&
+            frame_time_us(end.QuadPart, State().frame_time_frequency, endUs);
+        ctx->frame_times->record(startUs, endUs, valid, FAILED(result),
+                                 SUCCEEDED(result) && ctx->occlusion_logged);
+        if (ctx->frame_times->full())
+            FlushFrameTimes(*ctx, "periodic", false);
+        SetLastError(savedError);
+    };
+    try {
+        const auto result = PresentContext(ctx, source, destination,
+                                           overrideWindow, dirty, flags);
+        finish(result);
+        return result;
+    } catch (...) {
+        finish(E_FAIL);
+        throw;
+    }
+}
+
 HRESULT STDMETHODCALLTYPE HookPresent(IDirect3DDevice9* device,
                                       const RECT* source,
                                       const RECT* destination,
@@ -1005,7 +1084,7 @@ HRESULT STDMETHODCALLTYPE HookPresent(IDirect3DDevice9* device,
         return original(device, source, destination, overrideWindow, dirty);
     try {
         const auto ctx = FindDevice(device);
-        return ctx ? PresentContext(ctx, source, destination, overrideWindow,
+        return ctx ? MeasuredPresent(ctx, source, destination, overrideWindow,
                                     dirty, 0)
                    : original(device, source, destination, overrideWindow,
                               dirty);
@@ -1034,7 +1113,7 @@ HRESULT STDMETHODCALLTYPE HookSwapPresent(IDirect3DSwapChain9* swap,
                 found != State().swaps.end())
                 ctx = found->second.lock();
         }
-        return ctx ? PresentContext(ctx, source, destination, overrideWindow,
+        return ctx ? MeasuredPresent(ctx, source, destination, overrideWindow,
                                     dirty, flags)
                    : original(swap, source, destination, overrideWindow, dirty,
                               flags);
@@ -1095,6 +1174,13 @@ HRESULT InstallDisplayHooks(const DisplayHookOptions& options) noexcept {
         std::lock_guard lock(state.mutex);
         if (state.report.installed)
             return HRESULT_FROM_WIN32(ERROR_ALREADY_INITIALIZED);
+        if (options.observe_frametimes) {
+            LARGE_INTEGER frequency{};
+            if (!options.log || !QueryPerformanceFrequency(&frequency) ||
+                frequency.QuadPart <= 0 || frequency.QuadPart > 1000000000000LL)
+                return E_INVALIDARG;
+            state.frame_time_frequency = frequency.QuadPart;
+        }
         wchar_t directory[MAX_PATH]{};
         const UINT length = GetSystemDirectoryW(directory, MAX_PATH);
         if (length == 0 || length + 11 >= MAX_PATH)

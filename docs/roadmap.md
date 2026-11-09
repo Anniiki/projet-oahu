@@ -10,6 +10,12 @@ The final client targets modern C++, x64, native D3D12 with Vulkan selectable,
 fixed-step simulation, adaptive automatic shifting, display improvements and
 full Xbox/PlayStation controller coverage through current SDL3.
 
+Visual and driving modernization follows once the reconstructed client is
+playable. The native D3D12 renderer remains the reconstruction step; the final
+target for the graphics engine is Unreal Engine 5. This stage also targets
+modern vehicle physics, smoother roads, and a modernized sky and lighting. These
+goals have no date and do not change the priorities above.
+
 Online restoration targets the complete original multiplayer experience. Co-op
 testing on two separate PCs and an installer are distinct validation milestones.
 A later Rust server will aim to reproduce the original online behavior with a

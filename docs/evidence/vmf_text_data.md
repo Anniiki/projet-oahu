@@ -4,7 +4,7 @@
 
 The PC Paradise secondary executable carries the SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-The private exports `reprise-2026-10-31/rea/vmf-text-bindings-v2/session/`
+The private exports `reprise-2026-10-31/vmf-text-bindings-v2/session/`
 establish the following path:
 
 - `21`, 4418B0: the loader replaces the first DWORD of the record with a

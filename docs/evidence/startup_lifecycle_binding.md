@@ -48,6 +48,9 @@ additional 38 services through the same binding. Its typed outcome preserves
 native false, modern refusal and invalid registry before the forward pass.
 The startup gate, concrete service implementations, phase bodies and unresolved
 configuration callees still require implementations.
+The [service cycle module](startup_service_cycles.md) now supplies two owned
+adapters (`982C40`, `9B3F80`) for explicit use in this same service table. Their
+two preparation calls and the remaining services still require host bodies.
 No default successful service or cycle callback is supplied. This composition
 does not establish a loaded world, a working Oahu profile or multiplayer.
 

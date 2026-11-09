@@ -10,8 +10,8 @@ service that represents argument `1140360`.
 
 Reference: official PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The retained primary Rea listings are
-`controller-startup-host-v1/gate-session/06..08-procedure_assembly.json`.
+The retained primary static analysis listings are
+`controller-startup-host-v1/gate-session/06..08-assembly.json`.
 They contain 463, 112 and 117 instructions respectively. Every listed
 instruction is reachable from its entry; all internal branch destinations
 are listed, and each caller ends in `RET 4`. This control-flow check does

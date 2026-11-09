@@ -30,15 +30,15 @@ The wrapper `99A6C0` and the router `99A350` are also ported,
 with [their own evidence and limits](vmf_fscommand_router.md). Their provenance
 remains secondary; their handlers and diagnostic services are distinct.
 
-Private evidence: reprise-2026-10-31/rea/vmf-host-callback-v1 and v2.
-The first batch verifies seven bodies (2 102 bytes) checked against PE/Rea/DUMPBIN, eight ranges,
-nine bytes of excluded gaps, then eleven bytes of the PE/Rea prefix. It ends
-with an explicitly preserved refused request: 9A0770 is not recognized
-as a function; its disassembly had been requested before verification.
+Private evidence: reprise-2026-10-31/vmf-host-callback-v1 and v2.
+The first batch verifies seven bodies (2 102 bytes) checked against PE/disassembly/DUMPBIN, eight ranges,
+nine bytes of excluded gaps, then eleven bytes of the PE/disassembly prefix. It ends
+with an explicitly preserved refusal: 9A0770 is not recognized
+as a function; its disassembly had been attempted before verification.
 
-The second batch closes its 44 requests normally: eleven bodies (2 765 bytes),
+The second batch closes normally: eleven bodies (2 765 bytes),
 twelve ranges, three bytes of excluded gaps, 89 bytes of data and additional
-PE/Rea windows. Final snapshot:
+PE/disassembly windows. Final snapshot:
 02680b06d93d4c03a6dee64e89b0db7a8ac555be19c35e1345c41337e1dd5263.
 The sites 718D39 and 78B964 remain outside the functions recognized by Ghidra.
 These limits must not be replaced by assumed functions.
@@ -74,10 +74,10 @@ without undefined signed shifts in C++. The following characters take no part
 in this selection. The native code reads four bytes without a prior length
 check; a modern guard must handle short inputs explicitly.
 
-The fifteen observed global codes are avno, avye, cams, clms, frca, frok,
-gein, geou, mcin, mcou, neav, tfoc, tuin, tuou and wend. sbdd and zoed
+The global codes reconstructed here are avno, avye, cams, clms, gein,
+geou, mcin, mcou, neav, tfoc, tuin, tuou and wend. sbdd and zoed
 therefore pass to the movie handler, if it exists. The complete effects of
-these fifteen services are not ported yet.
+these services are not ported yet.
 
 The AL return means that the global handler has processed the command.
 A zero return from the last handler may accompany real writes;
@@ -106,8 +106,8 @@ implementations and trials.
 
 ## Common sbdd branch
 
-The new private evidence rea/vmf-common-sbdd-v1 is closed normally
-(47 requests). The sub-object 7188A0 first calls slot 20 of its outer
+The new private evidence vmf-common-sbdd-v1 is closed normally.
+The sub-object 7188A0 first calls slot 20 of its outer
 object; a zero AL continues the common processing. This handler is
 not a simple adjustment thunk. Its complete link to the movie remains to be established.
 
@@ -128,7 +128,7 @@ write forms and the mask computation, without acknowledging this whole service.
 After 9AB950, the byte [EBP+46] is read. If it is zero, 718ECD restores the registers,
 sets AL to 1 and returns 8. If it is non-zero, 7FC920 then 9827B0 are called,
 the byte is cleared and AL is also 1. The new epilogue is verified against the
-PE/Rea/DUMPBIN bytes and through three decoded instructions. Do not confuse the
+PE/disassembly/DUMPBIN bytes and through three decoded instructions. Do not confuse the
 flag observed after the first service with its entry state.
 
 7FC920 writes /:IsTutorial and /:IsMapForTuto as inverse texts according to

@@ -8,10 +8,9 @@ that the reported offline new-game hang is fixed.
 
 Reference: PC MC 1.66 A, SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-One local Rea/Ghidra 12.2 session completed 66 requests without tool errors,
-then exported and closed. Evidence is retained under the local
-`reprise-2026-11-02/game-mode-lifecycle-v1` directory. Five requests in its
-final inbox file arrived after idle closure and were not executed.
+One local Ghidra 12.2 session completed without errors, then exported and
+closed. Evidence is retained under the local
+`reprise-2026-11-02/game-mode-lifecycle-v1` directory.
 
 | Entry | Reconstructed contract |
 | --- | --- |
@@ -98,3 +97,10 @@ Initialization now distinguishes a native AL=false return from a modern
 refusal before a native return. Only the former reaches the end helper and
 count increment. The same typed control flow propagates helper/configuration
 refusals; completed native calls retain their original ordering and count rules.
+
+The forward, reverse and shutdown methods also return `ModeCallOutcome`.
+A refusal inside a reconstructed cycle preserves earlier effects and stops
+before the next callback, later forward pass or terminal shutdown count.
+This is a modern control outcome, not a native AL result. The
+[service cycle adapters](startup_service_cycles.md) exercise these paths with
+actual initialization, captured-object preparation and ordered cleanup bodies.

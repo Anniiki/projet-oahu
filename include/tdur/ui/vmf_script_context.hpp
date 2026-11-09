@@ -4,19 +4,28 @@
 
 namespace tdur::ui {
 
-enum class VmfScriptPhase { execute, skip_to_target, ended, faulted };
+enum class VmfScriptPhase {
+    execute,
+    skip_to_target,
+    ended,
+    faulted,
+    awaiting_host, // Cursor names a GetURL whose host call is in flight.
+};
 
 struct VmfScriptSnapshot {
     VmfExecutionCursor cursor;
     VmfInstanceHandle origin;
     std::optional<VmfInstanceHandle> current;
     VmfScriptPhase phase = VmfScriptPhase::execute;
+    std::optional<VmfHostTicket> host_call{}; // Present iff awaiting_host.
 };
 
 // Owns program data and resumable script state, not a separate operand stack.
 // The display and the caller's shared stack stay alive and serialized during
-// execution. No callback/reentrancy, target restoration on errors, or frame
-// scheduling is implied. Moved-from objects allow destruction/move assignment.
+// execution. Host calls happen only through execute_vmf_actions_with_host;
+// any nested entry on a running context is refused without change. No
+// target restoration on errors or frame scheduling is implied. Moved-from
+// objects allow destruction/move assignment.
 class VmfScriptContext {
   public:
     [[nodiscard]] static std::expected<VmfScriptContext, VmfExecutionError>
@@ -47,13 +56,20 @@ class VmfScriptContext {
     execute_vmf_actions_with_properties(VmfDisplayRuntime &, VmfScriptContext &,
                                         VmfStack &,
                                         VmfExecutionLimits) noexcept;
+    friend std::expected<VmfExecutionReport, VmfExecutionError>
+    execute_vmf_actions_with_host(VmfDisplayRuntime&, VmfScriptContext&,
+                                  VmfStack&, VmfHostActions&, VmfScriptBackend,
+                                  VmfExecutionLimits) noexcept;
+    friend std::expected<void, VmfExecutionError>
+    cancel_vmf_host_action(VmfScriptContext&, VmfHostActions&) noexcept;
     [[nodiscard]] std::expected<VmfExecutionReport, VmfExecutionError>
     run(VmfDisplayRuntime &display, VmfStack &stack, VmfExecutionLimits limits,
         const VmfVariables *variables, bool write_variables = false,
-        bool properties = false) noexcept;
+        bool properties = false, VmfHostActions* actions = nullptr) noexcept;
     VmfProgramPtr program_;
     VmfScriptSnapshot state_;
     VmfTargetLookupLimits target_limits_;
+    bool running_{}; // Reentry guard, outside snapshots; modern only.
 };
 
 // Every SetTarget/TellTarget starts again at origin. TellTarget resets current

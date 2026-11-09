@@ -48,13 +48,11 @@ pointer bounds, concurrent changes, coalescing, output limits and options.
 including refusal across an unreadable boundary and an unconsumed guard page.
 These checks do not establish that a player can start a new game.
 
-The isolated-start wrapper accepts `--mode-probe <tool.exe>` and
-`--mode-probe-seconds <1..120>`. Sampling starts after `--probe-after` and must
-fit within the bounded trial with one second of margin. It uses the launcher's
-exact integer creation FILETIME after slot registration and runs the observer
-as a separate, hidden child. The wrapper owns its cleanup and preserves the
-save/reference audit if cleanup fails. Play sessions refuse this diagnostic.
-`official_start_mode_observer` verifies this flow with fake processes.
+The isolated-start wrapper used for official trials is not published. It
+starts the observer as a separate, hidden child after the launcher's exact
+creation FILETIME is registered, keeps sampling within the bounded trial,
+owns its cleanup and preserves the save/reference audit if cleanup fails.
+Play sessions refuse this diagnostic.
 
 The loaded executable is identified through its file and process metadata;
 its loaded code is not compared with the file. A killed observer may leave

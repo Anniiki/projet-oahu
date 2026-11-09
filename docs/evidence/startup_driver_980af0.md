@@ -4,7 +4,7 @@ This independent x64 C++ driver reconstructs the complete 242-instruction
 initialization graph of `980AF0`, through `RET 4` at `980DFF`, from the official
 PC MC 1.66 A executable. Reference SHA-256:
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Rea exports provide the graph and instruction evidence; the private
+Static analysis exports provide the graph and instruction evidence; the private
 manifests retain their identities. Commercial code bytes are not distributed.
 
 ## Reconstructed behavior

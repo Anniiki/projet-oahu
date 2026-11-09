@@ -45,6 +45,7 @@ BOOL CALLBACK InitializeDisplay(PINIT_ONCE, PVOID, PVOID*) noexcept {
     options.enabled = true;
     options.install_factory_detour = false;
     options.log = Log;
+    options.observe_frametimes = TdurObservationFrametimesEnabled();
     if (physicsContext) {
         TdurObservePhysicsTimerBinding();
         options.on_presented_frame = TdurFlushPhysicsContext;

@@ -84,9 +84,8 @@ steps.
 
 **No playable installer or complete client is available.** The current
 executables are inspectors, viewers, observers and component tests. They do not
-constitute a distributable co-op session. The milestone for notifying Anniiki
-and the same setup for both PCs are defined in
-[the final project goal](../final_project_goal.md#distribution-and-first-co-op-trial).
+constitute a distributable co-op session. Distribution and the same setup for
+both PCs remain later milestones.
 
 Reproducible private inventory:
 `<private-evidence>/reprise-2026-10-30/installer-tooling/collect.ps1`,
@@ -174,7 +173,7 @@ setup must check the real device/driver, without masking a failure through WARP.
 Vulkan remains to be implemented in this client; its requirements are not yet
 established.
 [Factory6 prerequisites](https://learn.microsoft.com/en-us/windows/win32/api/dxgi1_6/nn-dxgi1_6-idxgifactory6).
-The Windows/Vulkan SDKs, VS, Python, Node, Rea and Rust must not be required
+The Windows/Vulkan SDKs, VS, Python, Node, analysis tools and Rust must not be required
 on player PCs to run the final client.
 
 ## Detection and data separation

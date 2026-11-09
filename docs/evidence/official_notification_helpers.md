@@ -2,7 +2,7 @@
 
 ## Isolated trial of 01/11/2026
 
-The new `ui-vmf-notification-helpers` profile of `tdur_probe_code` reads
+The new `ui-vmf-notification-helpers` profile of the unpublished code probe reads
 five fixed ranges representing four complete bodies, that is **255 bytes**.
 It also reads one non-executable byte at FAC598: total budget **256 bytes**.
 The six alignment bytes between the two ranges of the wrapper are excluded.
@@ -23,9 +23,9 @@ only its read rights.
 
 ## Result and preservation
 
-The owned trial, PID 34204, archive `20261101T011256-35280` of slot 0,
+The owned trial, PID 34204, archive `20261101T011256-35280`,
 lasted **100.199 seconds**. Each loaded range matches the bytes of the
-secondary Rea analyses and their complete-body fingerprints. These ranges
+secondary static analyses and their complete-body fingerprints. These ranges
 differ from the primary on disk; their agreement is therefore established
 in its process, without inferring the cause of this difference. The
 backend 504980 already had its own historical memory evidence; it is not
@@ -36,7 +36,7 @@ a default value nor its stability throughout the whole game session. The
 future C++ caller must supply the observed mode explicitly.
 
 The **6,697 reference files and 17 savegames** checked remain unchanged;
-the copy uses isolated savegames and the `coop-anything` slot is released
+the copy uses isolated savegames and the isolated copy is released
 at the end of the trial. The sources and tools tracked by the snapshots
 are also preserved during the run.
 

@@ -6,7 +6,7 @@ The modern x64 C++ core in
 connected profile-menu rules from official PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 The [primary subsystem observations](profile_menu_primary.md) describe the
-Rea provenance and unresolved services.
+static analysis provenance and unresolved services.
 
 Implemented contracts:
 

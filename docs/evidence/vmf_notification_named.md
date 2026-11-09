@@ -11,7 +11,7 @@ now provides the recursive control `717280` and `7171B0`.
 
 Primary reference: official PC MC 1.66 A executable, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The Rea disassembly comes from the secondary
+The disassembly comes from the secondary
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 The complete ranges were compared again against the primary on disk:
 

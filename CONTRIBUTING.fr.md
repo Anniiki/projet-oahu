@@ -12,7 +12,7 @@ Les ressources commerciales et les captures privées restent hors du dépôt.
 
 ## Construire et développer
 
-Avec CMake3.25+, Visual Studio Build Tools2022 et le SDK Windows :
+Avec CMake 3.25+, Visual Studio Build Tools 2022 et le SDK Windows :
 
 ```powershell
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
@@ -42,11 +42,13 @@ commerciaux utilisent des sauvegardes isolées et des données en lecture seule.
 ## Commits et revues
 
 Garder des commits ciblés avec un sujet français `Domaine : changement`, par
-exemple `Rendu : conserver les ressources en vol`. Une revue décrit le problème,
+exemple `Rendu : conserver les ressources en vol` ; les contributions en anglais
+sont bienvenues. Une revue décrit le problème,
 le comportement obtenu, les preuves et les contrôles effectués. Ajouter une
 capture pour un changement visuel et l’issue liée lorsqu’elle existe.
 
-Coordonner les lots par sous-système et réserver les fichiers avant écriture.
 Chaque reconstruction indique son origine et ses frontières ; un service encore
 inconnu reste explicite. Ne publier aucun exécutable commercial, sauvegarde,
 clé, projet Ghidra ou export brut. Ne pas modifier protection ou activation.
+Les contributions au code du projet suivent la licence MIT ; conserver les
+mentions tierces.
