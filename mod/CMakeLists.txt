@@ -75,7 +75,8 @@ target_link_libraries(tdur_retail_video_defaults PUBLIC tdur_finish_band)
 function(tdur_proxy target variant)
     add_library(${target} SHARED src/dinput8_proxy.cpp src/observation_hooks.cpp
         src/display_startup_gate.cpp
-        src/cursor_diagnostics.cpp src/crash_handler.cpp src/dinput8_proxy.def)
+        src/cursor_diagnostics.cpp src/crash_handler.cpp src/dinput8_proxy.def
+        src/shell_delete.cpp src/shell_delete_core.cpp)
     target_include_directories(${target} PRIVATE include)
     target_compile_features(${target} PRIVATE cxx_std_23)
     target_compile_options(${target} PRIVATE /W4 /WX /EHsc /std:c++latest)
@@ -190,6 +191,35 @@ add_test(NAME observation_guard_mutation_detected
 set_tests_properties(observation_proxy_and_documents observation_guard_mutation_detected
     PROPERTIES TIMEOUT 45)
 set_tests_properties(observation_cursor_installation PROPERTIES TIMEOUT 45)
+
+# Save folder deletion without the Shell (new policy). Pure decisions
+# and engine on synthetic trees, then a process witness loaded with the DLL.
+add_executable(tdur_shell_delete_core_test
+    tests/shell_delete_core_test.cpp src/shell_delete_core.cpp)
+target_include_directories(tdur_shell_delete_core_test PRIVATE include)
+target_compile_definitions(tdur_shell_delete_core_test PRIVATE
+    WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
+target_compile_options(tdur_shell_delete_core_test PRIVATE
+    /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
+add_test(NAME observation_shell_delete_core
+    COMMAND tdur_shell_delete_core_test "${CMAKE_BINARY_DIR}/shell-delete-core")
+set_tests_properties(observation_shell_delete_core PROPERTIES TIMEOUT 60)
+add_executable(tdur_shell_delete_witness tests/shell_delete_witness.cpp)
+target_compile_definitions(tdur_shell_delete_witness PRIVATE
+    WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
+target_compile_options(tdur_shell_delete_witness PRIVATE
+    /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
+target_link_libraries(tdur_shell_delete_witness PRIVATE dinput8 shell32 ole32)
+set_target_properties(tdur_shell_delete_witness PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/normal")
+add_dependencies(tdur_shell_delete_witness tdur_observation_proxy)
+add_test(NAME observation_shell_delete_fixture
+    COMMAND "${Python3_EXECUTABLE}" -I -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_shell_delete_fixture.py"
+        --witness "$<TARGET_FILE:tdur_shell_delete_witness>"
+        --work-root "${CMAKE_BINARY_DIR}/shell-delete-fixture")
+set_tests_properties(observation_shell_delete_fixture PROPERTIES
+    TIMEOUT 150 RUN_SERIAL TRUE)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/tests/display_backend_tests.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/tests/display_hooks_tests.cmake")

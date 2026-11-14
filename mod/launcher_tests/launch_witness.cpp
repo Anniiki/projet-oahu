@@ -109,22 +109,36 @@ int wmain(int argc, wchar_t* argv[]) {
         // Deliberate exit status, not an actual fault or an exception fixture.
         ExitProcess(0xc0000005UL);
     }
+    // Shown windows stay visible for the launcher's window metadata (no
+    // position nor monitor test), but left of and above the virtual screen,
+    // never activated and out of the task bar: invisible on the user's screens.
+    // Shown by SetWindowPos with SWP_NOACTIVATE, never by the first ShowWindow
+    // of the process, which may apply the STARTUPINFO show command instead.
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN) - 4096;
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN) - 4096;
+    constexpr DWORD hidden_style = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
+    const auto show = [x, y](HWND window) {
+        SetWindowPos(window, HWND_BOTTOM, x, y, 16, 16,
+                     SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_NOOWNERZORDER);
+    };
     if (std::wstring(mode.data()) == L"timeout") {
         const auto window = CreateWindowExW(
-            0, L"STATIC", L"TDUR_WITNESS_PRIVATE_DIAGNOSTIC_TEXT", WS_POPUP, 0,
-            0, 16, 16, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+            hidden_style, L"STATIC", L"TDUR_WITNESS_PRIVATE_DIAGNOSTIC_TEXT",
+            WS_POPUP, x, y, 16, 16, nullptr, nullptr, GetModuleHandleW(nullptr),
+            nullptr);
         if (!window)
             return 24;
-        ShowWindow(window, SW_SHOWNOACTIVATE);
+        show(window);
         Sleep(30000);
     }
     if (std::wstring(mode.data()) == L"play") {
         const auto window = CreateWindowExW(
-            0, L"STATIC", L"Source-owned private play text", WS_POPUP, 0, 0, 16,
-            16, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+            hidden_style, L"STATIC", L"Source-owned private play text",
+            WS_POPUP, x, y, 16, 16, nullptr, nullptr, GetModuleHandleW(nullptr),
+            nullptr);
         if (!window)
             return 22;
-        ShowWindow(window, SW_SHOWNOACTIVATE);
+        show(window);
         Sleep(1400); // Exceeds the diagnostic one-second deadline.
         DestroyWindow(window);
     }

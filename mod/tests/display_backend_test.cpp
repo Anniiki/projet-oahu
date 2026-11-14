@@ -1421,6 +1421,23 @@ int main(int argc, char** argv) {
             argc > 1 && std::string_view(argv[1]) == "--interop-only";
         const bool visibleExclusive =
             argc > 1 && std::string_view(argv[1]) == "--exclusive-visible";
+        // The window suite shows witness windows on the monitors and needs an
+        // unchanged foreground for its whole run: it fails, and disturbs the
+        // user, when someone works at the station. Opt-in only, for runs
+        // without a user (CTest reports the skip, SKIP_RETURN_CODE 77).
+        if (!visibleExclusive && !interopOnly) {
+            std::array<wchar_t, 4> optIn{};
+            const auto length = GetEnvironmentVariableW(
+                L"TDUR_TESTS_PREMIER_PLAN", optIn.data(),
+                static_cast<DWORD>(optIn.size()));
+            if (length != 1 || optIn[0] != L'1') {
+                std::cout << "display_api_witness skipped: the window suite "
+                             "needs the foreground; set "
+                             "TDUR_TESTS_PREMIER_PLAN=1 when nobody uses the "
+                             "station\n";
+                return 77;
+            }
+        }
         SetProcessDpiAwarenessContext(
             DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
         if (visibleExclusive) {

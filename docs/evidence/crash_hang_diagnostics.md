@@ -106,6 +106,19 @@ The launcher initializes `real_filter_result` to `0xFFFFFFFF`. The
 wait timed out and 5 request invalid. The DLL moves the state from idle to
 claimed and from claimed to timed out; the launcher writes the other values.
 
+### One build for a session
+
+Both sides build the object names with `crash::format_name`
+(`mod/include/tdur/mod/crash_channel.hpp`). The launcher, the dump helper
+(`tdur_dump_helper.exe`, next to the launcher, which refuses to start
+without it) and the DLL of a session must therefore come from the same
+build. A launcher and a DLL built on either side of a change of these names
+cannot open the same channel: the DLL records `crash-handler-install-failed`
+with the reason `channel-missing`, its `DllMain` fails, the game process
+does not start (`0xC0000142`) and the launcher reports the end reason
+`startup-failed`. The failure is closed: it happens before the game runs,
+so saves are not touched, but no session takes place.
+
 ## Crash path
 
 The detour handles each call to `UnhandledExceptionFilter`:

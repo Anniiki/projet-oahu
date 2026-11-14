@@ -109,15 +109,26 @@ LRESULT CALLBACK Procedure(HWND handle, UINT message, WPARAM w, LPARAM l) {
     return DefWindowProcW(handle, message, w, l);
 }
 
+// Visible for the launcher (owned top-level, IsWindowVisible, IsHungAppWindow,
+// area: no position nor monitor test), but placed left of and above the
+// virtual screen, kept out of the task bar and never activated: created
+// without WS_VISIBLE (a visible creation activates the window), then shown
+// by SetWindowPos with SWP_NOACTIVATE. A suite run never shows it, nor its
+// hang ghost, nor takes the foreground.
 void CreateWitnessWindow() {
     WNDCLASSW type{};
     type.lpfnWndProc = Procedure;
     type.hInstance = GetModuleHandleW(nullptr);
     type.lpszClassName = L"TdurCrashWitness";
     RegisterClassW(&type);
-    window =
-        CreateWindowExW(0, type.lpszClassName, L"", WS_POPUP | WS_VISIBLE, 0, 0,
-                        16, 16, nullptr, nullptr, type.hInstance, nullptr);
+    const int x = GetSystemMetrics(SM_XVIRTUALSCREEN) - 4096;
+    const int y = GetSystemMetrics(SM_YVIRTUALSCREEN) - 4096;
+    window = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
+                             type.lpszClassName, L"", WS_POPUP, x, y, 16, 16,
+                             nullptr, nullptr, type.hInstance, nullptr);
+    if (window != nullptr)
+        SetWindowPos(window, HWND_BOTTOM, x, y, 16, 16,
+                     SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_NOOWNERZORDER);
 }
 
 void Pump(DWORD milliseconds) {

@@ -1016,5 +1016,77 @@ bool TdurInstallObservationHooks() noexcept {
     TdurObservationRecord(result == NO_ERROR ? "hooks-installed-pre-entry"
                                              : "hooks-install-failed",
                           DWORD(result));
-    return result == NO_ERROR;
+    return result == NO_ERROR && TdurInstallShellDeleteHooks();
+}
+
+// Decisions of the write guard lent to the Shell-free save folder
+// deletion (new policy, see docs/evidence/shell_delete_without_shell.md).
+namespace {
+// The save root, refused when the source Documents or the source
+// installation lies at or under it: the deletion engine runs inside the
+// internal operation scope, which lifts the guard's refusals for those
+// folders and their ancestors.
+bool PrivateSaveRoot(std::array<wchar_t, Capacity>& root) noexcept {
+    constexpr std::wstring_view leaf = L"\\Test Drive Unlimited\\savegame";
+    const auto length = std::wcslen(privateRoot.data());
+    if (length == 0 || length + leaf.size() >= root.size()) {
+        return false;
+    }
+    std::wmemcpy(root.data(), privateRoot.data(), length);
+    std::wmemcpy(root.data() + length, leaf.data(), leaf.size());
+    root[length + leaf.size()] = L'\0';
+    return !Prefix(sourceRoot.data(), root.data()) &&
+           (sourceInstallation[0] == L'\0' ||
+            !Prefix(sourceInstallation.data(), root.data()));
+}
+} // namespace
+
+bool TdurPrivateSaveRoot(wchar_t* root, size_t capacity) noexcept {
+    std::array<wchar_t, Capacity> value{};
+    if (root == nullptr || capacity == 0) {
+        return false;
+    }
+    root[0] = L'\0';
+    if (!PrivateSaveRoot(value)) {
+        return false;
+    }
+    const auto length = std::wcslen(value.data());
+    if (length >= capacity) {
+        return false;
+    }
+    std::wmemcpy(root, value.data(), length + 1);
+    return true;
+}
+
+bool TdurPrivateSaveTarget(const wchar_t* path, wchar_t* canonical,
+                           size_t capacity) noexcept {
+    if (path == nullptr || canonical == nullptr || capacity == 0) {
+        return false;
+    }
+    canonical[0] = L'\0';
+    std::array<wchar_t, Capacity> root{};
+    std::array<wchar_t, Capacity> resolved{};
+    if (!PrivateSaveRoot(root) || !CanonicalPath(path, resolved)) {
+        return false;
+    }
+    // Strictly under the root: Prefix also accepts the root itself, and
+    // CanonicalPath leaves no trailing separator.
+    const auto rootLength = std::wcslen(root.data());
+    const auto length = std::wcslen(resolved.data());
+    if (!Prefix(resolved.data(), root.data()) || length <= rootLength + 1 ||
+        length >= capacity) {
+        return false;
+    }
+    std::wmemcpy(canonical, resolved.data(), length + 1);
+    return true;
+}
+
+bool TdurEnterInternalOperation() noexcept {
+    const bool previous = internalOperation;
+    internalOperation = true;
+    return previous;
+}
+
+void TdurLeaveInternalOperation(bool previous) noexcept {
+    internalOperation = previous;
 }

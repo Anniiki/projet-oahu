@@ -61,6 +61,10 @@ The effective addresses of `SHGetFolderPathA/W` and
 through `GetProcAddress` return the private directory for Documents.
 Requests for another user token are rejected.
 
+`SHFileOperationA/W` are also intercepted: a deletion under the private save
+root is done by the DLL without the Shell, and any other request goes through
+unchanged (new policy, [note](evidence/shell_delete_without_shell.md)).
+
 Write opens through `NtCreateFile` are canonicalized. An open under
 original Documents, outside the private root, or under the original
 installation is rejected and logged. Handle-relative paths and native

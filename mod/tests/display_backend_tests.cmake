@@ -16,3 +16,6 @@ add_test(NAME display_window_and_unfocused_host COMMAND tdur_display_backend_tes
 add_test(NAME display_d3d9on12_interop COMMAND tdur_display_backend_test --interop-only)
 set_tests_properties(display_window_and_unfocused_host display_d3d9on12_interop
     PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+# Needs the foreground: skipped unless TDUR_TESTS_PREMIER_PLAN=1 at run time.
+set_tests_properties(display_window_and_unfocused_host
+    PROPERTIES SKIP_RETURN_CODE 77)
