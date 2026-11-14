@@ -17,3 +17,7 @@ bool TdurVerifyRetailRendererGate() noexcept;
 bool TdurEnterInitialRendererPhase(void* renderer, void* parent,
                                    void* return_address) noexcept;
 void TdurLeaveInitialRendererPhase() noexcept;
+
+// Audited identity (cached), startup image and the admitted initial renderer
+// scope for this device: the only moment other startup adaptations apply.
+bool TdurInitialRendererPhaseAdmitted(IDirect3DDevice9*) noexcept;

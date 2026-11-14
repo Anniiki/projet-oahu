@@ -48,7 +48,7 @@ add_test(NAME physics_binding_bounded_core COMMAND tdur_physics_binding_test)
 add_library(tdur_retail_video_defaults STATIC
     src/retail_video_defaults.cpp src/retail_background.cpp
     src/retail_background_gate.cpp
-    src/retail_physics_context.cpp)
+    src/retail_physics_context.cpp src/retail_finish_band.cpp)
 target_include_directories(tdur_retail_video_defaults PRIVATE include ../include)
 target_compile_options(tdur_retail_video_defaults PRIVATE
     /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
@@ -62,6 +62,15 @@ target_compile_options(tdur_code_patch PRIVATE
     /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
 target_compile_definitions(tdur_code_patch PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_link_libraries(tdur_retail_video_defaults PUBLIC tdur_code_patch tdur_detours)
+
+# Finish-line band stub (compiled x86) and its transaction core.
+add_library(tdur_finish_band STATIC src/finish_band_stub.cpp src/finish_band_core.cpp)
+target_include_directories(tdur_finish_band PUBLIC include)
+target_compile_options(tdur_finish_band PRIVATE
+    /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
+target_compile_definitions(tdur_finish_band PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_link_libraries(tdur_finish_band PUBLIC tdur_code_patch)
+target_link_libraries(tdur_retail_video_defaults PUBLIC tdur_finish_band)
 
 function(tdur_proxy target variant)
     add_library(${target} SHARED src/dinput8_proxy.cpp src/observation_hooks.cpp
@@ -127,6 +136,15 @@ add_test(NAME background_fatal_restoration
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_code_patch_fatal_fixture.py"
         --fixture "$<TARGET_FILE:tdur_code_patch_test>")
 set_tests_properties(background_code_transaction background_fatal_restoration
+    PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
+add_executable(tdur_finish_band_test tests/finish_band_test.cpp)
+target_link_libraries(tdur_finish_band_test PRIVATE tdur_finish_band)
+target_compile_options(tdur_finish_band_test PRIVATE
+    /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
+target_compile_definitions(tdur_finish_band_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+add_test(NAME finish_band_stub_contract COMMAND tdur_finish_band_test --stub)
+add_test(NAME finish_band_core_site COMMAND tdur_finish_band_test --core)
+set_tests_properties(finish_band_stub_contract finish_band_core_site
     PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
 add_executable(tdur_renderer_gate_abi_test
     tests/renderer_gate_abi_test.cpp src/retail_background_gate.cpp)
@@ -234,6 +252,17 @@ add_test(NAME display_injected_exclusive_pending
         --work-root "${CMAKE_BINARY_DIR}/display-startup-fixtures"
         --mode exclusive)
 set_tests_properties(display_injected_exclusive_pending PROPERTIES TIMEOUT 35 RUN_SERIAL TRUE)
+foreach(case off invalid)
+    add_test(NAME display_finish_band_${case}
+        COMMAND "${Python3_EXECUTABLE}" -I -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_display_startup_fixture.py"
+            --launcher "$<TARGET_FILE:tdur_observe_launch>"
+            --witness "$<TARGET_FILE:tdur_display_startup_witness>"
+            --dll "$<TARGET_FILE:tdur_observation_proxy>"
+            --work-root "${CMAKE_BINARY_DIR}/display-startup-fixtures"
+            --finish-band ${case})
+    set_tests_properties(display_finish_band_${case} PROPERTIES TIMEOUT 35 RUN_SERIAL TRUE)
+endforeach()
 
 add_executable(tdur_frametime_recorder_test
     tests/frametime_recorder_test.cpp src/frametime_recorder.cpp)

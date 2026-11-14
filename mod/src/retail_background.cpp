@@ -3,6 +3,7 @@
 #include "tdur/game/installation.hpp"
 #include "tdur/mod/code_patch.hpp"
 #include "tdur/mod/observation_hooks.hpp"
+#include "tdur/mod/retail_finish_band.hpp"
 
 #include <array>
 #include <atomic>
@@ -185,8 +186,25 @@ void TdurLeaveInitialRendererPhase() noexcept {
     renderer_parent = nullptr;
     // A probe device's Present must not close another device's admission.
     // Closing the actual initializer scope is the relevant lifecycle boundary.
-    if (admitted)
+    if (admitted) {
         TdurSealInitialBackgroundPolicy();
+        TdurSealFinishBandFix();
+    }
+}
+
+bool TdurInitialRendererPhaseAdmitted(IDirect3DDevice9* device) noexcept {
+    try {
+        auto& state = State();
+        std::lock_guard lock(state.mutex);
+        if (!state.checked) {
+            state.supported = OfficialIdentity();
+            state.checked = true;
+        }
+        return state.supported && StartupImage() &&
+               InitialRendererPhase(device);
+    } catch (...) {
+        return false;
+    }
 }
 
 HRESULT TdurApplyInitialBackgroundPolicy(IDirect3DDevice9* device) noexcept {

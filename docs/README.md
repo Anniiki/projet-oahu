@@ -14,7 +14,7 @@ evidence limitations are retained in those notes.
 | World loading | [Area and sector preparation](evidence/startup_service_preparations.md), [area resources](evidence/startup_area_resource.md), [sector resources](evidence/startup_sector_resource.md), [area and sector loading](evidence/startup_world_loaders.md), [loading queue](evidence/startup_world_sync.md) |
 | Native rendering | [Renderer plan](native_renderer_plan.md), [D3D12 draw batches](evidence/d3d12_draw_batches.md), [material inspection](evidence/native_material_inspection.md), [texture viewer](evidence/d3d12_texture_viewer.md), [mesh viewer](evidence/d3d12_mesh_viewer.md) |
 | Game data | [Banks](evidence/bank_archive.md), [3DD scenes](evidence/scene_3dd.md), [3DG geometry](evidence/geometry_3dg.md), [materials](evidence/material_2dm_reader.md), [databases](evidence/database.md) |
-| Simulation and driving | [Fixed-step calendar](evidence/fixed_step.md), [physics worker](evidence/fixed_physics_worker.md), [automatic transmission](evidence/adaptive_automatic.md) |
+| Simulation and driving | [Fixed-step calendar](evidence/fixed_step.md), [physics worker](evidence/fixed_physics_worker.md), [automatic transmission](evidence/adaptive_automatic.md), [shift band after the finish line](evidence/retail_finish_band.md) |
 | Controllers | [SDL3 transport](evidence/sdl_gamepads.md), [bindings](evidence/controller_bindings.md), [mod gamepad bridge](input_gamepad_proxy.md) |
 | Interface | [VMF execution](evidence/vmf_execution.md), [menu registry](evidence/vmf_menu_registry.md), [global commands](evidence/vmf_fscommand_global.md), [GetURL host bridge](evidence/vmf_host_url.md) |
 | Observations | [Observation mod](mod-observation.md), [Present timing diagnostics](frametime_recording.md) |

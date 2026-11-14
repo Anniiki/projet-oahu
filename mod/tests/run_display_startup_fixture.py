@@ -56,6 +56,9 @@ def main():
     # C2: TDUR_BORDERLESS_CONSTRAINT absent (default), "0" (off) or invalid.
     parser.add_argument("--constraint", default="default",
                         choices=("default", "off", "invalid"))
+    # TDUR_RETAIL_FINISH_BAND absent (on by default), "0" or invalid.
+    parser.add_argument("--finish-band", default="default",
+                        choices=("default", "off", "invalid"))
     args = parser.parse_args()
     if args.constraint != "default" and args.frametime != "off":
         parser.error("--constraint is exercised with --frametime off only")
@@ -96,6 +99,12 @@ def main():
         env["TDUR_BORDERLESS_CONSTRAINT"] = "0"
     elif args.constraint == "invalid":
         env["TDUR_BORDERLESS_CONSTRAINT"] = "2"
+    env.pop("TDUR_RETAIL_FINISH_BAND", None)
+    if args.finish_band == "off":
+        env["TDUR_RETAIL_FINISH_BAND"] = "0"
+    elif args.finish_band == "invalid":
+        env["TDUR_RETAIL_FINISH_BAND"] = "yes"
+    band_rejected = args.finish_band == "invalid"
     rejected = args.frametime not in ("off", "enabled")
     if args.frametime != "off":
         env["TDUR_FRAMETIME_DIAGNOSTICS"] = "1"
@@ -165,13 +174,26 @@ def main():
                 "evidence_directory": str(root)}, indent=2) + "\n", encoding="utf-8")
             print("PASS invalid borderless constraint refused and logged; " + str(root))
             return
-        assert (result["exit_code"] != 0) == rejected, "unexpected exit; inspect " + str(root)
+        refused = rejected or band_rejected
+        assert (result["exit_code"] != 0) == refused, "unexpected exit; inspect " + str(root)
         assert result["locked_save_files"] == 17 and result["source_saves_unchanged"]
         assert hashes(source) == before
         if args.frametime != "source-log":
             assert hashes(installation) == installation_before
         else:
             assert hashlib.sha256((installation / "canary.bin").read_bytes()).hexdigest() == installation_before["canary.bin"]
+        if band_rejected:
+            # Refused by the display gate, after the diagnostic log opened.
+            assert result["exit_code"] == 0xC0000142
+            assert "event=retail-finish-band-invalid-selection" in log.read_text(encoding="utf-8")
+            assert not (private / "display-startup-proof.json").exists()
+            (root / "result.json").write_text(json.dumps({
+                "game_executed": False, "success": True, "refusal": "finish-band-invalid",
+                "exit_code": result["exit_code"], "elapsed_seconds": elapsed,
+                "window_checks": window_checks, "visible_owned_windows": 0,
+                "evidence_directory": str(root)}, indent=2) + "\n", encoding="utf-8")
+            print("PASS finish-band selection refused at load; " + str(root))
+            return
         if rejected:
             assert result["exit_code"] == 0xC0000142
             assert not log.exists(), "refused configuration opened its diagnostic log"
@@ -213,6 +235,15 @@ def main():
         assert "retail-background-identity-refused" in trace
         assert "retail-background-branches-applied" not in trace
         assert "retail-video-defaults-applied" not in trace
+        # On by default, never applied outside the audited image.
+        assert "retail-finish-band-applied" not in trace
+        assert "retail-finish-band-invalid-selection" not in trace
+        if args.finish_band == "off":
+            assert trace.count("event=retail-finish-band-disabled") == 1
+            assert "retail-finish-band-phase-not-admitted" not in trace
+        else:
+            assert "retail-finish-band-disabled" not in trace
+            assert trace.count("event=retail-finish-band-phase-not-admitted") == 1
         first = next(line for line in trace.splitlines()
                      if "event=display-first-dxgi-frame" in line)
         assert "exclusive=0" in first
@@ -223,6 +254,7 @@ def main():
             "requested_mode": args.mode,
             "frametime": args.frametime, "summary_count": len(summaries),
             "borderless_constraint": args.constraint,
+            "finish_band": args.finish_band,
             "visible_owned_windows": 0, "window_checks": window_checks,
             "exclusive_pending": args.mode == "exclusive",
             "source_files_unchanged": True,

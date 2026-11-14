@@ -3,6 +3,7 @@
 #include "tdur/mod/display_hooks.hpp"
 #include "tdur/mod/observation_hooks.hpp"
 #include "tdur/mod/retail_background.hpp"
+#include "tdur/mod/retail_finish_band.hpp"
 #include "tdur/mod/retail_physics_context.hpp"
 #include "tdur/mod/retail_video_defaults.hpp"
 
@@ -22,6 +23,7 @@ HRESULT initializationResult = E_UNEXPECTED;
 bool maximumGraphics = false;
 bool backgroundSimulation = false;
 bool physicsContext = false;
+bool finishBand = false;
 
 HRESULT DeviceCreated(IDirect3DDevice9* device) noexcept {
     if (backgroundSimulation) {
@@ -29,6 +31,9 @@ HRESULT DeviceCreated(IDirect3DDevice9* device) noexcept {
         if (FAILED(applied))
             return applied;
     }
+    // Never fatal: a refusal is logged and keeps the original gearbox band.
+    if (finishBand)
+        TdurApplyFinishBandFix(device);
     return maximumGraphics ? TdurApplyInitialVideoDefaults(device) : S_OK;
 }
 
@@ -83,7 +88,7 @@ BOOL CALLBACK InitializeDisplay(PINIT_ONCE, PVOID, PVOID*) noexcept {
         initializationResult = E_INVALIDARG;
         return TRUE;
     }
-    if (maximumGraphics || backgroundSimulation) {
+    if (maximumGraphics || backgroundSimulation || finishBand) {
         options.on_device_created = DeviceCreated;
         options.on_first_frame = FirstFrame;
     }
@@ -183,6 +188,20 @@ bool TdurInstallDisplayStartupGate() noexcept {
         physicsContext = true;
     else if (physicsLength && !(physicsLength == 1 && physics[0] == L'0'))
         return false;
+    // The finish-band fix is on unless explicitly disabled by "0".
+    std::array<wchar_t, 4> band{};
+    const auto bandLength =
+        GetEnvironmentVariableW(L"TDUR_RETAIL_FINISH_BAND", band.data(),
+                                static_cast<DWORD>(band.size()));
+    if (bandLength == 0 || (bandLength == 1 && band[0] == L'1')) {
+        finishBand = true;
+    } else if (bandLength == 1 && band[0] == L'0') {
+        TdurObservationRecord("retail-finish-band-disabled", ERROR_SUCCESS);
+    } else {
+        TdurObservationRecord("retail-finish-band-invalid-selection",
+                              ERROR_INVALID_PARAMETER);
+        return false;
+    }
     LONG result = DetourTransactionBegin();
     if (result != NO_ERROR)
         return false;
@@ -196,7 +215,8 @@ bool TdurInstallDisplayStartupGate() noexcept {
         const auto backgroundLength = GetEnvironmentVariableW(
             L"TDUR_RETAIL_BACKGROUND", background.data(),
             static_cast<DWORD>(background.size()));
-        if (backgroundLength == 1 && background[0] == L'1')
+        // The renderer scope admits the background policy and the band.
+        if ((backgroundLength == 1 && background[0] == L'1') || finishBand)
             result = TdurQueueRetailRendererGate(rendererQueued);
     }
     bool physicsQueued = false;
