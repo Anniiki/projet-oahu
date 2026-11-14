@@ -2,7 +2,7 @@
 
 ## Corrected behavior
 
-The Win32 observation layer redirects Documents to private storage and
+The Win32 observation layer redirects Documents to isolated storage and
 protects source saves and the reference installation. Two compatibility
 defects were reproduced on project-owned witnesses and corrected:
 
@@ -15,7 +15,7 @@ defects were reproduced on project-owned witnesses and corrected:
 - Documents queries may supply a queryable token belonging to the same
   user as the current process. The observer now accepts that case for
   `SHGetFolderPathA/W` and `SHGetKnownFolderPath`, returning the same
-  private Documents root. It previously rejected every non-null token.
+  isolated Documents root. It previously rejected every non-null token.
 
 The unresolved-path branch performs no open or create. Reparse points,
 unrecognized errors and protected source writes remain rejected. Token
@@ -41,7 +41,7 @@ It checks existing-parent/missing-leaf `OPEN_EXISTING`, missing-parent
 modifies a source save.
 
 The current-process-token witness likewise failed before correction.
-It checks ANSI, wide and known-folder queries, private-root results,
+It checks ANSI, wide and known-folder queries, isolated-root results,
 and rejection of Default User and an invalid handle. An actual
 different-user token was not exercised; the SID mismatch rejection is
 an implementation condition, not a separately executed account trial.
@@ -49,14 +49,13 @@ an implementation condition, not a separately executed account trial.
 The strict MSVC Win32 build uses C++ latest, `/W4 /WX`. Four targeted
 CTests pass after both corrections: `observation_proxy_and_documents`,
 `observation_guard_mutation_detected`, `observation_launcher_lifecycle`
-and `observation_reject_late_load`, totaling 17.91 seconds. Earlier
-failing runs are retained privately. These tests use source-owned
-programs, not the commercial game.
+and `observation_reject_late_load`, totaling 17.91 seconds. These tests use
+source-owned programs, not the commercial game.
 
 ## Limits of the actual-game diagnosis
 
 A user trial reached the menu, then failed when starting a new offline
-profile. Its private files and text-only Windows error records were
+profile. Its isolated files and text-only Windows error records were
 preserved; the original installation and source saves were unchanged.
 The access violation's cause remains unknown. These witness fixes
 **do not establish that the actual new-game failure is resolved**.

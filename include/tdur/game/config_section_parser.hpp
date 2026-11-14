@@ -1,9 +1,9 @@
 #pragma once
 
-// Driver 0x438450 (pilote des helpers de sections).
-// Corps corroboré : 159 octets, config_section_parser-assembly.json.
-// Les helpers 0x4381B0, 0x4383B0 et 0x438250 restent des ports : aucune
-// grammaire (BOM, UTF-8, fins de ligne, INI) n'est supposée ici.
+// Driver 0x438450 (driver of the section helpers).
+// Corroborated body: 159 bytes, config_section_parser-assembly.json.
+// The helpers 0x4381B0, 0x4383B0 and 0x438250 remain ports: no grammar
+// (BOM, UTF-8, line endings, INI) is assumed here.
 
 #include "tdur/game/config_block_store.hpp"
 
@@ -15,37 +15,37 @@
 
 namespace tdur::game::config {
 
-// Objet analyseur de l'appelant (argument pile, EBP). Opaque : sa définition
-// appartient au propriétaire de 9896C0/988FC0, non reconstruit ici.
+// Parser object of the caller (stack argument, EBP). Opaque: its definition
+// belongs to the owner of 9896C0/988FC0, not reconstructed here.
 struct ParserObject;
 
-// État possédé remplaçant l'octet global [0x10E8069]. Les helpers peuvent
-// le modifier ; le driver le remet à 0 à l'entrée (43845D) et à la sortie
-// native (4384E2).
+// Owned state replacing the global byte [0x10E8069]. The helpers may
+// modify it; the driver resets it to 0 on entry (43845D) and on the native
+// exit (4384E2).
 struct SectionParserState {
     std::uint8_t stop_flag_10e8069 = 0;
 };
 
-// Section : nullopt = pointeur ESI nul (438482) ; vue dont le premier octet
-// est absent ou nul = section vide (43848E). Seul le premier octet est lu.
+// Section: nullopt = null ESI pointer (438482); view whose first byte is
+// absent or zero = empty section (43848E). Only the first byte is read.
 using SectionArg = std::optional<std::string_view>;
 
-// Curseur en offset dans la vue possédée [0, size]. Retour de 4381B0 : le
-// driver le compare à la fin et lit l'octet pointé (438468..438470).
+// Cursor as an offset into the owned view [0, size]. Return of 4381B0: the
+// driver compares it to the end and reads the pointed-to byte (438468..438470).
 struct ParseCursor {
     std::size_t offset = 0;
 };
 
-// Valeur d'EAX transmise telle quelle d'un helper au suivant. Le driver ne
-// la lit ni ne la valide ; qu'elle soit un curseur pour 4383B0/438250 est
-// une PRÉCONDITION non établie (les retours de ces helpers ne sont jamais
-// déréférencés par 438450).
+// EAX value passed as is from one helper to the next. The driver neither
+// reads nor validates it; that it is a cursor for 4383B0/438250 is a
+// PRECONDITION not established (the returns of these helpers are never
+// dereferenced by 438450).
 struct HelperCarry {
     std::size_t value = 0;
 };
 
-// Contexte d'appel commun : vue modifiable bornée [0, size) (EAX début,
-// ECX/EDI fin au site), section (ESI) et état partagé.
+// Common call context: bounded mutable view [0, size) (EAX start,
+// ECX/EDI end at the site), section (ESI) and shared state.
 struct SectionParseCall {
     std::span<std::byte> data;
     SectionArg section;
@@ -56,30 +56,30 @@ class SectionParserPorts {
   public:
     virtual ~SectionParserPorts() = default;
 
-    // 0x4381B0 (438463) : EAX = début, ECX = taille, EDI = fin.
+    // 0x4381B0 (438463): EAX = start, ECX = size, EDI = end.
     virtual ParseCursor prefix_4381b0(const SectionParseCall& call) = 0;
 
-    // 0x4383B0 (43847D, 4384B6) : EAX = carry, ECX = fin, pile = parser.
-    // Précondition native : l'appelé dépile 4 octets.
+    // 0x4383B0 (43847D, 4384B6): EAX = carry, ECX = end, stack = parser.
+    // Native precondition: the callee pops 4 bytes.
     virtual HelperCarry commands_4383b0(const SectionParseCall& call,
                                         HelperCarry eax,
                                         ParserObject& parser) = 0;
 
-    // 0x438250 (4384A3, 4384D0) : EAX = carry, ECX = fin, pile = (section,
-    // &found, &aux), nettoyée par l'appelant. Le driver lit seulement found.
+    // 0x438250 (4384A3, 4384D0): EAX = carry, ECX = end, stack = (section,
+    // &found, &aux), cleaned up by the caller. The driver reads only found.
     virtual HelperCarry section_438250(const SectionParseCall& call,
                                        HelperCarry eax, std::uint8_t& found,
                                        std::uint8_t& aux) = 0;
 };
 
 enum class SectionParseOutcome {
-    native_returned,              // sortie 4384E0, AL = 1
-    refused_unknown_block,        // moderne, avant toute action
-    refused_size_exceeds_storage, // moderne, avant toute action
-    refused_cursor_out_of_range,  // moderne : retour 4381B0 > taille
+    native_returned,              // exit 4384E0, AL = 1
+    refused_unknown_block,        // modern, before any action
+    refused_size_exceeds_storage, // modern, before any action
+    refused_cursor_out_of_range,  // modern: return of 4381B0 > size
 };
 
-// Branche native qui a mené à 4384E0.
+// Native branch that led to 4384E0.
 enum class SectionExitSite {
     none,
     null_section_438484,
@@ -92,17 +92,17 @@ enum class SectionExitSite {
 
 struct SectionParseResult {
     SectionParseOutcome outcome = SectionParseOutcome::refused_unknown_block;
-    std::uint8_t native_al = 0; // 1 seulement si native_returned
+    std::uint8_t native_al = 0; // 1 only if native_returned
     SectionExitSite exit_site = SectionExitSite::none;
     bool leading_commands_called = false;  // 43847D
     std::uint32_t section_calls = 0;       // 4384A3 + 4384D0
     std::uint32_t loop_commands_calls = 0; // 4384B6
 };
 
-// Exécute 438450 sur les `size` premiers octets du bloc possédé.
-// Refus modernes : effets antérieurs conservés, pas de remise finale du
-// drapeau (seule la sortie native 4384E0 la fait). La boucle n'a aucune
-// borne moderne : elle s'arrête comme le natif, par found == 0 ou drapeau.
+// Runs 438450 on the first `size` bytes of the owned block.
+// Modern refusals: earlier effects are kept, no final reset of the flag
+// (only the native exit 4384E0 performs it). The loop has no modern
+// bound: it stops like the native code, on found == 0 or on the flag.
 SectionParseResult run_config_section_parser_438450(
     BlockStore& store, BlockHandle block, std::uint32_t size,
     SectionArg section, ParserObject& parser, SectionParserState& state,

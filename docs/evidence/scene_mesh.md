@@ -62,7 +62,5 @@ SHA-256 hashes; nine CLI refusals include the existing BMP file, whose hash rema
 unchanged. The historical local group BODY_HR keeps its fingerprint
 `f39aba0e488f8dc1`.
 
-Private evidence: `scene-mesh-cpp/official-assembly-v2/`, logs
-`final-*-cpu-tests-v3.log`, `root-ctest-v3.log` and the
-`material-bindings/` study. No commercial asset is committed and no game
-executable is launched by these validations.
+No commercial asset is committed and no game executable is launched by these
+validations.

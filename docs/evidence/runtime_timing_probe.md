@@ -41,18 +41,17 @@ cmake --build build --config Release --target tdur_probe_timing
 ctest --test-dir build -C Release -R '^runtime_timing_readonly_probe$' --output-on-failure
 ```
 
-Both tests passed under MSVC 19.44, SDK 10.0.26100, `/std:c++latest /W4 /WX`;
-the code probe and its test are not published in this repository.
+The test passed under MSVC 19.44, SDK 10.0.26100, `/std:c++latest /W4 /WX`.
 An independent review of the catalogue and the reader confirms the types and
 bounds.
 
 ## First official measurement
 
-Private trial `20261030T083003-25076`, PID 9424, official PC MC 1.66 A copy,
+Isolated trial `20261030T083003-25076`, PID 9424, official PC MC 1.66 A copy,
 SHA-256 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-A 75-second launch, slot acquired and PID recorded before resume; the stable
-D3D12 bridge is active, with no resolution override and no change of focus
-or simulation. Measurement at 40 seconds, actual duration **5.287331 s**.
+A 75-second launch, PID recorded before resume; the stable D3D12 bridge is
+active, with no resolution override and no change of focus or simulation.
+Measurement at 40 seconds, actual duration **5.287331 s**.
 
 | Scalar | First → last sample |
 |---|---|
@@ -77,21 +76,13 @@ files within the compared bounds. This corroborates the analysis of the
 official timer; their presence does not prove that the callback runs in this
 scene.
 
-Private evidence:
-`<isolated-copies>/20261030T083003-25076/`.
 `timing-scalars.json`, 14,744 bytes, SHA-256
 `c22ba848d668332cbe31c5d06371847d674d882b722ed549f5b59e10a3b196c9`.
-The Job stops only our game process at its planned deadline (exit 1460), then
-releases the slot. The 6,697 reference files and the 17 source saves
-are unchanged.
+The Job stops only our game process at its planned deadline (exit 1460).
+The 6,697 reference files and the 17 source saves are unchanged.
 
-For the next justified trial, add to the wrapper:
-
-```text
---timing-probe build/Release/tdur_probe_timing.exe --probe-after 40 --seconds 75
-```
-
-The wrapper requires the whole measurement period to stay within the trial
+For the next justified trial, the probe reads after 40 seconds of a
+75-second launch; the whole measurement period must stay within the trial
 duration.
 
 ## Bounded graphics extension
@@ -110,7 +101,7 @@ The catalogue adds the delta selector `F8A2E8` (byte), the period
 `168D6B8` (float32), the three bytes `129BEEB/EC/ED` and the last callback
 MS `10E7A5C` (uint32). None of these fields is written by the probe.
 
-The closed private trial `20261030T102129-30308`, PID 32088, lasts 75 s. The
+The closed trial `20261030T102129-30308`, PID 32088, lasts 75 s. The
 26 graphics samples read 28 values/91 bytes without failure. The period is
 `0.0111111114`, the selector is 1 (measured delta), EB/EC are 0 and ED is 1.
 The last callback MS and the integrator entry counter stay at zero.
@@ -122,12 +113,9 @@ output, 160/1 Hz, a configured 160 Hz cap, `exclusive=0` and
 `exclusive_pending=0`. The code probe reads 43 ranges/11,916 bytes; the 14
 added ranges of the dispatch, the world, its pause and the AI match both
 disk files. This proves that their content is present, not that it executes.
-The Job is closed, the slot released and the 6,697 files/17 source saves
-are unchanged.
+The Job is closed and the 6,697 files/17 source saves are unchanged.
 
 `timing-scalars.json`: 26,044 bytes, SHA-256
 `35bafd19af80ef13cf00491065bf9cfb2cffafbff7c1353eb02fe5cefa7eb86a`.
 Log: 14,593 bytes, SHA-256
 `e45f249e7f4280c1a16bc622cd31aa68ea843929fe50a54af7682d179666d7db`.
-The exact comparisons remain in the private evidence
-(`code-helpers/comparisons.json`).

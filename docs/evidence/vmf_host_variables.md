@@ -4,8 +4,7 @@
 
 The module reconstructs the read path of 440E00 in the secondary PE,
 SHA256 f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed.
-Private evidence: reprise-2026-10-31/vmf-host-callback-v2/session/39/43/44,
-that is resolution, instructions and 166 bytes PE/disassembly/DUMPBIN.
+Evidence: resolution, instructions and 166 bytes PE/disassembly/DUMPBIN.
 The [official menu corroboration](official_menu_bindings_runtime.md)
 now confirms the bytes of this getter, of the three host setters and of
 9AB950. This establishes their presence in the process, not their execution.
@@ -50,8 +49,7 @@ displayed screen, server access or co-op mode is validated here.
 
 ## Writes from the root
 
-Additional private evidence: vmf-common-sbdd-v1/session, requests
-21..33 and 39..47. 440B00 calls 449240 then 443770 to copy the text;
+440B00 calls 449240 then 443770 to copy the text;
 440AB0 calls 4492E0 then the already reconstructed link setter 4437F0.
 440BA0 formats with MSVCR71::sprintf, import 9EC378, format %d at F0A258,
 then writes with 443770. Its integers are TEXT, neither floats nor

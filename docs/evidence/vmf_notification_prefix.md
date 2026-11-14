@@ -39,9 +39,7 @@ MSVC Release C++latest, `/W4 /WX /permissive- /utf-8`: **35 targeted suites
 pass in each of the x64 and Win32 architectures**, including 33 checks of
 these helpers. They cover the guards, zero and large counts, NUL, high
 bytes, partial errors and three forms of overlap. Eight frozen sources and
-six sensitive files remain unchanged during validation. Private evidence
-and logs:
-`<private-evidence>/reprise-2026-10-31/vmf-notification-prefix-runtime-v1/`.
+six sensitive files remain unchanged during validation.
 
 ```powershell
 cmake --build build --config Release --target vmf_notification_prefix_test

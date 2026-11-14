@@ -3,7 +3,7 @@
 namespace tdur::game::config {
 
 void decode_integrated_in_place(std::span<std::byte> bytes) noexcept {
-    std::byte previous_decoded{0}; // 6B1A3B : XOR DL,DL
+    std::byte previous_decoded{0}; // 6B1A3B: XOR DL,DL
     for (std::byte& value : bytes) {
         const std::byte decoded = value ^ previous_decoded; // 6B1A41..43
         value = decoded;                                    // 6B1A45
@@ -12,11 +12,11 @@ void decode_integrated_in_place(std::span<std::byte> bytes) noexcept {
 }
 
 void reencode_like_98ec91_in_place(std::span<std::byte> bytes) noexcept {
-    std::byte previous_clear{0}; // 98EC94 : XOR DL,DL
+    std::byte previous_clear{0}; // 98EC94: XOR DL,DL
     for (std::byte& value : bytes) {
-        const std::byte clear = value; // 98ECA0 : MOV CL,[EAX]
+        const std::byte clear = value; // 98ECA0: MOV CL,[EAX]
         value = clear ^ previous_clear;
-        previous_clear = clear; // 98ECAB : MOV DL,CL
+        previous_clear = clear; // 98ECAB: MOV DL,CL
     }
 }
 
@@ -25,19 +25,19 @@ LoaderResult run_config_file_loader_6b1a00(std::span<const char> path,
                                            std::uint8_t& storage_flag,
                                            BlockStore& store,
                                            ConfigLoaderPorts& ports) {
-    // 6B1A05 : sélection du bloc.
+    // 6B1A05: selection of the block.
     ports.select_block_6b18d0(path, slots);
 
-    // 6B1A0A..6B1A17 : TEST du pointeur, SETZ, écriture du drapeau.
+    // 6B1A0A..6B1A17: TEST of the pointer, SETZ, write of the flag.
     const bool block_absent = !slots.block.has_value();
     storage_flag = block_absent ? std::uint8_t{1} : std::uint8_t{0};
 
     LoaderResult result;
     result.storage_flag_written = storage_flag;
 
-    // 6B1A19 : JZ 6B1A35 si AL == 0 (bloc présent).
+    // 6B1A19: JZ 6B1A35 if AL == 0 (block present).
     if (block_absent) {
-        // 6B1A1B..6B1A2C puis retour direct 6B1A31..6B1A32.
+        // 6B1A1B..6B1A2C then direct return 6B1A31..6B1A32.
         const ExternalLoadRequest request{.path = path};
         if (ports.load_external_9a5d20(request, slots) ==
             ExternalCallOutcome::modern_refusal) {
@@ -48,7 +48,7 @@ LoaderResult run_config_file_loader_6b1a00(std::span<const char> path,
         return result;
     }
 
-    // 6B1A35..6B1A39 : début et fin. Refus moderne avant tout accès.
+    // 6B1A35..6B1A39: start and end. Modern refusal before any access.
     const std::optional<std::span<std::byte>> owned = store.view(*slots.block);
     if (!owned) {
         result.outcome = LoaderOutcome::refused_unknown_block;
@@ -59,7 +59,7 @@ LoaderResult run_config_file_loader_6b1a00(std::span<const char> path,
         return result;
     }
 
-    // 6B1A3F : JNC (début >= fin) ; taille 0 => aucun accès.
+    // 6B1A3F: JNC (start >= end); size 0 => no access.
     decode_integrated_in_place(owned->first(slots.size));
     result.outcome = LoaderOutcome::integrated_decoded;
     result.decoded_bytes = slots.size;

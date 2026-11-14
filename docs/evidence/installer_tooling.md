@@ -87,10 +87,8 @@ executables are inspectors, viewers, observers and component tests. They do not
 constitute a distributable co-op session. Distribution and the same setup for
 both PCs remain later milestones.
 
-Reproducible private inventory:
-`<private-evidence>/reprise-2026-10-30/installer-tooling/collect.ps1`,
-`inventory.json`, four PE/import listings and their SHA-256. Observed revision:
-`6865c4223e81f3a808071807d566c759ea4d2ade`. Only files from our own build were
+A reproducible inventory records four PE/import listings and their SHA-256
+at the observed project revision. Only files from our own build were
 examined. No setup, build, game, repair, elevation, registry change or firewall
 change was executed; no `Win32_Product` query was made.
 

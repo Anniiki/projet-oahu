@@ -40,25 +40,17 @@ disk, matches the secondary in the official memory of trial
 20, with no edit of this range by the project. This does not reveal the live
 pointers it would have used.
 
-Private evidence reused under
-`<private-evidence>/reprise-2026-10-30/`:
+The reused evidence covers:
 
-- `paradise-physics-owner/61-byte-read.json`: init anchoring in
-  `97C8F0`, ID
-  `8d823da0a8d05d36c0657457d0bd3306fcc4c4f794f7e23a9e3ebe6fd17ef2f7`;
-  `81-byte-read.json`: the twelve bytes around the callback push/call.
-- `paradise-physics-owner/47-byte-read.json`,
-  `targeted-disk-comparisons.json`, `physics-initialize-complete.asm.txt`
-  and `physics-stop-cleanup.asm.txt`: vtable, init and destruction.
-- `physics-thread-dependencies/session/47-assembly.json`:
-  `81D960`, ID
-  `8b5b8fca5a8d91a0bd5612da339fab721a4ce143a41cdf1df94352b72c92acac`;
-  `asm/0047f1d0.txt`, `asm/004d2370.txt` and `disk-comparisons.json`:
-  construction candidates, with their explicit disk differences.
-- `physics-thread-adapter/normalized-09.asm.txt` and
-  `integrator-complete.asm.txt`: exact dispatch and caller.
-  The corresponding official capture is
-  `<isolated-copies>/20261030T134824-33340/code-helpers/physics_world_dispatch_47da40.bin`.
+- the init anchoring in `97C8F0`, ID
+  `8d823da0a8d05d36c0657457d0bd3306fcc4c4f794f7e23a9e3ebe6fd17ef2f7`, and
+  the twelve bytes around the callback push/call;
+- the vtable, init and destruction, with targeted disk comparisons;
+- `81D960`, ID
+  `8b5b8fca5a8d91a0bd5612da339fab721a4ce143a41cdf1df94352b72c92acac`, and
+  the construction candidates, with their explicit disk differences;
+- the exact dispatch and its caller. The corresponding official capture of
+  the dispatch comes from trial `20261030T134824-33340`.
 
 ## Exact read sequence
 
@@ -70,7 +62,7 @@ target function call or recursive walk is necessary.
 | Order | Read | Size | Handling of the result |
 | --- | --- | ---: | --- |
 | 1 | `[01293880]` | 4 | `service_vtable`; the first profile requires `F27068`. |
-| 2–3 | `[F27068+8]`, `[F27068+1C]` | 4 + 4 | Require `84D570` and `846CF0`, in code pages of the expected module. |
+| 2-3 | `[F27068+8]`, `[F27068+1C]` | 4 + 4 | Require `84D570` and `846CF0`, in code pages of the expected module. |
 | 4 | `[0129BEDC]`, that is `[S+865C]` | 4 | `W=world`; zero means observed absence, with no continuation. |
 | 5 | `[W]` | 4 | World vtable; secondary candidate `9ECE38`. |
 | 6 | `[W+8]` | 4 | `P=simulation`; zero stops this reading. |
@@ -187,8 +179,8 @@ pass. The intervals concern the observer, not a physics step.
 ```powershell
 tdur_probe_physics_binding.exe --pid 1234 `
   --expected-creation-filetime 134378417126074006 `
-  --expected-exe "<private-path>\TestDriveUnlimited.exe" `
-  --output "<private-evidence>\physics-binding.json"
+  --expected-exe "<game-directory>\TestDriveUnlimited.exe" `
+  --output "<output-directory>\physics-binding.json"
 ```
 
 The PID and the FILETIME must come from the same owned child. The
@@ -220,13 +212,9 @@ or pass-count selector. The separate `--self-test` mode takes
 no PID: it uses exclusively the process of its own source-owned
 executable, with official admission disabled.
 
-## Private validation performed
+## Validation performed
 
-Private evidence and binaries:
-`<private-evidence>/reprise-2026-10-30/physics-binding-cpp/`:
-`build-private.cmd`, `build-test.log`, `build-probe.log`,
-`cli-refusals.json` and `validation.json` with SHA-256 of the four sources
-and of the CLI. Sequential MSVC 14.44 compilation, Win32, `/std:c++latest`,
+Sequential MSVC 14.44 compilation, Win32, `/std:c++latest`,
 `/EHsc /W4 /WX /permissive- /O2`; no warning option weakened.
 
 ```powershell
@@ -265,17 +253,14 @@ on error for all payloads. The core also checks `false/short` at each
 stage, separately from `false/0` and `true/short`: **4,551 checks pass
 in each architecture**. The **28 Windows checks** pass again.
 
-The wrapper accepts `--binding-probe PATH` and passes the PID and the
+For a trial, the probe receives the PID and the
 `creation_filetime` of the file published by the launcher during suspension,
-as exact decimal integers. It refuses a launcher without this identity,
-keeps the probe SHA at preflight and places its result/its command in
-the private batch. No additional profile or address is exposed. An
-in-game observation remains to be performed; these validations are source-owned.
+as exact decimal integers.
+No additional profile or address is exposed. An in-game observation remains
+to be performed; these validations are source-owned.
 
 Integrated build: **33/33 x64 CTests and 24/24 Win32 CTests pass**,
-after explicitly building all executable targets. The logs
-`integrated-root-build-v2.log`, `integrated-mod-build-v2.log` and their
-`integrated-*-ctest-v2.log` are kept in the private batch above.
+after explicitly building all executable targets.
 
 ## First official result
 

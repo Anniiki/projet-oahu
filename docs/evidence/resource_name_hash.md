@@ -56,9 +56,6 @@ cmake --build build --config Release --target resource_name_hash_test resource_h
 ctest --test-dir build -C Release -R '^native_resource_(name|key)_hash$' --output-on-failure
 ```
 
-Six frozen sources, six preserved sensitive files and evidence are
-recorded outside Git in
-`<private-evidence>/reprise-2026-10-31/resource-name-hash-runtime-v1/`.
 The C++ representation does not impose the x86 ABI. This batch validates
 neither a targeted native invocation, a playable commercial interface,
 co-op nor overall smoothness.

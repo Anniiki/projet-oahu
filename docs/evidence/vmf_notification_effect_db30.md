@@ -8,13 +8,14 @@ its completion, then hand back its frame without replaying the operations.
 ## Official reference
 
 The complete body `89DB30..89DD5B`, 556 bytes, matches between the official
-PC MC 1.66 A primary, the secondary and the existing static analysis exports. Body SHA-256:
+PC MC 1.66 A primary, the secondary and the existing static analysis exports.
+Body SHA-256:
 `7889f8c5deb19c394c679b3531b68f1561d06d84707643a45ef35d627e8bc892`.
 The primary keeps its identity
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Private evidence: `vmf-effect-db30-runtime-v1/native-proof.json`.
 The `%d` and empty-string constants are also cross-checked on disk and
-against static analysis. Their bodies and commercial resources are not distributed.
+against static analysis. Their bodies and commercial resources are not
+distributed.
 
 The reconstruction is readable C++ with owned objects, without calls to the
 original game's addresses or reproduction of its x86 ABI in x64 pointers.

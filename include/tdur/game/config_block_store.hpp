@@ -1,11 +1,11 @@
 #pragma once
 
-// Stockage possédé des blocs de configuration, étendu ensuite.
-// Un BlockHandle est un indice dans le magasin, jamais une adresse native ni
-// une adresse hôte. Remplacer un handle dans un emplacement ne libère rien.
-// Extension : release() est la seule libération anticipée ; elle est
-// EXPLICITE (chemin d'échec 9A5E9B..9A5EA0 de 9A5D20). Les indices ne sont
-// jamais réutilisés : un handle libéré reste inconnu pour view().
+// Owned storage of the configuration blocks, extended later.
+// A BlockHandle is an index into the store, never a native address or a
+// host address. Replacing a handle in a slot releases nothing.
+// Extension: release() is the only early release; it is EXPLICIT (failure
+// path 9A5E9B..9A5EA0 of 9A5D20). Indices are never reused: a released
+// handle stays unknown to view().
 
 #include <cstddef>
 #include <cstdint>
@@ -28,9 +28,9 @@ class BlockStore {
         return BlockHandle{blocks_.size() - 1};
     }
 
-    // Vue modifiable bornée au stockage possédé ; nullopt si le handle est
-    // inconnu ou libéré. Un bloc vivant de 0 octet donne une vue vide mais
-    // présente. Aucun octet n'est lu ici.
+    // Mutable view bounded to the owned storage; nullopt if the handle is
+    // unknown or released. A live block of 0 bytes gives an empty but
+    // present view. No byte is read here.
     std::optional<std::span<std::byte>> view(BlockHandle handle) {
         if (!is_live(handle)) {
             return std::nullopt;
@@ -42,8 +42,8 @@ class BlockStore {
         return handle.index < blocks_.size() && blocks_[handle.index].live;
     }
 
-    // Libération explicite. false (aucun effet) si le handle est inconnu ou
-    // déjà libéré : un double appel est refusé, jamais silencieux.
+    // Explicit release. false (no effect) if the handle is unknown or
+    // already released: a double call is refused, never silent.
     bool release(BlockHandle handle) {
         if (!is_live(handle)) {
             return false;
@@ -54,7 +54,7 @@ class BlockStore {
         return true;
     }
 
-    // Nombre de handles émis (vivants ou libérés), comme initialement.
+    // Number of handles issued (live or released), as initially.
     std::size_t count() const noexcept { return blocks_.size(); }
 
   private:

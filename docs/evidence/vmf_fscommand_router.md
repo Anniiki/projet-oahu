@@ -12,12 +12,9 @@ The earlier PE/disassembly checks attest their complete bodies, SHA256 respectiv
 `ef5f71670531f9ccdee5fe8ad5f5fe24c82e564d5b31ae63594fd3ee159fdca3`
 and `4e0ba9ebd795874a8330a74e14fb416308ef60762c53cd0641edf6aee2157d38`.
 
-Private evidence: `reprise-2026-10-31/vmf-fscommand-router-runtime-v1/`,
-exports `vmf-host-callback-v2/session/13-assembly.json` and
-`17-assembly.json`, the earlier `exact-byte-validation.json` of the
-same batch. The official 144-byte capture of `445CB0` does not corroborate
-these routines. This batch required no new access to the game, the process or
-the executable.
+The official 144-byte capture of `445CB0` does not corroborate these routines.
+This batch required no new access to the game, the process or the
+executable.
 
 ## Reconstructed order
 

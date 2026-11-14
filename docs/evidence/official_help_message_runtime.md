@@ -2,7 +2,7 @@
 
 ## Bounded capture
 
-The exclusive ui-vmf-help-message profile of the unpublished code probe reads four
+The exclusive ui-vmf-help-message profile of the code probe reads four
 fixed executable ranges, 1 065 bytes in total, covering three complete
 AddressSets:
 
@@ -26,8 +26,7 @@ The static analysis read 441180/512 includes 384 bytes outside this procedure; o
 
 ## Real trial
 
-Isolated trial in a private copy:
-<isolated-copies>/20261031T195112-31208.
+Trial `20261031T195112-31208`, in an isolated copy:
 PID 31120, FILETIME 134379499098188933, base 400000; duration 100.186 seconds.
 All four ranges are readable and equal to the studied secondary.
 The two 9A03E0 ranges also equal the primary on disk; the two helpers
@@ -36,7 +35,7 @@ The cause of these differences is not inferred.
 
 The Job is bounded to one process, the official copy is verified and
 locked, then stopped at the deadline. The 6 697 reference files and
-17 savegame files remain unchanged. The slot is released.
+17 savegame files remain unchanged.
 The two tracked repository guideline files, executables and banks are
 preserved.
 
@@ -46,10 +45,8 @@ protection modification and no forced native call is performed.
 The presence of the bytes does not prove that these routines were executed,
 that a tutorial was displayed, or that an online profile or co-op works.
 
-## Private evidence
+## Scope of the evidence
 
-vmf-help-message-official-v1 contains the launch, snapshots, comparison
-and artifact hashes. vmf-help-message-runtime-v1 contains the port, its
-validations and reviews. The later fix preserving the callbacks concerns
-the C++ reconstruction; the captured bytes and the probe did not change.
-The native comparisons and the C++ tests have distinct scopes.
+The later fix preserving the callbacks concerns the C++ reconstruction; the
+captured bytes and the probe did not change. The native comparisons and the
+C++ tests have distinct scopes.

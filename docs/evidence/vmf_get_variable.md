@@ -11,17 +11,14 @@ The October 31 batch corroborated the bodies `4491A0` (145 bytes) and `4490E0`
 (184 bytes). This attests their presence, without attesting that they are
 called in game. The wrapper `449070` remains secondary evidence in this batch.
 
-| Routine | Retained fact | Private static analysis export |
-| --- | --- | --- |
-| `445A60` | Pops the name, calls the wrapper, empty text on failure | `vmf-variable-dictionary/session/23-assembly.json` |
-| `449070` | Name present: scope lookup; null name: sprite | `vmf-host-context/session-v2/17-assembly.json` |
-| `4491A0` | First colon takes priority, otherwise slash or local name | `vmf-text-services/session/12-assembly.json` |
-| `4490E0` | Target lookup passed by value, optional outputs null here | `vmf-text-services/session/14-assembly.json` |
-| `443620` | Pushes a typed value, false if the variable is absent | `vmf-action-interpreter/session/58-assembly.json` |
+| Routine | Retained fact |
+| --- | --- |
+| `445A60` | Pops the name, calls the wrapper, empty text on failure |
+| `449070` | Name present: scope lookup; null name: sprite |
+| `4491A0` | First colon takes priority, otherwise slash or local name |
+| `4490E0` | Target lookup passed by value, optional outputs null here |
+| `443620` | Pushes a typed value, false if the variable is absent |
 
-The first four paths are under
-`<private-evidence>/reprise-2026-10-31/`, the last one under
-`reprise-2026-10-30/`. The envelopes keep the EvidenceID and SHA256.
 The handler loads `F035DF` before `44B2E0` on failure. A static read of both
 PE files confirms a NUL at that address, with no new live observation.
 
@@ -75,8 +72,7 @@ keys, numeric bits, aliases and lifetimes, budgets/resumptions, nested errors
 and the absence of prepared allocation. The 9 targeted CTest suites pass on
 each architecture, including the 8 existing regression suites. An earlier raw
 test harness is not an accepted oracle: its contract/API errors were noted
-and the canonical tests were written separately. Receipts, exports and
-corrections remain in the private evidence.
+and the canonical tests were written separately.
 
 ```powershell
 cmake --build build --config Release --target vmf_get_variable_test

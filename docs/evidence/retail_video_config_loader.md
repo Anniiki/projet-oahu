@@ -2,11 +2,11 @@
 
 ## Usable result
 
-The client has a native `-system <path-token>` argument. A private path that
+The client has a native `-system <path-token>` argument. A path that
 differs from the exact name `SystemPC.ini` selects the external reader in the
 analyzed secondary loader. The expected external file is plain text; the
 cumulative XOR concerns the embedded INI block. Keeping the other sections of
-a private copy of the original INI, then changing the video parameters, is the
+an isolated copy of the original INI, then changing the video parameters, is the
 established candidate for configuring the engine during its initialization.
 The actual opening of this file by the official client remains to be observed.
 
@@ -24,17 +24,16 @@ x86 VA addresses, base `0x00400000`:
 - Secondary image of the Platinum/Paradise patch: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-Ghidra 12.2 evidence is kept under
-`<private-evidence>/reprise-2026-10-30/paradise-video-config/`.
-The secondary session resumes from the `paradise-focus-timing` snapshot; its
-60 successful calls are exported to a bundle and a snapshot, then closed.
-The bounded disassemblies `video-callbacks.asm.txt`, `hdri-callback.asm.txt`
-and `video-mode-tail.asm.txt` complete the static analysis readings where the callbacks
-are not recognized as functions. They come from MSVC dumpbin 14.44.35229.0,
-without executing the image.
+The static analysis uses Ghidra 12.2. The secondary session resumes from the
+snapshot of the earlier focus timing study; its 60 successful calls are
+exported to a bundle and a snapshot, then closed. Bounded disassemblies of
+the video callbacks, the HDRI callback and the video mode tail complete the
+static analysis readings where the callbacks are not recognized as
+functions. They come from MSVC dumpbin 14.44.35229.0, without executing the
+image.
 
-The closed official trial `20261030T083003-25076`, PID 9424, provides
-`<isolated-copies>/20261030T083003-25076/code-helpers/comparisons.json`:
+The closed official trial `20261030T083003-25076`, PID 9424, provides the
+following memory comparisons:
 
 | Memory ranges compared | Observed equivalence |
 | --- | --- |
@@ -47,11 +46,10 @@ The reads cover in particular the complete bodies `6b1a00` (82 bytes),
 (30). The remainder of each read belongs to other instructions. The equivalence
 does not extend to functions called outside the ranges.
 
-`targeted-disk-comparisons.json` also keeps the static comparisons:
-`986b60/86`, `9851a0/178` and the `9896c0/512` prefix are identical between
-disks. The selection helper `6b18d0/217` differs: its behavior described
-below is attested only in the secondary image, without an official
-memory comparison of this body.
+The targeted disk comparisons also establish that `986b60/86`, `9851a0/178`
+and the `9896c0/512` prefix are identical between disks. The selection
+helper `6b18d0/217` differs: its behavior described below is attested only
+in the secondary image, without an official memory comparison of this body.
 
 ## INI selection and external format
 
@@ -83,11 +81,11 @@ in the trial logs; an absolute ASCII Windows path avoids depending on the
 current directory.
 
 A file simply added under the bare name `SystemPC.ini` does not replace the
-embedded selection attested in the secondary image. The private argument
-must carry another name or an explicit path. Example of a native token to pass:
+embedded selection attested in the secondary image. The argument must carry
+another name or an explicit path. Example of a native token to pass:
 
 ```text
--system <isolated-copies>\RUN\documents\SystemPC-private.ini
+-system <isolated-documents>\SystemPC-private.ini
 ```
 
 The embedded block `F9C460/0x357`, **855 bytes**, is identical between the
@@ -153,7 +151,7 @@ final value of these settings therefore cannot be attributed to the INI alone.
 
 ## Preparing and verifying a trial
 
-On a **complete private copy** of the decoded text, keep the other sections
+On a **complete isolated copy** of the decoded text, keep the other sections
 and adapt the video part after `SetVideo`. Example trial values, not an
 automatic execution:
 

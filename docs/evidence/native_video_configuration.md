@@ -4,10 +4,9 @@
 
 `tdur_prepare_video_config` verifies the audited official executable, then reads
 only the 855 bytes of its embedded SystemPC.ini, at raw offset
-`00b9c460` (VA `00f9c460`). The decoding and the external path are established by
-[the loader analysis](retail_video_config_loader.md). No commercial file
+`00b9c460` (VA `00f9c460`). The decoding and the external path are established
+by [the loader analysis](retail_video_config_loader.md). No commercial file
 is written, and the preparer refuses an output under the source installation.
-Decoded configurations stay in the private folders, outside Git.
 
 The program preserves the other sections and the unknown commands. It
 replaces the affected video keys and places them after `SetVideo`, which rewrites
@@ -21,20 +20,14 @@ request HDRI, then MSAA 4× or 2× supported on the affected color/depth
 formats. These are declared capabilities, not proof that the engine
 created all the corresponding targets. HDRI does not mean DXGI HDR output.
 
-The wrapper copies this work into the run's `documents/SystemPC-private.ini` and
-passes `-system` through the launcher. The real path remains ASCII without spaces,
-shorter than 255 characters; the file is in clear text on this external path.
-The launcher refuses a file outside the private documents and modifies
-no activation argument. Each trial keeps the hashes of the tools,
-of the produced file and of the requested selection in `preflight.json`.
+Each trial copies this work into its isolated `documents/SystemPC-private.ini`
+and passes `-system` through the launcher. The real path remains ASCII without
+spaces, shorter than 255 characters; the file is in clear text on this external
+path. The launcher refuses a file outside the isolated documents and modifies
+no activation argument.
 
-```text
---d3d12-display --display-mode borderless
---video-config-preparer build/Release/tdur_prepare_video_config.exe
-```
-
-This option concerns the official test bench. The launcher of the recompiled game
-and its preferences menu remain to be built.
+The launcher of the recompiled game and its preferences menu remain to be
+built.
 
 ## Executed validation
 
@@ -42,9 +35,10 @@ and its preferences menu remain to be built.
 - Transformation on a witness: dimensions after `SetVideo`, old
   occurrences removed, comments and other sections unchanged; refusal
   of dimensions outside uint16, unknown AA and section syntax without CRLF.
-- The real launcher passes a private INI with spaces to the CRT witness, which reads
-  its exact content. This validates the launcher's quoting, without demonstrating
-  how the game's parser handles it; the commercial run avoids them.
+- The real launcher passes an isolated INI with spaces to the CRT witness,
+  which reads its exact content. This validates the launcher's quoting,
+  without demonstrating how the game's parser handles it; the commercial run
+  avoids them.
 - After integration: **26/26 CTest** of the main base and **15/15** of the mod
   pass. No commercial game is launched by these CTest runs.
 
@@ -52,7 +46,7 @@ and its preferences menu remain to be built.
 
 Trial `20261030T085042-18800`, PID 33228, 90 seconds, same official
 MC 1.66 A copy. Preparer selection: 2560×1440, AA 4× and HDRI requested.
-The private file is 912 bytes, SHA-256
+The isolated INI file is 912 bytes, SHA-256
 `471a819144e8074aa94277b793ac8b90aa4a2ba1774263fc88231e0ac3710281`.
 
 The first successful presentation records:
@@ -73,13 +67,13 @@ to be verified with the consumed values and the intermediate targets.
 
 DLL: `4bb92cf71611c03f9e124c183cb59d91638789ac76953b59a454ecd617f9ab82`.
 Launcher: `cb16e8acb65b49e174604b251ff01c85db76048050422ccac7c944e00cc1bb5f`.
-Private log, 14 142 bytes, SHA-256
+The trial log is 14 142 bytes, SHA-256
 `a3980c0bf7f0aa61a049826ab57872f1530b72cb4787857f017c024c4d2c4a40`.
 The startup report has the hash
 `af4717106c42d93d3aed3cb38a59c988cc7f5808145362b61f8fe151eeb5919b`.
 
 The probe reads 27/27 code ranges and 26 scalar series without error.
-The Job closes only our game at the timeout, slot released; the 6 697 files
+The Job closes only our game at the timeout; the 6 697 files
 and 17 source saves remain unchanged. No capture of the game's pixels,
 profile manipulation or physical VRR activation is validated here.
 
@@ -105,25 +99,25 @@ No such write takes place in this trial.
 The initialization body `996850..996b7e` is read in two ranges, 512 and
 303 bytes. The 815 bytes are identical on both disks; they corroborate
 in particular the copy of the AA/HDR preferences to the renderer. The total
-code budget is 29 ranges, 7 333 bytes. The complementary static SDK dump is
-kept in `original-video-settings/gs_render_initialize_sdk.asm.txt`.
+code budget is 29 ranges, 7 333 bytes.
 
 Scalar report: 20 791 bytes, SHA-256
 `832df9cf873c04affd1dd083393b920787dc218da8223733ab308a415dba7aac`.
 Log: 13 216 bytes, SHA-256
 `36142ab9c15cd33fd01bbeb8ccb806489ee5fb3782774ce73cc91e3e8037cf98`.
-The trial is closed, slot released, and the same 6 697 files/17 source
+The trial is closed, and the same 6 697 files/17 source
 saves are unchanged. The preference values are isolated graphics
 scalars; no other profile field is read.
 
 ## Trial 13: maximal policy at startup
 
-`retail_video_defaults.cpp` applies the wrapper's explicit choice after a
+`retail_video_defaults.cpp` applies the explicitly requested choice after a
 successful public `CreateDevice`, before the initial path `996850` rereads the
 preferences. The SHA-256 of the official file and the RW data pages of the
 image are verified. Only the nine AA/HDRI/LOD bytes of the preferences are
 written; no derived renderer field, account, game code or protection.
-The `renderer+24` flag bounds the graphics bootstrap; it does not detect a profile.
+The `renderer+24` flag bounds the graphics bootstrap; it does not detect a
+profile.
 
 The policy does not run on `Reset` and closes at the first DXGI Present
 `S_OK`. If a write fails, the HRESULT remains a failure, the old values

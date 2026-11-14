@@ -39,10 +39,10 @@ protection mechanism.
 An exact memory search found a single match of these four DWORDs in the
 identified executable: section `.data`, file offset and RVA
 **`0x00b99f38`**, VA **`0x00f99f38`** for base `0x00400000`. No big-endian
-DWORD match was found. Static analysis corroborates four instruction references:
-`0x00969686`, `0x0096976d`, `0x009abeea`, `0x009ca0ad`. Private evidence
-`<private-evidence>/reprise-2026-10-30/original-database/06-references.json`,
-static analysis evidence id `208807b0ce6022c66cc6999b94164559b658173209b45d211e6d0249b545abe0`.
+DWORD match was found. Static analysis corroborates four instruction
+references: `0x00969686`, `0x0096976d`, `0x009abeea`, `0x009ca0ad`. The static
+analysis evidence id is
+`208807b0ce6022c66cc6999b94164559b658173209b45d211e6d0249b545abe0`.
 These references do not constitute a reconstruction of those four routines.
 An installation provider may read the four words after verifying the
 identity of the player's copy, without asking the user for a value.
@@ -85,7 +85,7 @@ trailing NULs reach a full eight-byte block for `TDU_Brands.db` and
 
 `TDU_CarPhysicsData.fr`, physical member 0 of `DB_FR.bnk`, contains 47,834
 unencrypted bytes. Its `ff fe` BOM indicates UTF-16LE. Its grammar is
-`{libellé} identifiant` (a label in braces followed by an identifier), with
+`{label} identifier` (a label in braces followed by an identifier), with
 category comments. Identifiers remain exact strings, including any leading
 zeros.
 

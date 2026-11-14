@@ -3,10 +3,9 @@
 The reconstructed `0x9A5D20` driver uses the official PC MC 1.66 A executable
 as its primary reference (SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`).
-The existing static analysis listing contains 142 instructions and 451 bytes. Its complete
-envelope matches the official file, SHA-256
+The existing static analysis listing contains 142 instructions and 451 bytes.
+Its complete envelope matches the official file, SHA-256
 `ea54a3d81b2d4fe3194d7d840f3aff71636812d2341f36782fe187776dd02f89`.
-Private evidence retains the listing, byte comparison and branch map.
 
 ## Preserved behavior
 

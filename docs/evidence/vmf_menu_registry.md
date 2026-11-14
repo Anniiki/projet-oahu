@@ -11,7 +11,7 @@ official PC MC 1.66 A, SHA256
 - `99A9A0`, 58 bytes, SHA256
   `18ac1e0efc0559d671c843e8536fa45ad6d424f838e8a09c024c1541ccbee3a9`.
 
-Private exports establish the rank in EBX for lookup, the
+Static analysis exports establish the rank in EBX for lookup, the
 selector in ESI for counting and their common filter: nonzero byte `2E0`,
 then 32-bit equality of group `AD4`. Lookup also has historical memory
 corroboration; counting is established on disk and

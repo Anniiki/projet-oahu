@@ -9,10 +9,10 @@ was performed.
 
 ## Bounded reading
 
-The exclusive `ui-vmf-child-helpers` profile of the unpublished code probe reads two
+The exclusive `ui-vmf-child-helpers` profile of the code probe reads two
 complete bodies: 451C90/115B and 416450/82B. Four scalars of 4 bytes
-cover the imports 9EC104, 9EC36C, 9EC378 and the suffix F04DC8, totaling 213 bytes
-at most. Pages must belong to the main image and have the
+cover the imports 9EC104, 9EC36C, 9EC378 and the suffix F04DC8, totaling
+213 bytes at most. Pages must belong to the main image and have the
 required type. No imported pointer is followed by the reader.
 
 The 197 bytes of code correspond to the bodies analyzed statically on the
@@ -39,9 +39,7 @@ inferring any loader behavior.
 
 Process 27380 is identified by its creation FILETIME
 134379594842719359. The 6 697 reference files and 17 player savegames
-remain unchanged; the slot and its single owned process are released.
-Paths, commands, hashes, exports, and comparisons are preserved outside
-Git in `<private-evidence>/reprise-2026-10-31/vmf-child-helpers-official-v1/`.
+remain unchanged; the single owned process is released.
 
 The reader passes its own checks in x64 and Win32. The bytes present
 in memory do not prove targeted routine execution. The graphics bridge

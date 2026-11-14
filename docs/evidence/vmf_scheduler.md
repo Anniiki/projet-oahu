@@ -10,25 +10,21 @@ from the secondary PC binary, SHA-256
 It does not constitute an official invocation or an equivalence with the Xbox
 code. The Xbox data remains a distinct resource profile.
 
-Private evidence under `<private-evidence>/reprise-2026-10-31/`:
+Static analysis anchors:
 
-- `vmf-display-lifecycle/session/47`, `61`, `73`: 448E60, 4476C0, 448B20;
-  their bytes are covered by the
+- 448E60, 4476C0, 448B20; their bytes are covered by the
   [display lifecycle](vmf_display_lifecycle.md) validations.
-- `vmf-host-context/session-v2/27`, `32`: initializer 4487F0 and 4418B0.
-- `vmf-runtime-scheduler/session/05..32`: predicate 446A60, driver 441DF0,
-  selection tables, vtables, End/Action wrappers and constants. The session
-  closed normally. Its
-  `exact-byte-validation.json` covers 389 bytes of three bodies, 224 bytes
-  of code windows and 217 bytes of data. The wrapper windows contain
-  134 bytes of delimited bodies, excluding padding; the other 48 bytes
-  overlap the period computation in 4418B0.
-- Action consumer reused, without new analysis:
-  `reprise-2026-10-30/vmf-action-interpreter/session/98-assembly.json`,
-  443A60/42 bytes, evidence
+- Initializer 4487F0 and 4418B0.
+- Predicate 446A60, driver 441DF0, selection tables, vtables, End/Action
+  wrappers and constants. The static analysis session closed normally. Its
+  exact byte validation covers 389 bytes of three bodies, 224 bytes of code
+  windows and 217 bytes of data. The wrapper windows contain 134 bytes of
+  delimited bodies, excluding padding; the other 48 bytes overlap the period
+  computation in 4418B0.
+- Action consumer reused, without new analysis: 443A60/42 bytes, evidence
   `5d55565103dfe13497dbc4abf01acb46433c7b11f4d6212088a3c38fae9f2dee`.
 
-The private review `vmf-runtime-scheduler-review/` recomputes the
+A separate review recomputes the
 tag→branch→vtable correspondences and independently compares the JSON bytes
 against the dumps already exported, without opening a PE or executing
 commercial code.
@@ -193,7 +189,7 @@ the services remain to be connected before a complete execution of the menus.
 Remaining priorities before a complete executor:
 
 1. Resource 37 services, text/focus and variables: first refusal in 37 of
-   the 39 private VMFs. GetURL/FSCommand 83 stops both the PC and Xbox
+   the 39 local VMFs. GetURL/FSCommand 83 stops both the PC and Xbox
    LOG_IN movies.
 2. Connect Call 445640 to the bounded collector, then close the host callbacks
    before any claim of complete reentrancy; no stack reset added.

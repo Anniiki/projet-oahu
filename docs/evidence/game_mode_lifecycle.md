@@ -9,8 +9,7 @@ that the reported offline new-game hang is fixed.
 Reference: PC MC 1.66 A, SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 One local Ghidra 12.2 session completed without errors, then exported and
-closed. Evidence is retained under the local
-`reprise-2026-11-02/game-mode-lifecycle-v1` directory.
+closed.
 
 | Entry | Reconstructed contract |
 | --- | --- |

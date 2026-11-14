@@ -9,17 +9,15 @@ yet constitute playable commercial menus.
 
 Reference: PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The answers from the exported and closed static analysis session `vmf-child-services-v1`
-are compared with the two files on disk:
+The answers from an exported and closed static analysis session are
+compared with the two files on disk:
 
 | Complete body | Size | SHA-256 |
 | --- | ---: | --- |
 | `718120..718192` | 115 bytes | `b51bd7c9e9a91050602d68c987eb6360e4aa4094c68cf37eed97813cd33ce564` |
 | `9B4490..9B44DB` | 76 bytes | `c8f21bcaa86a7e84683d9aaf81b1ebf568c855cd948541e27c52fdecea9b6484` |
 
-The Evidence identifiers and fingerprints of the six answers stay outside
-Git, in `vmf-catalog-display-deferred-runtime-v1/native-proof.json`. This
-batch performs no new game launch, native call or memory capture.
+This batch performs no new game launch, native call or memory capture.
 The body of the bridge `416450` remains uncorroborated on the primary: the
 eleven typed slots are a modern boundary, without emulating an uninitialised
 x86 stack.

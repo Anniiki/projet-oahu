@@ -89,12 +89,8 @@ fence.
 
 ## Standalone x64 validation
 
-Private evidence:
-`<private-evidence>/reprise-2026-10-30/native-textured-draws-cpp/`.
-`validate.py` builds only NativeDevice, MeshViewer and two fixtures, with
-**MSVC 19.44.35229.0**, SDK **10.0.26100.0**, **/std:c++latest /W4 /WX**.
-The properties of the generated projects and the digests of the sources and
-binaries are kept with the private logs.
+The validation build compiles only NativeDevice, MeshViewer and two fixtures,
+with **MSVC 19.44.35229.0**, SDK **10.0.26100.0**, **/std:c++latest /W4 /WX**.
 
 **5/5 CTest pass**: the existing batch/depth fixture and the new textured
 fixture, each on **AMD Radeon RX 6950 XT** and **Microsoft Basic Render

@@ -58,5 +58,4 @@ ctest --test-dir build -C Release -R '^vmf_notification_replace$' --output-on-fa
 
 An external oracle is not adopted globally: six counter-examples are kept. A
 later review reports no concrete defect, within stated limits.
-Private evidence: `<private-evidence>/reprise-2026-10-31/vmf-notification-replace-runtime-v1/`.
 No targeted native invocation, new playable menu or co-op trial is claimed.

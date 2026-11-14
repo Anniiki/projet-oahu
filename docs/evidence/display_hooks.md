@@ -7,8 +7,8 @@ through D3D9On12 and a DXGI flip swapchain. The commercial client remains the
 official one; this path is not a complete recompilation of the engine. No
 OpenTDU engine or Paradise DLL is loaded.
 
-`TDUR_D3D12_DISPLAY=1`, supplied only to the private process by the wrapper,
-arms the `Direct3DCreate9` gate on the already loaded module. DllMain loads no
+`TDUR_D3D12_DISPLAY=1`, set only for the isolated game process, arms the
+`Direct3DCreate9` gate on the already loaded module. DllMain loads no
 runtime there, creates no device, thread or window and suspends no worker. The
 first call to the factory initializes the complete hooks outside the loader
 lock. The separate [continuity without activation](retail_background_policy.md)
@@ -27,8 +27,9 @@ texture's GetDevice does not bypass the presenter.
 
 The bridge default is borderless, a cap at the active monitor refresh rate,
 VSync disabled and tearing only if allowed/supported. The requested mode is
-chosen with `--display-mode borderless|windowed|exclusive`. Tearing support
-describes VRR eligibility; no physical G-Sync/FreeSync activation is measured.
+chosen with `TDUR_DISPLAY_MODE` (`borderless`, `windowed` or `exclusive`).
+Tearing support describes VRR eligibility; no physical G-Sync/FreeSync
+activation is measured.
 The preconditions and deferred exclusive mode remain documented in
 [display_backend.md](display_backend.md).
 
@@ -130,13 +131,12 @@ physical VRR. The source surface remains 1128×634: internal resolution and the
 maximum graphics preset are not yet ported. The null focus of this first
 presentation does not validate world simulation in the background.
 
-Private evidence: `<isolated-copies>/20261030T074026-34732/`.
-Log 14 460 bytes, SHA-256
+The trial log is 14 460 bytes, SHA-256
 `00ea9e0f91d04a50be093f5e3f6aad114167066d65748ee8fe35abfbe76264d4`;
 startup report SHA-256
 `e41e11702b77dd9eb8a1b98e31b377bf7a3e6b7440a90daa2dfb1387b4e111a6`.
-The Job stops only our process at the deadline, code 1460; slot released,
-6 697 reference files and 17 source saves unchanged.
+The Job stops only our process at the deadline, code 1460;
+the 6 697 reference files and 17 source saves are unchanged.
 
 No game capture or profile manipulation is made: visual access remains denied
 by the platform. The game's real pixels were not read by another route. The

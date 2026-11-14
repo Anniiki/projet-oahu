@@ -73,12 +73,10 @@ cmake --build build --config Release --target vmf_notification_reset_test
 ctest --test-dir build -C Release -R '^vmf_notification_(reset|identity|queue|record)$' --output-on-failure
 ```
 
-Six frozen sources, six preserved sensitive files and the logs are recorded
-outside Git in the private evidence folder
-`reprise-2026-10-31/vmf-notification-reset-runtime-v1/`. An independent
-review reported no concrete defect. A second review compared the eight
-sources against its initial table and verified the five C++ copies and the
-five hashed outputs. The implementer did not supply the requested final
+Six frozen sources and six preserved sensitive files are verified. An
+independent review reported no concrete defect. A second review compared the
+eight sources against its initial table and verified the five C++ copies and
+the five hashed outputs. The implementer did not supply the requested final
 source table; the current comparison was performed by that review. The
 oracles assume blocks actually encrypted with the supplied key. That review
 also ran the tests.

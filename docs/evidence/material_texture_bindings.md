@@ -88,7 +88,6 @@ and orphans, 64-bit/zero tokens, ordered updates and budgets.
 
 These counts use the `Texture2DBView::resource_key()` keys, without file names
 or any invented priority between banks. The banks remain unchanged.
-Private evidence: `<private-evidence>/reprise-2026-10-30/material-textures-cpp/`.
 
 The 134 local absences do not prove the absence of global or procedural
 resources. The loading scope, releases, original fallback and stage state in

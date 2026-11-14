@@ -14,12 +14,13 @@ bodies and the constants in the MC 1.66 A copy, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 This presence does not prove an observed original invocation.
 
-Normative source: export 10 `assembly` of the batch
-`vmf-action-interpreter/session/`, evidence
+Normative source: export 10 `assembly`, evidence
 `15f0cce6a2fb910768bae6f1e7a9c76885f3b0d79766fde3ac844098739fc097`.
-Resolution 61: `88756a4b05f448cf47381140a0a67a62b1476d960bff30225a557306dbc78362`.
+Resolution 61:
+`88756a4b05f448cf47381140a0a67a62b1476d960bff30225a557306dbc78362`.
 Readings 40/41/42 establish +1, −1 and 10 in float32.
-Pseudocode 08 omits the SSE computations; it does not serve as an implementation.
+Pseudocode 08 omits the SSE computations; it does not serve as an
+implementation.
 
 ## Preserved rules
 
@@ -67,12 +68,13 @@ The test does not artificially synchronize the control words to hide the gap.
 
 ## Independent validation
 
-Private batch `vmf-number-tests/`, `validation.json` SHA-256
+The `validation.json` file has SHA-256
 `df568e19d860087c5a3c479e450d4d07d6bfb7c2bc9e6512f0e462da40a68612`.
 The 127 fixed vectors and seven strings in four modes are frozen before the
-CPP exists. An exact rational IEEE754 model built on integer arithmetic provides their bits; the test
-does not use the port's loop as an oracle. The expectations remain unchanged
-between the initial failing Win32 build and the fix.
+CPP exists. An exact rational IEEE754 model built on integer arithmetic
+provides their bits; the test does not use the port's loop as an oracle. The
+expectations remain unchanged between the initial failing Win32 build and the
+fix.
 
 **4,812 checks pass per architecture**, x64 and Win32: signs, suffixes, the
 256 possible bytes, NUL/offset views, rounding thresholds, FMA-distinguishing

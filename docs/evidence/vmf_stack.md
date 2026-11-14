@@ -7,8 +7,7 @@ text, sprite identity and owned text. Numbers keep their bits until
 conversion; sprites use a 64-bit identity and a generation, never the bits
 of an x86 pointer.
 
-Sources: static analysis exports 21/22/23 from the batch
-`vmf-action-interpreter/session/`, `44B200/68`, `44B250/104`,
+Sources: static analysis exports 21/22/23, `44B200/68`, `44B250/104`,
 `44B2E0/103`. Respective evidence:
 `cfb37b1741d87cce4ab1e4403900343c10244a4cba53fb4d82aa4d6353dfe86c`,
 `4aa3e2c6c6a8b6cf6d728e29dbb475fb17743eacb85d0101f5458486c2080773`,
@@ -72,9 +71,8 @@ per-frame clear is added. These guards replace unbounded native accesses.
 
 ## Validation
 
-Private batch `reprise-2026-10-31/vmf-stack-v1/`. Contracts, alias traces and
-harness
-frozen before the CPP. **1993 checks pass per architecture**, x64 and Win32,
+Contracts, alias traces and harness are frozen before the CPP.
+**1993 checks pass per architecture**, x64 and Win32,
 including seven injected allocation failures in the three factories, cross
 references, NUL, truncation, quotas, moves and NaN bit preservation.
 The earlier formatting oracles also serve as integration tests.

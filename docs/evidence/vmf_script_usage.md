@@ -97,9 +97,7 @@ host context and resources may differ.
 
 ## Concrete witnesses for future execution tests
 
-The offsets below are **VMF file offsets**, not VAs. The exact owners,
-conditions and instructions remain private in
-`vmf-script-usage/case-witnesses-v1.json`.
+The offsets below are **VMF file offsets**, not VAs.
 
 - **Map/zoom**: Xbox map, button 997, tag `C5FD4`, conditions 1/2; PC
   button 1060, tag `BD5FC`. Read of WhatZoom, comparison, store to `zoom_tmp`,
@@ -140,9 +138,8 @@ conditions and instructions remain private in
 
 ## Native deviations: do not substitute a standard SWF engine
 
-Earlier native analysis provided anchors in
-`vmf-action-interpreter/session/`, for the **secondary binary f452** only at
-this stage: SHA-256
+Earlier native analysis provided anchors for the **secondary binary f452**
+only at this stage: SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 They are not promoted transitively by captures of other bodies.
 
@@ -237,11 +234,11 @@ conditional syntactic relations, not callbacks that were actually run.
 
 ## Evidence, quotas and immutability
 
-New private batch `vmf-script-usage/`:
+The new batch contains:
 
 - `inventory-v1.json`: 36 opcodes, operands, profiles, labels, normalized
   bodies.
-- `programs-v1.json`: source-bound programs, private only; no executor.
+- `programs-v1.json`: source-bound programs; no executor.
   SHA-256 `caa5b2a060ff25bcea235564415c3bc25c7698be64d571ae81d43c79e2d7c754`.
 - `height-model-v1.json`, `trace-noop-height-v1.json`: distinct models, the
   initial hypothesis was not rewritten as a native fact.
@@ -259,6 +256,5 @@ to 64 stack slots and 8 million states; the value graph to 4 alternatives,
 neither the native code nor the peak RSS of the JSON/Python objects.
 
 The 39 SHA are verified before/after; the resources, manifests and older
-ledgers remain unchanged. The programs, detailed strings and large reports
-remain private, outside the repository. Only this document is intended for
-contribution; no C++, CMake, index, commit or other document is modified.
+ledgers remain unchanged. Only this document is intended for contribution; no
+C++, CMake, index, commit or other document is modified.

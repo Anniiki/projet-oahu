@@ -9,8 +9,7 @@ from the secondary Paradise PE, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 No new official invocation or XEX equivalence is established.
 
-The exports live in `vmf-target-resolution/session/`, under the private
-evidence of October 31, 2026. Earlier pseudocode serves as a map; the branches
+Earlier pseudocode serves as a map; the branches
 below are reread in the assembly listings and the exported tables:
 
 | Routine | Assembly / byte read | Body size |
@@ -24,8 +23,7 @@ below are reread in the assembly listings and the exported tables:
 | GotoLabel `444490` | 21 / 22 | 116 |
 
 Reads 23/24 add the dispatch tables of `448990`: `448A3C`, 20 bytes, then
-`448A50`, 44 bytes. The independent record
-`vmf-label-resolution-review/validation-v2.json` keeps the SHAs, Evidence IDs,
+`448A50`, 44 bytes. An independent review record keeps the SHAs, Evidence IDs,
 parameters and the check of the five pointers and 44 discriminants, with no
 new read of the PE by the reviewer.
 
@@ -99,8 +97,8 @@ anywhere else in the movie. A duplicate is not a refused ambiguity: the first
 match wins. A live cached timeline can be queried without being reactivated.
 
 The comparison calls `_strnicmp` with count=63. The secondary import is
-`MSVCR71.dll`, IAT RVA `5EC258`, hence VA `9EC258` for base `400000`; proof
-`paradise-game/01-pe-imports.json`, evidence
+`MSVCR71.dll`, IAT RVA `5EC258`, hence VA `9EC258` for base `400000`; the PE
+import export gives evidence
 `322f791f1bcd2fc418461e0e5a0727575714ee5ccff444d9c557b215e61f03f7`.
 The predicate stops at NUL and ignores suffixes beyond the first 63 bytes.
 The direct `8C` operand is not subject to the Push truncation at 31; nor does
@@ -184,8 +182,8 @@ reentrancy and scheduling remain boundaries, with no fictitious success.
 
 ## Validation status
 
-The independent oracle is frozen before the new CPP files in
-`vmf-target-execution-tests/oracle-freeze-v1.json`, SHA-256
+The independent oracle is frozen before the new CPP files; its record has
+SHA-256
 `54c0f25a0e2c08613d2ef7cc9d7786c0f111fa1042cf4da0d019f4a92e8f78c9`.
 Its author did not read the production code. The frozen harness, SHA-256
 `6fd94f0e8a0a39ba749969add3e77d71f8bc4f6b611e005b923c02464af9c851`,
@@ -206,7 +204,6 @@ earlier boundaries.
 
 The 62 x64 executable targets are built explicitly, without ALL_BUILD. CTest
 passes **65/65 on x64** and **4/4 on Win32** on the modified components and
-their direct dependencies. The logs and EXE identities remain in
-`vmf-target-integration/`. No new invocation of the commercial game, full
+their direct dependencies. No new invocation of the commercial game, full
 navigation, smoothness in real conditions or co-op session is validated by
 these tests. The provenance and cost limits above remain.

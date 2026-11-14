@@ -52,7 +52,7 @@ geometric coverage **4 260**, fingerprint `60e1021eed6c2325`.
 All **nine cases** pass on hardware and WARP, including refusal of unknown
 stage/type/key and preservation of existing files. Two repetitions in the
 same `--work-parent` create distinct batches; the 31 files of the first remain
-unchanged. Private evidence: `<private-evidence>/reprise-2026-10-30/mesh-material-cli-cpp/`.
+unchanged.
 
 ## Trials on the official banks
 
@@ -81,11 +81,9 @@ near their shared edge. This supports a different visibility choice under
 CullNone/LESS, without proving the drivers' exact computations. The other 303
 RGBA differences above eight remain unattributed. No global one-UNORM-step
 tolerance nor native visual equivalence is claimed. The independent CPU
-audit, without a new render, is kept in `real-material-pixel-differences/`;
-the backend fixture tolerances keep their own scope.
+audit uses no new render; the backend fixture tolerances keep their own scope.
 
-The `native-textured-draws-cpp/parent-integration-v1/` batch keeps commands,
-reports, BMPs, fingerprints and differences. Explicit target construction and
+Explicit target construction and
 **46/46 x64 CTests** pass (9.15 s). The D3D12 validation layer is
 unavailable: `validation_errors:null`. These results establish a resource
 wiring and an inspection pipeline, without gameplay, complete vehicle or

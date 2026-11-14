@@ -1,5 +1,5 @@
-// Témoins : drivers 6B1A00 et 438450 avec ports scriptés.
-// Données synthétiques uniquement, aucun fichier du jeu.
+// Witnesses: drivers 6B1A00 and 438450 with scripted ports.
+// Synthetic data only, no game file.
 
 #include "tdur/game/config_file_loader.hpp"
 #include "tdur/game/config_section_parser.hpp"
@@ -27,7 +27,7 @@ void check(bool condition, const char* what, int line) {
     ++checks;
     if (!condition) {
         ++failures;
-        std::printf("ECHEC ligne %d : %s\n", line, what);
+        std::printf("FAIL line %d: %s\n", line, what);
     }
 }
 #define CHECK(c) check((c), #c, __LINE__)
@@ -71,7 +71,7 @@ const std::span<const char> test_path(path_text);
 
 void test_integrated_decode() {
     BlockStore store;
-    // Clair "ABCD" encodé : e[i] = d[i] ^ d[i-1].
+    // Plaintext "ABCD" encoded: e[i] = d[i] ^ d[i-1].
     const BlockHandle h = store.add(bytes({0x41, 0x03, 0x01, 0x07, 0x99}));
     LoaderScript ports;
     ports.on_select = [h](LoadSlots& s) {
@@ -89,7 +89,7 @@ void test_integrated_decode() {
     const auto v = *store.view(h);
     CHECK(v[0] == std::byte{0x41} && v[1] == std::byte{0x42});
     CHECK(v[2] == std::byte{0x43} && v[3] == std::byte{0x44});
-    CHECK(v[4] == std::byte{0x99}); // au-delà de la taille : intact
+    CHECK(v[4] == std::byte{0x99}); // beyond the size: intact
 }
 
 void test_present_empty_block() {
@@ -105,7 +105,7 @@ void test_present_empty_block() {
     const LoaderResult r =
         run_config_file_loader_6b1a00(test_path, slots, flag, store, ports);
     CHECK(r.outcome == LoaderOutcome::integrated_decoded);
-    CHECK(flag == 0); // présent, même vide : chemin intégré
+    CHECK(flag == 0); // present, even empty: integrated path
     CHECK(r.decoded_bytes == 0);
     CHECK(ports.external_calls == 0);
     CHECK((*store.view(h))[0] == std::byte{0x10});
@@ -117,7 +117,7 @@ void test_external_path() {
     LoaderScript ports;
     ports.on_select = [](LoadSlots& s) { s.size = 77; };
     ports.on_external = [late](LoadSlots& s) {
-        s.block = late; // écrit par le port, jamais relu par le driver
+        s.block = late; // written by the port, never reread by the driver
         s.size = 2;
     };
     LoadSlots slots;
@@ -133,7 +133,7 @@ void test_external_path() {
     CHECK(ports.last_request.arg5 == NativeIdentity{0xF3E604});
     CHECK(ports.last_request.arg6 == 0x1A);
     CHECK(ports.last_request.path.data() == test_path.data());
-    CHECK((*store.view(late))[1] == std::byte{0x01}); // pas de décodage
+    CHECK((*store.view(late))[1] == std::byte{0x01}); // no decoding
 }
 
 void test_loader_refusals_keep_effects() {
@@ -142,15 +142,15 @@ void test_loader_refusals_keep_effects() {
     LoaderScript ports;
     ports.on_select = [h](LoadSlots& s) {
         s.block = h;
-        s.size = 3; // > stockage possédé
+        s.size = 3; // > owned storage
     };
     LoadSlots slots;
     std::uint8_t flag = 0x77;
     LoaderResult r =
         run_config_file_loader_6b1a00(test_path, slots, flag, store, ports);
     CHECK(r.outcome == LoaderOutcome::refused_size_exceeds_storage);
-    CHECK(flag == 0);       // écriture 6B1A17 conservée
-    CHECK(slots.size == 3); // aucun clamp
+    CHECK(flag == 0);       // 6B1A17 write kept
+    CHECK(slots.size == 3); // no clamp
     CHECK((*store.view(h))[1] == std::byte{0x02});
 
     ports.on_select = [](LoadSlots& s) {
@@ -167,7 +167,7 @@ void test_slots_not_reset_and_no_release() {
     BlockStore store;
     const BlockHandle first = store.add(bytes({0x05, 0x05}));
     const BlockHandle second = store.add(bytes({0x09}));
-    LoaderScript ports; // le sélecteur n'écrit rien
+    LoaderScript ports; // the selector writes nothing
     LoadSlots slots{first, 2};
     std::uint8_t flag = 1;
     LoaderResult r =
@@ -239,8 +239,8 @@ void test_null_and_leading_commands() {
     SectionParserState state{9};
     ParserScript ports;
     ports.on_prefix = [](const SectionParseCall& c) {
-        c.state.stop_flag_10e8069 = 1; // remis à 0 à la sortie native
-        return ParseCursor{0};         // octet 'x' != '['
+        c.state.stop_flag_10e8069 = 1; // reset to 0 on the native exit
+        return ParseCursor{0};         // byte 'x' != '['
     };
     SectionParseResult r = run_config_section_parser_438450(
         store, h, 3, std::nullopt, parser, state, ports);
@@ -259,7 +259,7 @@ void test_null_and_leading_commands() {
     r = run_config_section_parser_438450(store, h, 3, std::nullopt, parser,
                                          state, at_bracket);
     CHECK(!r.leading_commands_called);
-    ParserScript at_end; // curseur == fin : aucun accès, pas de commandes
+    ParserScript at_end; // cursor == end: no access, no commands
     r = run_config_section_parser_438450(store, h, 3, std::nullopt, parser,
                                          state, at_end);
     CHECK(!r.leading_commands_called);
@@ -335,7 +335,7 @@ void test_stale_found_and_loop_stop() {
     ports.on_section = [&section_index](const SectionParseCall&, HelperCarry e,
                                         std::uint8_t& found, std::uint8_t&) {
         if (++section_index == 1) {
-            found = 1; // n'écrit plus ensuite : valeur périmée conservée
+            found = 1; // does not write again: stale value kept
         }
         return e;
     };
@@ -353,7 +353,7 @@ void test_stale_found_and_loop_stop() {
     CHECK((ports.found_seen == std::vector<std::uint8_t>{0, 1, 1}));
     CHECK(state.stop_flag_10e8069 == 0);
 
-    ParserScript none; // 438250 n'écrit pas found : reste 0
+    ParserScript none; // 438250 does not write found: stays 0
     const SectionParseResult r2 = run_config_section_parser_438450(
         store, h, 2, std::string_view("Bike"), parser, state, none);
     CHECK(r2.exit_site == SectionExitSite::not_found_4384b1);
@@ -389,15 +389,15 @@ void test_parser_refusals() {
 
     ports.on_prefix = [](const SectionParseCall& c) {
         c.state.stop_flag_10e8069 = 4;
-        return ParseCursor{2}; // limite : taille 1 => hors vue
+        return ParseCursor{2}; // limit: size 1 => outside the view
     };
     r = run_config_section_parser_438450(store, h, 1, std::string_view("S"),
                                          parser, state, ports);
     CHECK(r.outcome == SectionParseOutcome::refused_cursor_out_of_range);
-    CHECK(state.stop_flag_10e8069 == 4); // effet antérieur conservé
+    CHECK(state.stop_flag_10e8069 == 4); // earlier effect kept
     CHECK((ports.log == Log{"prefix"}));
 
-    ParserScript zero; // taille 0 : curseur 0 == fin, aucun accès
+    ParserScript zero; // size 0: cursor 0 == end, no access
     std::size_t seen_size = 99;
     zero.on_prefix = [&seen_size](const SectionParseCall& c) {
         seen_size = c.data.size();
@@ -453,7 +453,7 @@ int main() {
     test_parser_refusals();
     test_initial_commands_result_reaches_first_section();
     test_host_width_block_handles();
-    std::printf("config_drivers_test : %d controles, %d echecs\n", checks,
+    std::printf("config_drivers_test: %d checks, %d failures\n", checks,
                 failures);
     return failures == 0 ? 0 : 1;
 }

@@ -5,8 +5,7 @@
 Reference PC MC1.66A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 Isolated copy, PID **30964**, creation FILETIME
-**134378597540409344**. Private batch
-`<isolated-copies>/20261030T184840-33116`.
+**134378597540409344**. Batch `20261030T184840-33116`.
 
 The exclusive `assets-shaders` profile reads eleven code windows totaling
 **1,541 bytes** and a table of **2,048 bytes**. The eleven windows are
@@ -27,7 +26,7 @@ Its 256 complete eight-byte scalar reads are not atomic.
 ## Results and limits
 
 The trial lasts **100.208 s**, then the owned Job ends at the planned timeout
-(1460). The slot is released; **6,697 reference files** and **17 source save
+(1460). The **6,697 reference files** and **17 source save
 files** remain unchanged. No UI input is sent. The observed executable
 remains x86 and uses the temporary D3D9On12 bridge; it is not the final native
 x64/D3D12 client.
@@ -40,8 +39,7 @@ the whole of `602100`. No dynamic program state is invented.
 
 An independent verification rereads the eleven files, the two PEs, the table,
 the PID/creation metadata, the hashes and the end of the Job, without any new
-access to the process. Private evidence
-`shader-selection/runtime24-verification.json`, SHA-256
+access to the process. Its report `runtime24-verification.json` has SHA-256
 `84c34b2d991131c2405d7060635f7adf0da3d361692a13ddea92c81d2ca143c2`.
-The helper's static analysis session is exported and closed; no commercial data is
-incorporated into the repository.
+The helper's static analysis session is exported and closed; no commercial
+data is incorporated into the repository.

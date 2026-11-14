@@ -10,8 +10,6 @@ not provide substitute successful service implementations.
 
 Reference: official PC MC 1.66 A, 16,797,696 bytes, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The retained local static analysis lot is
-`reprise-2026-11-03/controller-startup-host-v1/`.
 
 The first session includes a bounded walk of 302
 existing Ghidra instructions. Both return paths are reached and no jump

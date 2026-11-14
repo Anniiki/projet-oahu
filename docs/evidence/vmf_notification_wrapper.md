@@ -20,9 +20,7 @@ are cross-checked against the primary on disk:
 | `717280` | 115 | `81331d8d11057e4b6cd8d82bba7f150ca43343fee10b6c42d3f64ca756c8cd41` |
 
 The `(ERR:1)` fallback at `F39FF0`, NUL included, is also verified over eight
-bytes. The private evidence is
-`vmf-format-wrapper-runtime-v1/native-proof.json`. No new native call or game
-trial is performed for this batch.
+bytes. No new native call or game trial is performed for this batch.
 
 The 82-byte helper `416450` remains uncorroborated on the primary. It is not
 presented as a ported function. A modern boundary receives eleven slots

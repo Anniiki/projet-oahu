@@ -15,8 +15,8 @@ secondary. The 84-byte WhatZoom body is identical in the two
 [compared on-disk executables](vmf_primary_file_comparison.md), without
 promotion of its jump table or of its callees.
 
-Single private session: `<private-evidence>/reprise-2026-10-30/ui-map-input-dispatch/session/`.
-The JSON files preserve identity, Evidence IDs and provider limits.
+A single analysis session was used; its JSON files preserve identity,
+Evidence IDs and provider limits.
 The study uses the previous snapshot and targeted queries; no OpenTDU engine
 code is imported.
 

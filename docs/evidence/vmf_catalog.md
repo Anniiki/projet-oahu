@@ -56,6 +56,5 @@ not evidence of a native association with that bank or that language.
 Twelve independent cases from an earlier review cross-check the results and
 the order of the reads; their Python model does not certify the general
 overflow of the 32-bit cursor.
-Private evidence: `<private-evidence>/reprise-2026-10-31/vmf-catalog-runtime-v1/`.
 The complete formatter, its hosts, the playable menus and co-op remain to be
 connected.

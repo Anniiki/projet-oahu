@@ -2,7 +2,7 @@
 
 `VmfNotificationParentContext` links the C++ services already reconstructed:
 child traversal, levels, deferred queue, toggle and localized display.
-It replaces an earlier private proposal after corrections and tests.
+It replaces an earlier proposal after corrections and tests.
 The effects [89BF80](vmf_notification_effect_bf80.md) and
 [89DB30](vmf_notification_effect_db30.md) are provided separately with their
 concrete frames and their [shared pool](vmf_notification_effect_pool.md).
@@ -11,13 +11,13 @@ The connection to the complete hosts remains to be provided.
 ## Official reference
 
 The complete body `89E060..89E209`, 426 bytes, matches between the primary
-official PC MC 1.66 A executable, the secondary and the static analysis export. SHA-256 of
-the body:
+official PC MC 1.66 A executable, the secondary and the static analysis
+export. SHA-256 of the body:
 `c3f44b5586d74e63e64cc000495fd0a1d4ad278b82a6c21889eb6580c048cc75`.
 The primary keeps its SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Private evidence: `vmf-parent-runtime-v1/native-proof.json`, cross-checked on
-disk and against the existing exports. No new native call or game trial.
+The evidence is cross-checked on disk and against the existing exports.
+No new native call or game trial.
 
 ## Order of operations
 

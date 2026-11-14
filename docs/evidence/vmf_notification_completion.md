@@ -51,8 +51,6 @@ MSVC Release C++latest, `/W4 /WX /permissive- /utf-8`: **36 targeted suites
 pass on each of the x64 and Win32 architectures**, including 670 checks of the
 computation: vectors, refusals and preservation of the ambient modes/flags.
 Nine frozen sources and six sensitive files remain unchanged during validation.
-Private logs:
-`reprise-2026-10-31/vmf-notification-completion-runtime-v1/`.
 
 ```powershell
 cmake --build build --config Release --target vmf_notification_completion_test

@@ -10,9 +10,7 @@ The project's primary reference remains official PC MC 1.66 A, SHA256
 The listing used here comes from the Paradise secondary executable, SHA256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-Private static analysis evidence is in
-`reprise-2026-10-31/vmf-host-callback-v2/` and
-`vmf-fscommand-global-runtime-v1/native-proof.json`:
+The static analysis evidence covers two ranges:
 
 - `99B7A0..99B8CC`, 301 bytes, SHA256
   `e4e92c75c91129f1bf18cf201595869ef9a2da5e334749a5515747cd1c6e2aac`;
@@ -21,10 +19,8 @@ Private static analysis evidence is in
 
 The three alignment bytes between the ranges are excluded. A review reopened
 the primary executable in Ghidra 12.2: both ranges and the 246 listing
-lines are identical, with checksums recalculated from raw results.
-Private evidence: `<private-evidence>/session/`, records 01,
-04, 05 and 10. This comparison concerns the file. A
-later observation of the official process
+lines are identical, with checksums recalculated from raw results. This
+comparison concerns the file. A later observation of the official process
 separately corroborates the 796 bytes in memory without demonstrating
 execution of this handler. The older `445CB0` capture does not substitute
 for that. No x86 pointer is called or reconstructed through arithmetic

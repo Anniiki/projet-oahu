@@ -14,7 +14,7 @@ target. The preferences, the renderer parameters and the resources actually
 created must be observed separately.
 
 For a C++ reconstruction, separate the default values, the loaded preferences
-and the state derived from the resources. For the private mod, the explicit
+and the state derived from the resources. For the observation mod, the explicit
 policy under consideration, "maximum quality at startup", is a launch choice,
 not a detection of a fresh profile. The public hook after `CreateDevice`
 precedes the initial copy of the preferences; this handling must not be
@@ -30,9 +30,8 @@ x86 VA, preferred base `0x00400000`:
 - Secondary Platinum/Paradise: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-The Ghidra 12.2 investigation of the secondary uses the
-`paradise-video-config` snapshot. Local outputs are under
-`<private-evidence>/reprise-2026-10-30/paradise-video-defaults/`:
+The Ghidra 12.2 investigation of the secondary uses the snapshot of the
+earlier video configuration study. Its outputs are grouped as follows:
 
 | Files | Question established |
 | --- | --- |
@@ -51,7 +50,7 @@ assembly, without inventing a Ghidra signature for it. The bundle and the
 snapshot are exported and the session is closed. No game was launched by this
 investigation; no account content or login code was read.
 
-`targeted-disk-comparisons.json` contains the SHAs and the equalities of the
+The targeted disk comparisons contain the SHAs and the equalities of the
 complete static ranges: `8980c0/465`, `898db0/306`, `74dca0/508`,
 `898b80/292`, `898a20/220`, `994490/890`, `993b50/174`, as well as
 `996850/815`, are identical between the disks. The secondary body `50a030/391`
@@ -63,7 +62,6 @@ memory `996850/512` then `996a50/303`, that is the complete body of 815 bytes.
 Both ranges are identical to both disks. Respective SHAs:
 `30669f7bbbf3f0bf284fa5fd37d9f98269bcac1f85003dfddbd70dc28c625453`
 and `70010eb1fdc6aa7b6c53b6471158194680bccfbf28d77c004221d4b1f8fd12be`.
-Report: `<isolated-copies>/20261030T090308-28852/code-helpers/comparisons.json`.
 
 ## Three sets of values
 
@@ -205,7 +203,7 @@ then explicitly apply the loaded preferences and the capability checks. A
 choice saved as zero remains a valid choice. Do not use the reapplication paths
 as permanent initializers.
 
-The private policy proposed during this investigation is different: the user
+The launch policy proposed during this investigation is different: the user
 explicitly chooses maxima at startup. It can copy the validated AA/HDR request
 of the configuration and quality 2 into the **nine bytes** of the graphics
 preferences, after a successful bootstrap `CreateDevice` and before the
@@ -213,7 +211,7 @@ preferences, after a successful bootstrap `CreateDevice` and before the
 preservation of already loaded preferences: it is an explicit initial choice,
 whose values may then be kept by the game.
 
-Bound it to the private wrapper, to the audited image and to the three known
+Bound it to the isolated session, to the audited image and to the three known
 data ranges; keep the validation of writable data pages, the real image base
 and the limits. Touch neither the derived renderer fields, nor the neighboring
 bytes, nor the clear/constructor code, nor the protection. Any GPU query takes

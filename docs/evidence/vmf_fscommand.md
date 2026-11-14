@@ -13,10 +13,7 @@ contains the same 144 bytes, SHA256
 They differ from the primary on disk. Their presence in memory does not prove
 that this function was executed during the trial.
 
-Private evidence: `reprise-2026-10-31/vmf-fscommand-runtime-v1/native-proof.json`,
-export `vmf-host-callback-v1/session/22-assembly.json` and
-`reprise-2026-10-30/vmf-core-runtime-25/runtime25-comparison.json`, entry
-`vmf_fscommand`. This batch required no new access to the game or the process.
+This batch required no new access to the game or the process.
 
 ## Order of effects
 

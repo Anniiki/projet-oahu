@@ -132,7 +132,7 @@ keeps typed offsets/indices, without writing a 64-bit pointer into these
 The MBNK belongs to the instance and remains shared by its variants. Its
 presence is **optional on the native rendering path**, which has the
 fallback described above. No native test enforces
-`MBNK.keys.size() == premierOBJ.primitive_count` or the same equality for all
+`MBNK.keys.size() == firstOBJ.primitive_count` or the same equality for all
 alternate OBJs. For a bounded port, the indices actually used by each chosen
 PRIM are what must be validated.
 
@@ -174,7 +174,7 @@ The first values correspond to the float32 values 20, 400 and 500; their
 units and dynamic use are not established. **A3_V6 inverts the suffixes**:
 an HR/LR sort would therefore produce an order different from the file.
 
-The reusable private JSON `rv-l-variants.json` keeps, for these six entries,
+The reusable JSON `rv-l-variants.json` keeps, for these six entries,
 the 20 raw bytes, all offsets, the keys, the REAL positions, the MBNKs and
 the inventories above. `variant-bindings.json` contains the 301 INS.
 A host may offer an explicitly chosen entry index, refuse an index beyond
@@ -210,12 +210,11 @@ and organizes the draw queues; **this is not a proven shader identity**.
 The final shader, its parameters and the pass variants remain to be
 established before reproducing the game's appearance in D3D12/Vulkan.
 
-## Private provenance and corroboration catalog
+## Provenance and corroboration catalog
 
-Batch: `<private-evidence>/reprise-2026-10-30/material-bindings/`.
-`evidence-index.json`, `disk-comparisons.json`, `finding-ledger.json` and the
-asset reports separate facts, interpretations and unknowns. The bank
-fingerprints are rechecked, without writing their payloads:
+The evidence index, the disk comparisons, the finding ledger and the asset
+reports separate facts, interpretations and unknowns. The bank fingerprints
+are rechecked, without writing their payloads:
 
 | Bank | SHA-256 |
 | --- | --- |
@@ -258,14 +257,14 @@ verified below.
 
 ## Trial 21: seven bounded official matches
 
-Closed batch: `<isolated-copies>/20261030T164158-32976/`.
+Closed trial `20261030T164158-32976`.
 PID **2692**, creation FILETIME **`134378521269961313`**, identical in
 `suspended-pid.json`, `startup-report.json` and `code-helpers/observations.json`.
 The observed base is `00400000`. The official file is verified by its
 SHA-256 and locked. Requested duration 120 s, 120.171 s reported; the
 process owned by the Job was terminated at the deadline, code 1460. The
-postflight records the released slot, the 6 697 unchanged reference files
-and the 17 save files whose before/after fingerprints match.
+postflight records the 6 697 unchanged reference files and the 17 save files
+whose before/after fingerprints match.
 
 The probe reports **84/84 readable ranges, 18 503 bytes**. The independent
 recheck covers the following seven material captures: size and SHA of the
@@ -305,7 +304,7 @@ validity of the renderer's virtual bindings. It provides no new rule for the
 dynamic choice of LOD, texture or shader. `5092F0`, `506070` and `5F21B0`,
 in particular, are not promoted by these seven readings.
 
-### Evidence files and private verifier
+### Evidence files
 
 The fingerprints below identify the closed files of the trial:
 
@@ -316,10 +315,10 @@ The fingerprints below identify the closed files of the trial:
 | `startup-report.json` | 2 617 | `7aba4778e6ef8ff184aad6003c11624f5a7148656fdf055ea0d248e3ba45c542` |
 | `postflight.json` | 1 984 | `999731889460606043a75d754b9fdf27240c3231beb4d94a3f76c2ca974af107` |
 
-In the private `material-bindings` batch, `verify-runtime21.py` reads only
-these files, the seven raw captures, the local PEs and the already closed
-static analysis exports. `runtime21-verification.json` keeps the sources/SHAs, the
-bounds, the coverage classifications and the seven recomputed results.
-It opens no process, executes no target and modifies no probe. The private
-report is 13 321 bytes, SHA-256
+An offline check reads only these files, the seven raw
+captures, the local PEs and the already closed static analysis exports.
+`runtime21-verification.json` keeps the sources/SHAs, the bounds, the coverage
+classifications and the seven recomputed results. The check opens no
+process, executes no target and modifies no probe. The report is 13 321
+bytes, SHA-256
 `9b281c85e18157b1c3a232ae6bddb3a5fe4d6f280eb24e158866daa6fc2e02bb`.

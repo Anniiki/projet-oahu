@@ -59,8 +59,7 @@ cmake --build build --config Release --target vmf_get_variable_test
 ctest --test-dir build -C Release -R '^vmf_(notification_flag|host_write|host_integer|menu_finalizers)$' --output-on-failure
 ```
 
-Six frozen sources, six preserved sensitive files, the format check of the
-modified lines and the logs remain outside Git in the private evidence
-`reprise-2026-10-31/vmf-notification-flag-runtime-v1/`.
+Six frozen sources and six preserved sensitive files are verified; the format
+of the modified lines is checked.
 Playable commercial menus, online profile, final native rendering, real co-op
 and the smoothness of the complete client remain to be verified separately.

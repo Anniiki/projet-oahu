@@ -71,10 +71,8 @@ bytes in the isolated official process. No cause for the differences is
 inferred, and no targeted execution of the routines is claimed.
 
 The accompanying runtime trial lasts 100.166 s: 6697 references and 17 saves
-are preserved, and the slot is released. The temporary bridge is
-D3D9On12/DXGI borderless, not the final native D3D12 renderer. Private
-evidence:
-`<private-evidence>/reprise-2026-10-31/vmf-tutorial-service-{runtime,official}-v1/`.
+are preserved. The temporary bridge is D3D9On12/DXGI borderless, not the
+final native D3D12 renderer.
 
 An independent review read eleven sources (84289 bytes) without reporting a
 concrete defect; a second review verified the hashes and bounded its verdict.

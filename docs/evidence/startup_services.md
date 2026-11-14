@@ -54,8 +54,8 @@ These refusals concern invalid native states, not authentication or connectivity
 
 ## Evidence and validation
 
-Static analysis Listing observations from `bootstrap-services-v1` supply seven complete and
-two partial entry graphs. Helper assembly evidence identifiers are
+Static analysis Listing observations supply seven complete and two partial
+entry graphs. Helper assembly evidence identifiers are
 `d89c30ebb33ba30bdda07c18bb6750ad5686edb3b9144139d67f436e2bbdface`
 and `69c84d5e5d48147e51c7d2ec91fea8a3c5e0b90fa72fdffa9bda76364ec08317`.
 The verified file constant at `F4165C` is float 1.0. Raw evidence stays local.

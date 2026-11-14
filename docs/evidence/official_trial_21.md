@@ -2,14 +2,13 @@
 
 ## Execution and preservation
 
-The official PC MC 1.66 A copy was verified and locked, in the private
-isolated set
-`<isolated-copies>/20261030T164158-32976/`.
+The official PC MC 1.66 A copy was verified and locked, in the isolated set of
+run `20261030T164158-32976`.
 PID **2692** and creation FILETIME **134378521269961313** agree across the
 reports. The Job object closes the process after 120.171 seconds, at the
-requested 120-second limit, code 1460. The slot is released; the 6,697
-reference files and the 17 source-savegame fingerprints are unchanged. This
-trial uses the temporary Win32 bridge, not the final x64 renderer.
+requested 120-second limit, code 1460. The 6,697 reference files and the
+17 source-savegame fingerprints are unchanged. This trial uses the temporary
+Win32 bridge, not the final x64 renderer.
 
 ## Code present
 
@@ -70,7 +69,7 @@ succeed. No new official trial has yet exercised this report.
 These observations authorize no Havok call. Driving, fixed physics,
 FPS-independent NPCs, the online session and co-op remain unvalidated.
 
-## Private evidence
+## Trial record
 
 `evidence-manifest.json` pins ten reports/logs. Main fingerprints:
 
@@ -81,5 +80,4 @@ FPS-independent NPCs, the online session and co-op remain unvalidated.
 | `code-helpers/comparisons.json` | `b4eee9b2aa55391936d6a93824ac8f7ed9dc359fd6909fd9650c2713e0de5678` |
 | `timing-scalars.json` | `fe0806b13ce81b084c77a5312d799aa50f7ec47b1033bf9bf7cf685f1f2c1f8b` |
 
-Independent reviews are retained in `material-bindings/`. No raw
-commercial byte or game resource is added to the repository.
+No raw commercial byte or game resource is added to the repository.

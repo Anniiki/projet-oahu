@@ -5,7 +5,7 @@
 Platform code written for the independent client, without D3D9On12 or OpenTDU
 source. This change removes a systematic CPU synchronization from the two
 viewers; it proves neither the absence of stutter nor the operation of the
-reconstructed game. The audit starts from backend `a18185c`.
+reconstructed game. The audit starts from the backend before this change.
 
 `MeshViewer::present_async(transform|draws, inspectionLighting, vsync)` and
 `TextureViewer::present_async(vsync)` return a `uint64_t` render fence.
@@ -79,10 +79,9 @@ GPU time. No full-frame GPU time is announced.
 
 ## Bounded validation
 
-Private evidence: `<private-evidence>/reprise-2026-10-30/async-native-present-cpp/`,
-script `validate.py`, `validation-final.json` and logs. x64 Release build with
-MSVC 19.44, `/std:c++latest /W4 /WX`, source SHA-256 unchanged during validation.
-The latest mode is a draft mode, not full C++26 conformance.
+x64 Release build with MSVC 19.44, `/std:c++latest /W4 /WX`, source SHA-256
+unchanged during validation. The latest mode is a draft mode, not full C++26
+conformance.
 
 **11/11 CTests pass** on RX 6950 XT and WARP, including 48 new checks per
 adapter and the 47 existing lifecycle checks. No game, commercial asset or
@@ -122,8 +121,7 @@ Both CLI loops now use `present_async`, then a final drain before closing.
 **50/50 integrated x64 CTests pass** (12.07 s). Two bounded interactive trials,
 with the only source-owned synthetic bank, each present 163 frames in one
 second; the bank remains unchanged. These counts confirm the wiring, without
-constituting an FPS gain or a measure of regularity. The parent batch
-`native-input-async-integration-v1/` keeps the commands, reports and hashes.
+constituting an FPS gain or a measure of regularity.
 
 Full CPU/GPU frametimes, compositor latency, VRR, display changes and
 streaming remain to be measured separately. This evidence defines no global

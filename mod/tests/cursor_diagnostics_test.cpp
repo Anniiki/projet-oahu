@@ -493,12 +493,12 @@ void subclass_cases() {
     WNDCLASSEXW type{sizeof(WNDCLASSEXW)};
     type.lpfnWndProc = BaseProcedure;
     type.hInstance = module;
-    type.lpszClassName = L"TdurC015CursorWitness";
+    type.lpszClassName = L"TdurCursorDiagWitness";
     const ATOM atom = RegisterClassExW(&type);
     const HWND foreground = GetForegroundWindow();
     const HWND capture = GetCapture();
     const HWND window = CreateWindowExW(
-        WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW, L"TdurC015CursorWitness", L"",
+        WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW, L"TdurCursorDiagWitness", L"",
         WS_POPUP, 0, 0, 1, 1, nullptr, nullptr, module, nullptr);
     expect(atom != 0 && window != nullptr && !IsWindowVisible(window),
            "subclass: hidden owned window");
@@ -521,7 +521,7 @@ void subclass_cases() {
            "subclass: removed before the base sees WM_NCDESTROY");
     expect(records.size() == 2, "subclass: destruction writes no marker");
     SetActiveCursorDiagnostics(nullptr);
-    UnregisterClassW(L"TdurC015CursorWitness", module);
+    UnregisterClassW(L"TdurCursorDiagWitness", module);
 }
 
 } // namespace

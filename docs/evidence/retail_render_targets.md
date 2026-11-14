@@ -28,16 +28,15 @@ x86 VA, preferred base `00400000`:
 - Secondary Platinum/Paradise, SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-The existing exports `paradise-video-defaults/49..60` are consulted first.
-Their snapshot is then reopened for the derived helpers that are strictly
-needed, with summaries before assemblies. The Ghidra 12.2 session is
-exported and closed cleanly: **377 pieces of evidence**, bundle and new
-snapshot kept private under
-`<private-evidence>/reprise-2026-10-30/retail-render-targets/session/`.
+The existing exports `49..60` of the video defaults study are consulted
+first. Their snapshot is then reopened for the derived helpers that are
+strictly needed, with summaries before assemblies. The Ghidra 12.2 session is
+exported and closed cleanly, with **377 pieces of evidence**, its bundle and
+a new snapshot.
 The instruction listings serve to check the ABI; `float` types or missing
 arguments in the pseudocode are not treated as a signature.
 
-The private comparisons first verify the two complete SHAs, then their PE
+The comparisons first verify the two complete SHAs, then their PE
 mappings. `disk-comparisons.json`, `helper-body-comparisons.json` and
 `tables.json` retain the SHA of each range. The body bounds below run from
 the start to the last RET of their exported listing; they do not constitute
@@ -202,8 +201,7 @@ evidence.
 
 ## Historical baseline: trial 17
 
-Trial 17 closed, PID 26820, folder
-`<isolated-copies>/20261030T112335-28184/`.
+Trial 17 closed, `20261030T112335-28184`, PID 26820.
 The file `timing-scalars.json` has SHA-256
 `e67802a20da347b33b8cee4bc083ac813a5eab97b1661f33f803ac76016f9148`.
 Rereading it verifies 26 samples, zero unreadable scalars, preferences
@@ -267,9 +265,9 @@ X8R8G8B8/MSAA0 surface, source/viewport/output 2560×1440, borderless,
 160/1 Hz, configured cap 160 Hz and tearing eligible. The 26 graphics
 samples keep AA2/HDR1/LOD2 in the preferences and the renderer.
 
-The job terminates only its own copy, slot released; the 6,697 files and
-17 source saves remain unchanged. The continuity-without-activation bridge is
-applied and closed within its initial scope. No loaded world, physical VRR or
+The job terminates only its own copy; the 6,697 files and 17 source saves
+remain unchanged. The continuity-without-activation bridge is applied and
+closed within its initial scope. No loaded world, physical VRR or
 multiplayer path is validated by this menu trial.
 
 DLL: `4f1172261dd5f255c6983e0036505ace1d9c93f1382553a40440c42b67f4ed8f`.
@@ -280,7 +278,7 @@ Report, 2579 bytes:
 Scalars, 26047 bytes:
 `1cd8c54c3505847715f2f515c3922a6e69fd356f3efe6e3fb43b9ef2ce3817fb`.
 
-The private batch also contains `graphics-resources.json`, 17,919 bytes,
+The batch also contains `graphics-resources.json`, 17,919 bytes,
 SHA-256
 `deb35ccaf46a72d29bf2888e72c028daf5b052d612f2106226eebdad99285b0c`.
 The 41 tuples are normalized there and the six request/description groups
@@ -288,7 +286,7 @@ The 41 tuples are normalized there and the six request/description groups
 
 ## Main static analysis references
 
-- `paradise-video-defaults/49` (`994490`):
+- Video defaults export `49` (`994490`):
   `93388c87263688442f463e02c4c005efa534c8be5012bc0b58f3b64447f01d61`.
 - New session `/12` (`98f380`):
   `0cf722dbd85014ec676acbe3402342bef64762bd19c8366c70e222c57d1a6f8d`.

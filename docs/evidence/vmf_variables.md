@@ -20,17 +20,16 @@ or exposed by a setter.
 The static analysis exports studied come from the **secondary** executable, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`:
 
-| Contract | Original VA | Private cache (`<private-evidence>/`) |
-| --- | --- | --- |
-| Creation, first free slots | `443320`, `443410` | `reprise-2026-10-31/vmf-text-services/session/16`; `reprise-2026-10-31/vmf-host-context/session/14` |
-| Typed copy | `443430` | `reprise-2026-10-31/vmf-host-context/session/15` |
-| Insertion and lookup | `4434B0`, `4435D0` | `reprise-2026-10-30/vmf-action-interpreter/session/109`, `108` |
-| Push and text conversion | `443620`, `4436A0` | same batch, `/58`; `reprise-2026-10-31/vmf-runtime-scheduler/session/07` |
-| Number, text and link setters | `443700`, `443770`, `4437F0` | `reprise-2026-10-31/vmf-host-context/session-v2/29..31` |
-| Cleanup | `4438D0` | `reprise-2026-10-31/vmf-display-lifecycle/session/57` |
+| Contract | Original VA |
+| --- | --- |
+| Creation, first free slots | `443320`, `443410` |
+| Typed copy | `443430` |
+| Insertion and lookup | `4434B0`, `4435D0` |
+| Push and text conversion | `443620`, `4436A0` |
+| Number, text and link setters | `443700`, `443770`, `4437F0` |
+| Cleanup | `4438D0` |
 
-The numbers designate the `*-assembly.json` exports, whose
-EvidenceIDs are kept in the private receipts. The [hash](vmf_variable_hash.md)
+The [hash](vmf_variable_hash.md)
 has its own official corroboration of 114 bytes. A [separate trial of the
 dictionary](vmf_variables_runtime.md) now corroborates the eleven
 procedures above: twelve exact ranges, 1479 bytes. It proves their
@@ -95,9 +94,8 @@ atomic refusals, `PAGE_NOACCESS` pages, NaN bits, injected allocations and
 prepared cycles without logical accumulation.
 
 Build `vmf_variables_test`, then run CTest
-`-C Release -R '^vmf_variable_dictionary$' --output-on-failure`. The private
-reports are in `reprise-2026-10-31/vmf-variables-v1/`: **1779 checks pass
-in each architecture**, x64 and Win32, including five injected allocation
-failures. The six targeted suites pass in both builds: dictionary, stack,
-scalar execution, timeline, targets and frameplayer. These service checks
-do not constitute a trial of playable menus or of multiplayer.
+`-C Release -R '^vmf_variable_dictionary$' --output-on-failure`.
+**1779 checks pass in each architecture**, x64 and Win32, including five
+injected allocation failures. The six targeted suites pass in both builds:
+dictionary, stack, scalar execution, timeline, targets and frameplayer. These
+service checks do not constitute a trial of playable menus or of multiplayer.

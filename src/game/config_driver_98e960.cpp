@@ -9,7 +9,7 @@ namespace tdur::game::config {
 
 namespace {
 
-// Labels vérifiés (configuration-labels.json).
+// Verified labels (configuration-labels.json).
 struct Label {
     NativeIdentity va;
     std::string_view text;
@@ -27,8 +27,8 @@ constexpr NativeIdentity kService10e80c0{0x10E80C0}; // 98EA1E..98EA2A
 constexpr NativeIdentity kSource143f5b6{0x143F5B6};  // 98EDCA
 constexpr NativeIdentity kLabelF1b9a4{0xF1B9A4};     // 98EDF1
 
-// 98EA19..98EB5F : Router, puis 9A4750/9A6040, puis les 15 sections du
-// sous-ensemble public (public subset).
+// 98EA19..98EB5F: Router, then 9A4750/9A6040, then the 15 sections of the
+// public subset.
 constexpr std::string_view kRouter = "Router";
 constexpr std::array<std::string_view, 15> kGamePcSections{
     "Video",   "System",         "3D",      "Movie", "DList",  "Flash",
@@ -36,7 +36,7 @@ constexpr std::array<std::string_view, 15> kGamePcSections{
     "Physics", "Devices",        "Ocean"};
 
 std::span<char> bounded_path(DriverContext& context) {
-    // 255 premiers octets : l'octet 255 n'est jamais exposé aux ports.
+    // First 255 bytes: byte 255 is never exposed to the ports.
     return std::span(context.path).first(kPathCopyBound);
 }
 
@@ -48,7 +48,7 @@ class Run {
         : service_(service), context_(context), store_(store), state_(state),
           ports_(ports), result_(result) {}
 
-    // Copie du nom de fichier puis override (98E9A1..98E9DA et suivants).
+    // Copy of the file name then override (98E9A1..98E9DA and following).
     bool prepare_path(ConfigFile file_id, Label file, Label key) {
         ports_.driver.copy_9ec36c(bounded_path(context_), file.va, file.text,
                                   kPathCopyBound);
@@ -57,7 +57,7 @@ class Run {
             Inputs986b60{context_.global_10e7350, context_.global_10e734c});
     }
 
-    // Extension : un refus de 986B60 arrête avant le chargement.
+    // Extension: a refusal from 986B60 stops before the loading.
     bool override_path(ConfigFile file_id, Label key, Inputs986b60 inputs) {
         if (ports_.driver.override_986b60(
                 key.va, key.text, bounded_path(context_), kPathCopyBound,
@@ -69,10 +69,10 @@ class Run {
         return true;
     }
 
-    // 6B1A00 avec ESI = tampon, sorties S+0x14/S+0x0C/S+0x10. Les
-    // emplacements ne sont jamais remis à zéro par le driver.
+    // 6B1A00 with ESI = buffer, outputs S+0x14/S+0x0C/S+0x10. The
+    // slots are never reset to zero by the driver.
     bool load(ConfigFile file) {
-        // ESI = début du tampon ; aucune longueur n'est déduite ici.
+        // ESI = start of the buffer; no length is deduced here.
         const std::span<const char> path(context_.path);
         result_.files[static_cast<std::size_t>(file)].loader_called = true;
         const LoaderResult loaded = run_config_file_loader_6b1a00(
@@ -101,7 +101,7 @@ class Run {
         return true;
     }
 
-    // Capture au site (TEST du pointeur S+0x14) ; taille lue au site.
+    // Capture at the site (TEST of the pointer S+0x14); size read at the site.
     std::optional<BlockHandle> capture(ConfigFile file) {
         FileTrace& trace = result_.files[static_cast<std::size_t>(file)];
         trace.present = context_.slots.block.has_value();
@@ -110,7 +110,7 @@ class Run {
     }
 
     bool construct() {
-        // 98E974..98E97F : PUSH ESI (lien hôte du service), ECX = parser.
+        // 98E974..98E97F: PUSH ESI (host link of the service), ECX = parser.
         const auto link = std::bit_cast<startup::OpaqueWord>(&service_);
         result_.construct = config_registry::construct_9896c0(
             parser_.registry, link, config_registry::kRegistrations9896c0,
@@ -144,7 +144,7 @@ bool Run::gamepc() {
         !load(ConfigFile::gamepc)) {
         return false;
     }
-    // 98E9FB..98EA07 : EDI = [S+0x14] ; JZ 98EB70 ; EBX = [S+0x0C].
+    // 98E9FB..98EA07: EDI = [S+0x14]; JZ 98EB70; EBX = [S+0x0C].
     const std::optional<BlockHandle> block = capture(ConfigFile::gamepc);
     if (!block) {
         return true;
@@ -161,7 +161,7 @@ bool Run::gamepc() {
             return false;
         }
     }
-    // 98EB64..98EB6B : PUSH EBX ; EAX = EDI ; ECX = &S+0x10.
+    // 98EB64..98EB6B: PUSH EBX; EAX = EDI; ECX = &S+0x10.
     ports_.driver.release_6b19c0(*block, size, context_.storage_flag);
     return true;
 }
@@ -172,7 +172,7 @@ bool Run::physics() {
         !load(ConfigFile::physics)) {
         return false;
     }
-    // 98EBC7..98EBCD : EBX = [S+0x14] capturé ; JZ 98ECAF.
+    // 98EBC7..98EBCD: EBX = [S+0x14] captured; JZ 98ECAF.
     const std::optional<BlockHandle> block = capture(ConfigFile::physics);
     if (!block) {
         return true;
@@ -183,30 +183,30 @@ bool Run::physics() {
     if (!parse(ConfigFile::physics, *block, car_size, "Car")) {
         return false;
     }
-    // 98EBF2..98EC01 : 0xEB DWORD, 940 octets ; Bike[940..944) intact.
+    // 98EBF2..98EC01: 0xEB DWORDs, 940 bytes; Bike[940..944) intact.
     std::copy_n(context_.physics.car().begin(), kPhysicsCopyBytes,
                 context_.physics.bike().begin());
-    // 98EC03..98EC3B : dix DWORD +0x370..+0x394.
+    // 98EC03..98EC3B: ten DWORDs +0x370..+0x394.
     for (std::size_t k = 0; k < 10; ++k) {
         std::fill_n(context_.physics.bike().begin() + 0x370 + 4 * k, 4,
                     std::byte{0});
     }
-    // 98EC41..98EC5B : dix octets +0x230 + 0x20 * k.
+    // 98EC41..98EC5B: ten bytes +0x230 + 0x20 * k.
     for (std::size_t k = 0; k < 10; ++k) {
         context_.physics.bike()[0x230 + 0x20 * k] = std::byte{0};
     }
-    const std::uint32_t bike_size = context_.slots.size;   // 98EC5D relu
+    const std::uint32_t bike_size = context_.slots.size;   // 98EC5D reread
     context_.physics_target = PhysicsTarget::bike_168ce80; // 98EC6F
     if (!parse(ConfigFile::physics, *block, bike_size, "Bike")) {
         return false;
     }
-    // 98EC7E..98EC84 : drapeau S+0x10 relu.
+    // 98EC7E..98EC84: flag S+0x10 reread.
     if (context_.storage_flag != 0) {
         ports_.driver.free_674e0c(*block); // 98EC87
         result_.physics_release = PhysicsRelease::freed_674e0c;
         return true;
     }
-    // 98EC91..98ECAD sur [EBX, EBX + EDI) : bloc capturé, taille Bike.
+    // 98EC91..98ECAD on [EBX, EBX + EDI): captured block, Bike size.
     const std::optional<std::span<std::byte>> owned = store_.view(*block);
     if (!owned) {
         result_.outcome = DriverOutcome::refused_physics_block_unknown;
@@ -224,11 +224,11 @@ bool Run::physics() {
 }
 
 bool Run::adddevice() {
-    // 98ECBA..98ECE0 : EBX/EDI lus, premier octet effacé, puis 986B60.
+    // 98ECBA..98ECE0: EBX/EDI read, first byte cleared, then 986B60.
     const Inputs986b60 inputs{context_.global_10e7350, context_.global_10e734c};
-    context_.path[0] = '\0'; // 98ECD8 : seul octet effacé
+    context_.path[0] = '\0'; // 98ECD8: only byte cleared
     if (!override_path(ConfigFile::adddevice, kKeyAddDevice, inputs)) {
-        return false; // avant la relecture 98ECE5 et l'écriture 98ECF1
+        return false; // before the reread 98ECE5 and the write 98ECF1
     }
     const char first = context_.path[0];                  // 98ECE5
     context_.physics_target = PhysicsTarget::car_168d230; // 98ECF1
@@ -238,7 +238,7 @@ bool Run::adddevice() {
     if (!load(ConfigFile::adddevice)) {
         return false;
     }
-    // 98ED16..98ED1E : EDI = [S+0x14] ; JZ 98ED41 ; EBX = [S+0x0C].
+    // 98ED16..98ED1E: EDI = [S+0x14]; JZ 98ED41; EBX = [S+0x0C].
     const std::optional<BlockHandle> block = capture(ConfigFile::adddevice);
     if (!block) {
         return true;
@@ -258,7 +258,7 @@ bool Run::replay() {
         !load(ConfigFile::replay)) {
         return false;
     }
-    // 98ED98..98EDA0 : EDI = [S+0x14] ; JZ 98EDC3 ; EBX = [S+0x0C].
+    // 98ED98..98EDA0: EDI = [S+0x14]; JZ 98EDC3; EBX = [S+0x0C].
     const std::optional<BlockHandle> block = capture(ConfigFile::replay);
     if (!block) {
         return true;
@@ -273,9 +273,9 @@ bool Run::replay() {
 }
 
 bool Run::finish() {
-    // 98EDC3..98EDDF : 0x100 DWORD nuls à service+0x29C.
+    // 98EDC3..98EDDF: 0x100 zero DWORDs at service+0x29C.
     context_.service_29c.fill(std::byte{0});
-    // 98EDE1 : copie de 127 octets depuis 0x143F5B6, texte non supposé.
+    // 98EDE1: copy of 127 bytes from 0x143F5B6, text not assumed.
     ports_.driver.copy_9ec36c(
         std::span(context_.block_11e2f3a.text).first(kFinalCopyBound),
         kSource143f5b6, std::nullopt, kFinalCopyBound);
@@ -283,7 +283,7 @@ bool Run::finish() {
     context_.block_11e2f3a.word_80 = kWord11e2fba; // 98EDFD
     ports_.driver.call_87b430(kLabelF1b9a4, context_.block_11e2f3a,
                               kWord11e2fba); // 98EE06
-    // 98EE12 ; extension : un refus n'est jamais suivi de completed.
+    // 98EE12; extension: a refusal is never followed by completed.
     if (ports_.driver.destroy_988fc0(parser_) ==
         HelperCallOutcome::modern_refusal) {
         result_.outcome = DriverOutcome::refused_destroy_988fc0;
@@ -306,18 +306,18 @@ run_configuration_driver_98e960(startup::StartupServiceBase& service,
     if (!run.construct()) {    // 98E97F
         return result;
     }
-    // 98E985 ; extension : refus arrêté avant la remise à zéro.
+    // 98E985; extension: refusal stopped before the reset to zero.
     if (ports.driver.call_98dd20(service) ==
         HelperCallOutcome::modern_refusal) {
         result.outcome = DriverOutcome::refused_98dd20;
         return result;
     }
-    // 98E98A..98E9B5 : 256 octets nuls, une seule fois.
+    // 98E98A..98E9B5: 256 zero bytes, only once.
     context.path.fill('\0');
     if (!run.gamepc() || !run.physics()) {
         return result;
     }
-    // 98ECB5 : toujours ; un refus arrête avant adddevice.
+    // 98ECB5: always; a refusal stops before adddevice.
     if (ports.driver.call_98de80(service, 1) ==
         HelperCallOutcome::modern_refusal) {
         result.outcome = DriverOutcome::refused_98de80;

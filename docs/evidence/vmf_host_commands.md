@@ -8,7 +8,7 @@ the script and the record, without acknowledging the command. The 78 existing
 summaries remain identical; 78 additional diagnostics and eight CLI cases pass
 on x64 and Win32. No displayed or multiplayer menu is validated by these trials.
 
-On the 19 private PC movies, the fifteen host stops are confirmed
+On the 19 local PC movies, the fifteen host stops are confirmed
 byte-for-byte in both architectures: thirteen FSCommand:sbdd, one FSCommand:zoed
 and one GotoFrame2. This observation does not prove the general order of the
 scripts between the former Python inventory and the C++ decoder.
@@ -30,7 +30,7 @@ The wrapper `99A6C0` and the router `99A350` are also ported,
 with [their own evidence and limits](vmf_fscommand_router.md). Their provenance
 remains secondary; their handlers and diagnostic services are distinct.
 
-Private evidence: reprise-2026-10-31/vmf-host-callback-v1 and v2.
+The static analysis covers two batches.
 The first batch verifies seven bodies (2 102 bytes) checked against PE/disassembly/DUMPBIN, eight ranges,
 nine bytes of excluded gaps, then eleven bytes of the PE/disassembly prefix. It ends
 with an explicitly preserved refusal: 9A0770 is not recognized
@@ -106,7 +106,7 @@ implementations and trials.
 
 ## Common sbdd branch
 
-The new private evidence vmf-common-sbdd-v1 is closed normally.
+The new evidence batch for this branch is closed normally.
 The sub-object 7188A0 first calls slot 20 of its outer
 object; a zero AL continues the common processing. This handler is
 not a simple adjustment thunk. Its complete link to the movie remains to be established.

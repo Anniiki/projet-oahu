@@ -43,10 +43,11 @@ void check(bool passed, std::string_view message) {
 }
 
 // Independent bit-serial oracle, not the production table recurrence.
-// Secondary 504980 assembly: e27aa9611e14d83ee9b4ce1409866959a864aa8efc07b37a666210fbe5d4492c.
-// Observed table: ac251e8fb01bf1a24bcde846cb5d09fea2c8aead145325bfbd1890095da59b8a.
-// All 256 entries were independently checked against the polynomial in the
-// private evidence lot. This is mathematical metadata, not a copied table.
+// Secondary 504980 assembly:
+// e27aa9611e14d83ee9b4ce1409866959a864aa8efc07b37a666210fbe5d4492c. Observed
+// table: ac251e8fb01bf1a24bcde846cb5d09fea2c8aead145325bfbd1890095da59b8a. All
+// 256 entries were independently checked against the polynomial. This is
+// mathematical metadata, not a copied table.
 // Logical state stores native EAX as high32 and native EDX as low32. Each
 // incoming byte is XORed AFTER eight feedback shifts, with no final XOR.
 std::uint64_t serial_oracle(std::span<const std::byte> input) {

@@ -1,5 +1,5 @@
-// Validation du driver 9A5D20 et de son raccordement à 6B1A00.
-// Données synthétiques ; aucun fichier, binaire ni ressource du jeu.
+// Validation of the driver 9A5D20 and of its wiring to 6B1A00.
+// Synthetic data; no game file, binary or resource.
 
 #include "tdur/game/config_external_loader.hpp"
 
@@ -31,7 +31,7 @@ struct FakePorts final : cfg::ExternalLoaderPorts {
     std::vector<std::string> log;
     std::vector<const cfg::LocalFileObject*> locals;
 
-    // Observation des sorties au moment du constructeur.
+    // Observation of the outputs at the time of the constructor.
     std::optional<cfg::BlockHandle>* watched_block = nullptr;
     std::uint32_t* watched_size = nullptr;
     bool block_seen_at_construct = true;
@@ -51,7 +51,7 @@ struct FakePorts final : cfg::ExternalLoaderPorts {
     std::uint32_t compare_eax = 1;
     std::uint8_t open_al = 1;
     std::uint32_t file_size = 5;
-    std::optional<std::size_t> capacity; // nullopt : bytes demandés
+    std::optional<std::size_t> capacity; // nullopt: requested bytes
     bool alloc_null = false;
     cfg::NativeIdentity allocator_seen{};
     std::uint32_t alloc_bytes = 0, alloc_align = 0, alloc_a6 = 0;

@@ -16,12 +16,11 @@ The contracts come from the **secondary** binary, SHA-256
 | `442E80` | Parent/local composition and flags | 283 |
 | `4429F0` | Composition of the eight color WORDs | 200 |
 
-Static analysis resolved the entry points before the assembly listings were read. The
-bytes of each body match the PE file and a bounded DUMPBIN disassembly;
-`F4165C` does contain the bits `3F800000`. Private evidence:
-`reprise-2026-10-31/vmf-display-lifecycle/session/`, operations 37/38,
-53/54, 55/56, 69. No official invocation, Xbox code equivalence or visual
-validation is inferred from this static analysis.
+Static analysis resolved the entry points before the assembly listings were
+read. The bytes of each body match the PE file and a bounded DUMPBIN
+disassembly; `F4165C` does contain the bits `3F800000`. No official
+invocation, Xbox code equivalence or visual validation is inferred from this
+static analysis.
 
 ## Values and operations
 
@@ -76,8 +75,7 @@ rational expectations use DAZ/FTZ disabled; two separate runs check the
 processor's DAZ/FTZ policies. Three NaN payloads are recorded as observations
 of our helper, without being presented as a native execution.
 
-The integrated suite passes 62/62 x64 tests. Private evidence and freezes are
-in `reprise-2026-10-31/vmf-transform-tests/`. The 39-film corpus remains a data
+The integrated suite passes 62/62 x64 tests. The 39-film corpus remains a data
 inventory: it is not presented as 39 interfaces executed or displayed.
 
 ## Regressions found by the independent review
@@ -97,6 +95,5 @@ intrinsics.
 
 The two unchanged probes pass after the fix, on both architectures. The
 permanent tests `vmf_transform_order` and `vmf_transform_trap` keep these
-checks; the reference assembly belongs only to the tests. The faulty versions,
-listings and red results remain in the private batch `vmf-transform-review/`.
+checks; the reference assembly belongs only to the tests.
 This check does not execute the commercial binary.

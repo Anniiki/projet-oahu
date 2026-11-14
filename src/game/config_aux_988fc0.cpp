@@ -25,14 +25,14 @@ Result988fc0 run_parser_teardown_988fc0(ParserObject& parser,
                                         ParserTeardownPorts& ports) {
     Result988fc0 result;
     config_registry::ParserObject9896c0& object = parser.registry;
-    // 988FC4 : EAX = [ESI+0x88].
+    // 988FC4: EAX = [ESI+0x88].
     if (!object.elements_88_assigned) {
         return refuse(result, Outcome988fc0::refused_elements_88_unassigned);
     }
     const auto p = std::bit_cast<OpaqueWord>(object.elements_88);
     if (p != 0) { // 988FCC..988FCE
         result.elements_path = true;
-        // 988FD0 : ECX = [EAX-4], par résolution explicite seulement.
+        // 988FD0: ECX = [EAX-4], through explicit resolution only.
         const std::optional<std::span<const std::byte, 4>> prefix =
             ports.resolve_prefix(p);
         if (!prefix) {
@@ -40,7 +40,7 @@ Result988fc0 run_parser_teardown_988fc0(ParserObject& parser,
                           Outcome988fc0::refused_elements_88_prefix_unknown);
         }
         result.count_88 = load32(*prefix);
-        result.header_88 = p - 4; // 988FD4 : EDI capturé avant l'appel
+        result.header_88 = p - 4; // 988FD4: EDI captured before the call
         ports.call_401180(p, kElementStride988fc0, result.count_88,
                           kCallback63f2b0); // 988FE3
         if (result.header_88 != 0) {        // 988FE8..988FEA
@@ -50,7 +50,7 @@ Result988fc0 run_parser_teardown_988fc0(ParserObject& parser,
     }
     ports.call_437860(parser, 0); // 988FF6
     result.called_437860 = true;
-    // 988FFB : ECX = [ESI+0x80], lu après 437860.
+    // 988FFB: ECX = [ESI+0x80], read after 437860.
     if (!object.link_80) {
         return refuse(result, Outcome988fc0::refused_link_80_unestablished);
     }
@@ -62,7 +62,7 @@ Result988fc0 run_parser_teardown_988fc0(ParserObject& parser,
         object.link_80 = OpaqueWord{0}; // 989032
         return result;
     }
-    // 98900C : EDX = [ECX-4], par résolution explicite seulement.
+    // 98900C: EDX = [ECX-4], through explicit resolution only.
     const std::optional<std::span<const std::byte, 4>> prefix =
         ports.resolve_prefix(q);
     if (!prefix) {

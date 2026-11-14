@@ -16,10 +16,6 @@ The **complete 596 bytes**, `0081EE50..0081F0A3`, have the same SHA in both
 files on disk:
 `027f8d2b7fdcef0d4fc9dc375366f2b8020ca2746380cd5924e0e2586a2a6374`.
 
-Evidence is kept under
-`<private-evidence>/reprise-2026-10-30/paradise-focus-follow/`:
-`physics-periodic-callback.asm.txt`, `physics-worker-prefix.asm.txt`,
-`targeted-disk-comparisons.json`, static analysis outputs, bundle and closed snapshot.
 Ghidra 12.2 does not recognize this callback as an attributed function; the
 static analysis instructions and reads are supplemented by the MSVC `dumpbin`
 14.44.35229.0 static disassembly. No pseudocode is taken as a source.
@@ -152,8 +148,7 @@ procedure are required before any replacement of the worker.
 
 [legacy_timer_test.cpp](../../tests/legacy_timer_test.cpp) passes **2 002
 checks**, with MSVC 19.44.35229.0 x64 Release, `/std:c++latest /W4 /WX
-/permissive- /utf-8 /fp:precise`, in the private build
-`<private-evidence>/reprise-2026-10-30/legacy-timer-cpp/build`.
+/permissive- /utf-8 /fp:precise`, in the validation build.
 
 The cases cover the strict threshold and its equality, the order of reads,
 the priority flags, the measured/fixed/zero deltas, the skip without

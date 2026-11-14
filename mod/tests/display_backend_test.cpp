@@ -1331,7 +1331,7 @@ void ClassicManagedTest() {
 void VisibleExclusiveTest() {
     Window window;
     SetWindowTextW(window.value,
-                   L"TDU reconstruction - témoin D3D9On12 (aucun jeu)");
+                   L"TDU reconstruction - D3D9On12 witness (no game)");
     DisplayPreferences preferences;
     preferences.mode = WindowMode::borderless;
     preferences.maximum_reference_quality = false;

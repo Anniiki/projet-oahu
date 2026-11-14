@@ -102,7 +102,7 @@ active with `NDEBUG`, verified in the Release compilation options.
 The test uses the real C++ context and declared synthetic evaluators, effects
 and frames. It does not replace the tests of the future native bodies. The
 58 tracked sources and six sensitive files remain unchanged
-during the validation. Private evidence: `vmf-child-continuation-runtime-v1/`.
+during the validation.
 No new native body or new game trial is claimed.
 
 ```powershell
@@ -127,7 +127,6 @@ ctest --test-dir build -C Release -R '^vmf_notification_child$' --output-on-fail
 PE, static analysis and DUMPBIN agree on the 128 bytes of the 89DD60 body with
 the official MC1.66A primary on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Private evidence: `reprise-2026-10-31/vmf-notification-child-runtime-v1/`.
 Five frozen sources and six unchanged sensitive files are verified.
 An independent review reported no concrete defect on four sources/31307B;
 a second reviewer cross-checked the hashes, the conditional oracles and its

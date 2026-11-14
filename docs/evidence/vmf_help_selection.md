@@ -15,9 +15,6 @@ are cross-checked against the PE sections of both files:
 The four bodies, the three branch tables (140 bytes) and the functional
 strings (284 bytes) are identical in both files on disk.
 These comparisons prove neither their execution nor a usable screen.
-Private evidence:
-`<private-evidence>/reprise-2026-10-31/vmf-common-help-runtime-v1`,
-`static-proof.json`; static analysis session vmf-common-help-v1.
 
 ## Resumable selector
 

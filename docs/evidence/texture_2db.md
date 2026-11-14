@@ -10,15 +10,12 @@ C++ code uses the standard library.
 Associated installation: official PC MC 1.66 A executable, 16,797,696 bytes,
 SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-A static analysis session, `original-codecs`, searched for `.2DB` and `BMAP` in this
-image: the three `.2DB` occurrences in rdata (`0x00f12f70`, `0x00f15f84`,
-`0x00f15f99`) return no references; the raw search for `BMAP` has no result.
-Private evidence: `04-byte-search.json`, `05-byte-search.json`,
-`08-references.json` to `10-references.json` under
-`<private-evidence>/reprise-2026-10-30/original-codecs`.
-This does not prove the absence of
-an original loader. No reconstructed native routine address is claimed for
-this module: the current evidence concerns the payloads.
+A static analysis session searched for `.2DB` and `BMAP` in this image: the
+three `.2DB` occurrences in rdata (`0x00f12f70`, `0x00f15f84`, `0x00f15f99`)
+return no references; the raw search for `BMAP` has no result. This does not
+prove the absence of an original loader. No reconstructed native routine
+address is claimed for this module: the current evidence concerns the
+payloads.
 
 Primary format references, consulted on GitHub and Microsoft Learn:
 [TDUMT `_2DB.cs`](https://github.com/djey47/tdumt/blob/e7b433db37df889f4ed99c5907370a75a66fffd1/tdumt-lib/fileformats/graphics/_2DB.cs),
@@ -176,6 +173,4 @@ Validation commands with the standalone test binary:
 .\build\texture-local\texture_2db_test.exe '<installation>\Euro\Bnk\Vehicules\Alfa_GT.bnk' '<installation>\Euro\Bnk\Avatar\DEF_BOT.bnk' '<installation>\Euro\Bnk\Interior\GPH_L1A.bnk' '<installation>\Euro\Bnk\Details\Birds.bnk'
 ```
 
-Local logs: `build/texture-local/official-corpus.log` and
-`official-samples.log`. No game trial or scene rendering validation is
-implied by these results.
+No game trial or scene rendering validation is implied by these results.

@@ -11,9 +11,9 @@ provides the public format constant without displaying it. No asset or
 decoding constant is added to the sources.
 
 Additional native evidence: secondary PE
-f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed,
-vmf-menu-data-bindings-v1. The closed batch of 105 queries verifies 18
-bodies, 12 518 PE/disassembly/DUMPBIN bytes, 56 ranges and 179 excluded alignment
+f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed.
+The closed batch of 105 queries verifies 18 bodies, 12 518
+PE/disassembly/DUMPBIN bytes, 56 ranges and 179 excluded alignment
 bytes. The 12 805 bytes read are backed by the file. A
 [corroboration in the official process](official_menu_bindings_runtime.md)
 now covers nine complete functions, one loader window and its dispatch
@@ -93,5 +93,5 @@ Local execution, without launching the commercial game:
     ctest --test-dir build -C Release -R '^vmf_menu_data$' --output-on-failure
     .\build\Release\vmf_get_variable_test.exe --menu-data-official "<installation>"
 
-Private evidence is in vmf-menu-data-runtime-v1. This diagnostic validates
-neither display, input, authentication, multiplayer nor co-op.
+This diagnostic validates neither display, input, authentication, multiplayer
+nor co-op.

@@ -133,14 +133,11 @@ branch is not a public scenario reached by the tests.
 
 ## Validation
 
-The lifetime expectations were frozen before the runtime implementation in
-the private batch `reprise-2026-10-31/vmf-runtime-lifecycle-oracle/`. The
+The lifetime expectations were frozen before the runtime implementation. The
 program factory had already been written, without being read by the author of
 the expectations; these two chronologies are distinguished in the freeze. The
 independent harness covers the transitions, leftovers, identities, overrides
 and protections described above.
-The execution results and the review are recorded in the private batches
-`vmf-display-runtime-tests/` and `vmf-display-runtime-review/`.
 
 The harness passes **2526 checks without failure on x64 and Win32**, on both
 profiles. A preflight of 74 checks validates the synthetic files before

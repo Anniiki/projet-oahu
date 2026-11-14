@@ -8,14 +8,12 @@ This phase decodes a structure and bytecode; it executes no instruction,
 host command, game logic or rendering operation.
 
 The grammar and the 39 resource identities are established in
-[vmf_format_inventory.md](vmf_format_inventory.md), with the independent
-numerical review of the private batch `vmf-format-review/`. The batch of this
-delivery is `<private-evidence>/reprise-2026-10-30/vmf-movie-cpp/`.
+[vmf_format_inventory.md](vmf_format_inventory.md), with an independent
+numerical review.
 No commercial resource is embedded in the sources or fixtures.
 
 Secondary static analysis anchors, Paradise PE SHA-256
-`f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`,
-batch `ui-map-input-dispatch/session/`:
+`f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`:
 
 - `442890/161`, exports `34-assembly` and
   `35-pseudocode`, validates magic/CRC/version; the library
@@ -216,13 +214,13 @@ before refusing.
 Independent source-owned tests in
 [`vmf_movie_test.cpp`](../../tests/vmf_movie_test.cpp). The oracles were frozen
 at **21:05:39 UTC on 2026-10-30**, with a recorded absence of the CPP in
-`vmf-movie-tests/oracle-frozen.json`. Their author did not read the implementation
+`oracle-frozen.json`. Their author did not read the implementation
 to write or adapt them. The expectations remained unchanged.
 An eleventh scenario, an allocation interrupting assignment, was then frozen
 before its fix; it reproduced two inconsistencies on both architectures.
 
 MSVC **19.44.35229**, `/std:c++latest /W4 /WX /O2 /EHsc /MD /permissive-`,
-private compilation and link successful on x64 **and** Win32:
+compilation and link successful on x64 **and** Win32:
 
 | Run on each architecture | Checks | Failures |
 | --- | ---: | ---: |
@@ -250,16 +248,14 @@ values before/after match the manifest and are unchanged. The original banks
 are not reopened in this phase; their audit belongs to the inventory.
 
 The first batch, before this regression, passed 1 325/120 447 checks; its
-historical evidence remains in `vmf-movie-tests/validation.json`, SHA-256
+historical evidence remains in `validation.json`, SHA-256
 `809315c341b4675338cc8d67885bdb646db665672d8bd1be724d7b8b2f8abd6f`:
-PE machines `0x8664/0x14C`, fingerprints of the executables/logs and sources, results
-and limits. The red-then-green evidence of the fix is
-`vmf-movie-tests/copy-regression-validation.json`, SHA-256
+PE machines `0x8664/0x14C`, fingerprints of the executables/logs and sources,
+results and limits. The red-then-green evidence of the fix is
+`copy-regression-validation.json`, SHA-256
 `5b1dbd1d5f7911db5bcc1b8124f216e128fe6ea3b03faa0fe4b5df5f9272b517`.
 The targeted CMake integration also passes the fixtures and the 39 movies on x64
-and Win32: `vmf-movie-parent-integration-v1/`.
-The private bench can be rebuilt from the retained evidence; the executable
-accepts `--corpus <selected-vmf-v1>`.
+and Win32. The bench executable accepts `--corpus <selected-vmf-v1>`.
 
 Final sources tested, after the assignment fix:
 

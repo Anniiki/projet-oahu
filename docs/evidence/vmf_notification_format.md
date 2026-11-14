@@ -66,8 +66,7 @@ cmake --build build --config Release --target vmf_get_variable_test vmf_stack_te
 ctest --test-dir build -C Release -R '^(vmf_notification_format|vmf_value_stack|vmf_host_write)$' --output-on-failure
 ```
 
-Nine frozen sources, six preserved sensitive files and the logs remain outside
-Git in `<private-evidence>/reprise-2026-10-31/vmf-notification-cache-runtime-v1/`.
+Nine frozen sources and six preserved sensitive files are verified.
 The first Win32 failure came from signed constants in the assertions; they
 are corrected without relaxing the warnings. Parent, complete formatter,
 commercial menus, final native rendering and real co-op remain to be

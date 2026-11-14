@@ -93,8 +93,8 @@ reads its type from the first PAR. For type 2:
    keys `LAY+28h+32*i`, not the first named block of the slot.
 3. `5168C0` copies individual BYTEs from the PAR to the descriptor. Exact
    examples: payload `+24→descriptor+14h`, `+25→+15h`, `+26→+16h`,
-   `+27→+17h`, `+38..3F→+28..2Fh`. The complete offset table is kept in
-   the private batch; no shader function name is assigned to these bytes.
+   `+27→+17h`, `+38..3F→+28..2Fh`. No shader function name is assigned to
+   these bytes.
 4. Comparisons of family DWORD pairs modify certain bytes. They must be
    preserved to reproduce the variants; this is not a uniform
    "family + texture count" formula. One branch can even rewrite the family
@@ -257,12 +257,11 @@ identical in the three cases. The branch of this family in `516F90` writes
 
 Thus the inputs of the **first** key computation are identical across
 these three materials, with a single byte differing between VS and PS
-(`+30h`). The private batch keeps the 88 derived bytes and the non-zero
-fields. They define one input of the `504920/504980` computation, now
-documented. This proves neither an available registry entry, nor the
-fallback index finally chosen, nor the context indices at draw time. The
-BYTE transfer by the helpers `509490/5168C0` remains a secondary analysis
-not captured by trial 24.
+(`+30h`). The 88 derived bytes and the non-zero fields define one input of
+the `504920/504980` computation, now documented. This proves neither an
+available registry entry, nor the fallback index finally chosen, nor the
+context indices at draw time. The BYTE transfer by the helpers
+`509490/5168C0` remains a secondary analysis not captured by trial 24.
 
 Each contains ten 16-byte constants. The logical indices are
 `124,122,123,27,62,130,131,132,213,78`; the DWORD selector is 1 for the
@@ -277,8 +276,6 @@ file or account key was read.
 
 ## Evidence, scopes and official trial 24 corroboration
 
-Private batch:
-`<private-evidence>/reprise-2026-10-30/shader-selection/`.
 `evidence-index.json` links all requests, responses and IDs;
 `paint-lr-family-inputs.json` contains the metadata of the concrete case;
 `runtime-catalog-draft.json` keeps the initial proposal;
@@ -301,7 +298,7 @@ not rewritten as if it had already contained the new evidence.
 | `19`, `3ed10952759ebb8242a80544043927c0eece095d3aa541f72c0a977ca6c747f3` | `5165A0`, key/object/metadata registration |
 | `42`, `aec4f17b0d63c365ac62009b49b09704b065b7753121baa246572f4429a44cf1` | 32 bytes at `9F2F80`, PS2.0 bytecode header |
 
-The complementary closed batch `shader-variant-hash/session` establishes:
+A complementary closed batch on the shader variant hash establishes:
 
 | Secondary static analysis evidence | Scope |
 | --- | --- |
@@ -332,8 +329,8 @@ Ghidra AddressSets obtained explicitly:
   with gaps of 3 and 6 bytes. It is neither proposed nor presented as
   contiguous.
 
-Trial 24, exclusive profile `assets-shaders`, is kept under
-`<isolated-copies>/20261030T184840-33116/`. PID **30964**, creation
+Trial 24, `20261030T184840-33116`, uses the exclusive profile
+`assets-shaders`. PID **30964**, creation
 FILETIME **134378597540409344**, base `00400000`, locked official source
 SHA identical to the one above: these values match in
 `suspended-pid.json`, `startup-report.json`, `observations.json` and
@@ -378,10 +375,10 @@ windows of trial 23. This equality is not a guarantee of the table's
 future immutability.
 
 The terminal report indicates **100.208 s**, controlled Job timeout,
-code 1460, after which the slot was released. The related audits report 6,697
-references and 17 source save files unchanged. Their consistency and the
-report digests were verified here; this documentary work neither reread
-the whole of the data/saves nor opened the process.
+code 1460. The related audits report 6,697 references and 17 source save
+files unchanged. Their consistency and the report digests were verified
+here; this documentary work neither reread the whole of the data/saves nor
+opened the process.
 
 The following remain secondary and outside this promotion: the helpers
 `509490/5168C0`, the reset `603000`, the constructors/vtables and
@@ -393,11 +390,11 @@ methods does not prove their effective binding to a live object/vtable.
 A single initial static analysis session reused the closed snapshot of the
 texture-bindings batch. A request for the vtable slot `602900` was refused
 because Ghidra defined no procedure there; this refusal is not an absence
-of code. The wrapper exported then closed the session in its `finally`:
-`export-finally.json` and `close-finally.json` confirm the bundle and the
-snapshot. A complementary session was then opened for the `504920/504980`
+of code. The session was then exported and closed, which confirmed the
+bundle and the snapshot.
+A complementary session was then opened for the `504920/504980`
 boundary and its table alone, reusing the snapshot. Its nine operations
-and its `export-finally.json`/`close-finally.json` also confirm export and
+and its final export and closure records also confirm export and
 closure. The verification of trial 24 opened no static analysis session and ran no new
 game, probe or build.
 

@@ -207,7 +207,7 @@ class PackagingTests(unittest.TestCase):
             PACKAGE.verify_archive(archive, invalid)
 
     def test_cpack_handles_spaces_and_unicode(self):
-        self.output = self.directory / 'archive é avec espaces'
+        self.output = self.directory / 'archive ñ with spaces'
         manifest = self.package()
         self.assertEqual(manifest["packaging"]["generator"], "ZIP")
         self.assertEqual(len(list(self.output.glob("*.zip"))), 1)

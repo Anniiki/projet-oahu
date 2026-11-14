@@ -29,8 +29,8 @@ and the external commands remain explicit.
 ## Evidence and new handlers
 
 The [native phases](vmf_scheduler.md) and the [queue](vmf_script_calls.md) are
-the previous references. The new private batch `vmf-frame-player/`
-concerns the Paradise secondary, SHA-256
+the previous references. The new batch concerns the Paradise secondary,
+SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 Disassembly/PE/DUMPBIN agree on **512 bytes of code windows**; 392 bytes of vtables,
 the previous tables and the assembly listing of `4418B0` close the dispatch
@@ -147,13 +147,13 @@ The values remain bytes: non-ASCII or special characters are escaped as
 Without this option, the JSON stays unchanged. A creation error also exposes
 the code and the detail of the nested display refusal on stderr.
 
-The targeted x64/Win32 diagnostics on unchanged private copies find
+The targeted x64/Win32 diagnostics on unchanged local copies find
 `FSCommand:sbdd` with an empty second operand: PC map at offset 3848, PC
 `LOG_IN` at offset 2052, from its very first action. The PC text bindings mode
 explicitly refuses the Xbox donor profile; this refusal is not a successful
 navigation. The six asset comparisons preserve the earlier JSON outputs and
 codes, two profile diagnostics agree and two repetitions of the new flag are
-rejected. The private evidence is in `vmf-current-host-boundaries-v1/`.
+rejected.
 These observations target the next host hookup, without running the
 commercial game or an online connection.
 
@@ -173,7 +173,7 @@ order, a request in each phase, End, cache, registry, negative balance,
 bounded queue, budgets and resumption without replay, modern refusals and
 absence of ordinary allocation.
 
-The initial diagnostic on the 39 unchanged private VMF gives the same results
+The initial diagnostic on the 39 unchanged local VMF gives the same results
 per file on both architectures: **37 explicit refusals for text/focus
 services**, **2 stops on opcode 83 in PC/Xbox `LOG_IN`**. No complete
 invocation of this corpus is obtained. This evidence designates the services

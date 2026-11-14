@@ -12,13 +12,12 @@ Official: SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 Secondary:
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Isolated copy, private batch
-`<isolated-copies>/20261030T220251-29060`, PID **34200**,
+Isolated copy, batch `20261030T220251-29060`, PID **34200**,
 creation FILETIME **134378714058315318**. The image is at `0x00400000`.
 
 ## Exact perimeter
 
-The exclusive `ui-vmf` profile of the unpublished code probe uses only these ranges:
+The exclusive `ui-vmf` profile of the code probe uses only these ranges:
 
 | Role | VA / requested bytes |
 | --- | --- |
@@ -50,30 +49,29 @@ CLI, no pointer walking and no read of activation data.
 
 ## Lifetime and preservation
 
-The trial lasts **100.134 s**; the owned Job reaches its timeout (1460), then
-the slot is released. **6,697 reference files** and **17 source saves**
+The trial lasts **100.134 s**; the owned Job reaches its timeout (1460).
+The **6,697 reference files** and **17 source saves**
 remain unchanged. No menu, keyboard or mouse control is sent.
 The observed game remains x86 and uses the temporary D3D9On12 bridge; it is
 not the future x64 client with a direct D3D12 renderer.
 
 ## Verification and limits
 
-`reprise-2026-10-30/vmf-core-runtime-25/verify_runtime.py` rereads the
-captures, the two PEs, the static analysis AddressSets, the constants and the end
-reports, without new access to the process. Its result
-`runtime25-comparison.json` carries SHA-256
+An offline check rereads the captures, the two PEs, the static
+analysis AddressSets, the constants and the end reports, without new access to
+the process. Its result `runtime25-comparison.json` carries SHA-256
 `74e114d2403b30e6c85d4d1ada2745577ac837cd64b34dcc376de2f993647cdc`.
 It checks the virtual/file bounds and the section type, the 28 exact
 requests, the fingerprints, PID/creation and the agreement of the saves.
 
-The new bounds come from resolutions 61..77 of
-`vmf-action-interpreter/session/`, the seven older procedures from the
-`ui-map-input-dispatch/session/` batch. The scalars are exports
-40/41/42/78 and the first four bytes of 18/19 of the new batch.
+The new bounds come from resolutions 61..77 of the VMF action interpreter
+analysis, the seven older procedures from the earlier input dispatch batch.
+The scalars are exports 40/41/42/78 and the first four bytes of 18/19 of the
+new batch.
 
 An independent review recomputes these relations without importing or
-rerunning the verifier and recovers the 40 artifact fingerprints. Private
-evidence `vmf-core-runtime-25-independent-review/review-v1.json`, SHA-256
+rerunning that check and recovers the 40 artifact fingerprints. Its report
+`review-v1.json` has SHA-256
 `5e843cf203f53fc29f78762c1e738e8127870027db007c034c1e664e16f4dcb4`.
 It confirms the consistency of the produced audits, without claiming to have
 rehashed the 6,697 references itself afterwards. The reader checks the

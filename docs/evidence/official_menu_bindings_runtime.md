@@ -35,8 +35,7 @@ the 59-byte table contains data, not instructions.
 
 ## Trial and verification
 
-Isolated copy; private batch
-`<isolated-copies>/20261031T170334-34228`.
+Trial `20261031T170334-34228`, in an isolated copy.
 PID 38644, FILETIME 134379398510306664, observed base 00400000.
 The instrumented launcher owns a Job limited to one process, stopped at the
 100.167-second timeout. Two windows are recorded, with no visual inspection
@@ -44,23 +43,19 @@ and no action in the menus. The temporary display bridge is borderless
 D3D9On12/DXGI; it is not the final native D3D12 engine.
 
 The before/after audits verify **6 697 reference files and 17 savegame
-files unchanged**. The game documents are isolated and the slot released.
+files unchanged**. The game documents are isolated.
 The reading probe follows no pointer and does not modify its target.
 It verifies the path and records the process creation; the offline
 verifier then cross-checks PID/FILETIME with the launcher reports.
 The reader checks the pages' policy and their allocation base, without
-publishing their exact protections or testing MEM_IMAGE separately.
+reporting their exact protections or testing MEM_IMAGE separately.
 
-Both C++latest x64/Win32 builds and the code probe self-test pass; that probe
-is not published in this repository.
+Both C++latest x64/Win32 builds and the code probe self-test pass.
 Static assertions bound size, types, sums and overlaps.
-The wrapper accepts the new profile and retains its timing guards.
 A zero return code from the probe is not enough: every readable entry
 and the sizes/SHA of the captures are verified individually.
 
-Private evidence:
-`<private-evidence>/reprise-2026-10-31/vmf-menu-bindings-official-v1/`.
-The verify-runtime.py verifier produces comparison.json, SHA-256
+The offline comparison produces comparison.json, SHA-256
 d6dcb8106982f1ea7c58d1db1a8a1a5a96043f252ff0ea36a411cbfb1e6beadb.
 Its 32 digests cover the captures, reports, snapshots and commands.
 The commercial bytes stay outside Git.

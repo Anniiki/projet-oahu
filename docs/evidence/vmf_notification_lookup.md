@@ -40,8 +40,7 @@ pass on each of the x64 and Win32 architectures**, including 68 lookup
 checks. They use the real binder and the real clear, the ten indices,
 duplicates, imported prefixes, case, high bytes, NUL and ordered errors. The
 eight frozen sources and six sensitive files remain unchanged during the
-validation. Private logs:
-`<private-evidence>/reprise-2026-10-31/vmf-notification-lookup-runtime-v1/`.
+validation.
 
 ```powershell
 cmake --build build --config Release --target vmf_notification_lookup_test

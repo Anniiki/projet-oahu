@@ -3,8 +3,8 @@
 ## Source and scope
 
 `ControllerBindings` transposes assignments from the publisher's Xbox 360
-manual, PDF page 3/printed pages 2–3, whose identity and rendering were
-verified in an unpublished inventory.
+manual, PDF page 3/printed pages 2-3, whose identity and rendering were
+verified in an inventory.
 This is a table for the new client, not the Xbox binary's dispatcher or
 proof of playability. The library builds in modern C++ for x64 and Win32
 with the SDL3.4.18 headers.
@@ -48,7 +48,6 @@ observe a real device.
 
 The integrated `controller_bindings_test` target and
 `controller_context_bindings` CTest also pass in both parent builds.
-Private evidence: `<private-evidence>/reprise-2026-10-30/controller-bindings-cpp/`.
 
 ```powershell
 cmake --build build --config Release --target controller_bindings_test

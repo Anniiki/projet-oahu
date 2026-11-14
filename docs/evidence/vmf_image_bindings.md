@@ -96,15 +96,12 @@ container size yields `resource_limit`. No partial result is published. Copy
 assignment keeps its C++ semantics: it can throw `bad_alloc`, with the strong
 guarantee on the destination.
 
-## Private validation
+## Validation
 
-Batch: `<private-evidence>/reprise-2026-10-30/vmf-image-bindings-cpp/`.
-`prepare_corpus.py`, `corpus-inputs.json`, `corpus-plan.txt`, `validate.py`,
-`validation-final.json` and logs. Commercial data stay in their previous
-private locations; only catalogues and metadata oracles are prepared for these
-tests.
+Commercial data are not moved or copied; only catalogues and
+metadata oracles are prepared for these tests.
 
-Private builds, **x64 and Win32**, MSVC 19.44 / SDK 10.0.26100.0,
+Validation builds, **x64 and Win32**, MSVC 19.44 / SDK 10.0.26100.0,
 `/std:c++latest /W4 /WX`: **2/2 CTests, 19,892 checks per architecture**.
 The latest mode is a draft mode, not full C++26 conformance.
 
@@ -137,9 +134,8 @@ passes 55/55; the new targets are also verified on Win32. The integration
 then strengthens the interrupted-copy test: destination A holds three direct PC
 images and source B two Xbox images with an atlas and a long name. Profiles,
 cardinalities and hashes differ before the attempt; each refused allocation
-must preserve A. The production code remains identical to the private batch
-and the corpus expectations remain unchanged. Logs are in
-`vmf-ui-parent-integration-v1/`.
+must preserve A. The production code remains identical to that of the batch
+and the corpus expectations remain unchanged.
 The strengthened fixture passes **141 checks** per architecture; the
 **19,755 corpus checks** also pass with the integrated binaries, that is
 19,896 per architecture. The last complete x64 run remains 55/55.

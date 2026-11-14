@@ -1,4 +1,4 @@
-// Validation de 986B60 et 988FC0 (sans chargeur).
+// Validation of 986B60 and 988FC0 (without loader).
 #include "tdur/game/config_aux_986b60.hpp"
 #include "tdur/game/config_aux_988fc0.hpp"
 
@@ -26,9 +26,9 @@ void check(bool ok, const char* what) {
     }
 }
 
-constexpr OpaqueWord kHigh = 0x1'0000'0000ull; // au-dessus de 4 Gio
+constexpr OpaqueWord kHigh = 0x1'0000'0000ull; // above 4 GiB
 
-// Table d'arguments : identités hôtes vers chaînes possédées.
+// Argument table: host identities to owned strings.
 struct Args final : cfg::ArgsTablePorts {
     std::vector<OpaqueWord> table;
     std::map<OpaqueWord, std::string> texts;
@@ -63,7 +63,7 @@ struct Args final : cfg::ArgsTablePorts {
         if (on_compare) {
             on_compare();
         }
-        // Oracle de test seulement : le port décide, aucune sémantique CRT.
+        // Test oracle only: the port decides, no CRT semantics.
         const auto it = texts.find(entry_plus_1 - 1);
         return it != texts.end() && it->second.substr(1) == key_text ? 0u : 7u;
     }
@@ -91,7 +91,7 @@ cfg::Result986b60 run(Args& a, std::uint32_t count, std::span<char> buf) {
 void test_986b60() {
     std::array<char, 256> buf{};
     {
-        Args a; // nombre nul ou négatif : aucune lecture
+        Args a; // zero or negative count: no read
         a.add(kHigh + 0x10, "-game");
         auto r = run(a, 0, buf);
         check(r.al == 0 && a.log.empty(), "986b60 count 0 reads nothing");
@@ -99,7 +99,7 @@ void test_986b60() {
         check(r.al == 0 && a.log.empty(), "986b60 count signed negative");
     }
     {
-        Args a; // trouvé, identités hautes conservées
+        Args a; // found, high identities kept
         a.add(kHigh + 0x10, "-game");
         const OpaqueWord v = a.add(kHigh + 0x20, "X");
         auto r = run(a, 2, buf);
@@ -108,21 +108,21 @@ void test_986b60() {
               "986b60 found copies host-width value");
     }
     {
-        Args a; // dernier sans valeur ignoré
+        Args a; // last one without a value ignored
         a.add(1, "-game");
         auto r = run(a, 1, buf);
         check(r.al == 0 && a.copied.empty() && r.compares == 1,
               "986b60 last match ignored");
     }
     {
-        Args a; // sans tiret
+        Args a; // without a dash
         a.add(1, "game");
         a.add(2, "X");
         auto r = run(a, 2, buf);
         check(r.al == 0 && r.compares == 0, "986b60 no dash no compare");
     }
     {
-        Args a; // premier gagne
+        Args a; // first one wins
         a.add(1, "-game");
         a.add(2, "A");
         a.add(3, "-game");
@@ -132,7 +132,7 @@ void test_986b60() {
               "986b60 first match wins");
     }
     {
-        Args a; // valeur commençant par un tiret
+        Args a; // value starting with a dash
         a.add(1, "-game");
         a.add(2, "-physics");
         auto r = run(a, 2, buf);
@@ -140,7 +140,7 @@ void test_986b60() {
               "986b60 dash value copied");
     }
     {
-        Args a; // -x puis -game en dernière position
+        Args a; // -x then -game in last position
         a.add(1, "-x");
         a.add(2, "-game");
         std::array<char, 256> keep{};
@@ -149,7 +149,7 @@ void test_986b60() {
         check(r.al == 0 && keep[0] == 'D', "986b60 buffer intact no match");
     }
     {
-        Args a; // compteur figé, éléments relus : mutation par callback
+        Args a; // frozen counter, elements reread: mutation by callback
         a.add(1, "-zzz");
         a.add(2, "-zzz");
         a.add(3, "V");
@@ -160,7 +160,7 @@ void test_986b60() {
               "986b60 entries re-read after callback");
     }
     {
-        Args a; // refus : élément illisible, effets antérieurs gardés
+        Args a; // refusal: unreadable element, earlier effects kept
         a.add(1, "-zzz");
         a.add(2, "Y");
         a.unreadable_index = 1;
@@ -170,19 +170,19 @@ void test_986b60() {
               "986b60 refusal at unreadable entry");
     }
     {
-        Args a; // refus : vue vide mais présente (octet 0 illisible)
+        Args a; // refusal: empty but present view (byte 0 unreadable)
         a.add(1, "");
         auto r = run(a, 1, buf);
         check(r.outcome == cfg::Outcome986b60::refused_text_unreadable,
               "986b60 empty view refused");
-        Args b; // chaîne vide terminée : lisible, pas de tiret
+        Args b; // terminated empty string: readable, no dash
         b.add(1, std::string(1, '\0'));
         r = run(b, 1, buf);
         check(r.outcome == cfg::Outcome986b60::native_return && r.al == 0,
               "986b60 NUL text readable");
     }
     {
-        Args a; // refus : valeur illisible après match
+        Args a; // refusal: unreadable value after match
         a.add(1, "-game");
         a.add(2, "V");
         a.unreadable_index = 1;
@@ -193,7 +193,7 @@ void test_986b60() {
     }
 }
 
-// Préfixes possédés : identité -> 4 octets.
+// Owned prefixes: identity -> 4 bytes.
 struct Teardown final : cfg::ParserTeardownPorts {
     std::map<OpaqueWord, std::array<std::byte, 4>> prefixes;
     std::vector<std::string> log;
@@ -256,7 +256,7 @@ std::byte* fake_ptr(OpaqueWord v) { return std::bit_cast<std::byte*>(v); }
 
 void test_988fc0() {
     {
-        cfg::ParserObject p{}; // données nulles marquées possédées, q = 0
+        cfg::ParserObject p{}; // null data marked owned, q = 0
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = OpaqueWord{0};
         Teardown t;
@@ -268,14 +268,14 @@ void test_988fc0() {
               "988fc0 empty: 437860, +30, +80 = 0");
     }
     {
-        cfg::ParserObject p{}; // +0x88 au-dessus de 4 Gio, +0x88 non remis
+        cfg::ParserObject p{}; // +0x88 above 4 GiB, +0x88 not reset
         const OpaqueWord e = kHigh + 0x1004;
         p.registry.elements_88 = fake_ptr(e);
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = OpaqueWord{0};
         Teardown t;
         t.set(e, 3);
-        // 401180 modifie [p-4] et +0x88 : valeurs capturées au site.
+        // 401180 modifies [p-4] and +0x88: values captured at the site.
         t.on_401180 = [&] {
             t.set(e, 99);
             p.registry.elements_88 = fake_ptr(kHigh + 0x9000);
@@ -291,7 +291,7 @@ void test_988fc0() {
               "988fc0 result header");
     }
     {
-        cfg::ParserObject p{}; // p = 4 : en-tête nul, aucune libération
+        cfg::ParserObject p{}; // p = 4: null header, no release
         p.registry.elements_88 = fake_ptr(4);
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = OpaqueWord{0};
@@ -302,7 +302,7 @@ void test_988fc0() {
               "988fc0 p-4 == 0 not freed");
     }
     {
-        cfg::ParserObject p{}; // +0x80 compté : appel indirect, aucun free
+        cfg::ParserObject p{}; // +0x80 counted: indirect call, no free
         const OpaqueWord q = kHigh * 3 + 0x40;
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = q;
@@ -315,7 +315,7 @@ void test_988fc0() {
               "988fc0 +80 counted: indirect then 0");
     }
     {
-        cfg::ParserObject p{}; // +0x80 préfixe nul : libération q-4
+        cfg::ParserObject p{}; // +0x80 zero prefix: release of q-4
         const OpaqueWord q = kHigh + 0x80;
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = q;
@@ -328,7 +328,7 @@ void test_988fc0() {
               "988fc0 +80 empty prefix frees q-4");
     }
     {
-        cfg::ParserObject p{}; // q = 4, préfixe nul : rien libéré
+        cfg::ParserObject p{}; // q = 4, zero prefix: nothing released
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = OpaqueWord{4};
         Teardown t;
@@ -339,7 +339,7 @@ void test_988fc0() {
               "988fc0 q-4 == 0 null header");
     }
     {
-        cfg::ParserObject p{}; // +0x80 lu après 437860 (mutation)
+        cfg::ParserObject p{}; // +0x80 read after 437860 (mutation)
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = OpaqueWord{0};
         Teardown t;
@@ -353,7 +353,7 @@ void test_988fc0() {
               "988fc0 +80 read after 437860");
     }
     {
-        cfg::ParserObject p{}; // refus : +0x88 non établi, aucun effet
+        cfg::ParserObject p{}; // refusal: +0x88 not established, no effect
         p.registry.link_80 = OpaqueWord{0};
         Teardown t;
         auto r = cfg::run_parser_teardown_988fc0(p, t);
@@ -362,7 +362,7 @@ void test_988fc0() {
               "988fc0 refusal +88 unassigned");
     }
     {
-        cfg::ParserObject p{}; // refus : préfixe +0x88 inconnu
+        cfg::ParserObject p{}; // refusal: +0x88 prefix unknown
         p.registry.elements_88 = fake_ptr(kHigh + 0x2004);
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = OpaqueWord{0};
@@ -374,7 +374,7 @@ void test_988fc0() {
               "988fc0 refusal +88 prefix unknown");
     }
     {
-        cfg::ParserObject p{}; // refus : +0x80 non établi, après 437860
+        cfg::ParserObject p{}; // refusal: +0x80 not established, after 437860
         p.registry.elements_88_assigned = true;
         Teardown t;
         auto r = cfg::run_parser_teardown_988fc0(p, t);
@@ -383,7 +383,7 @@ void test_988fc0() {
               "988fc0 refusal +80 unestablished before +30");
     }
     {
-        cfg::ParserObject p{}; // refus : préfixe +0x80 inconnu, +30 gardé
+        cfg::ParserObject p{}; // refusal: +0x80 prefix unknown, +30 kept
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = kHigh + 0x300;
         Teardown t;
@@ -394,7 +394,7 @@ void test_988fc0() {
               "988fc0 refusal +80 prefix keeps +30");
     }
     {
-        cfg::ParserObject p{}; // refus : mot [q] illisible, +80 non remis
+        cfg::ParserObject p{}; // refusal: word [q] unreadable, +80 not reset
         p.registry.elements_88_assigned = true;
         p.registry.link_80 = kHigh + 0x400;
         Teardown t;

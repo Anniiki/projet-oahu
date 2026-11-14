@@ -65,10 +65,10 @@ cmake --build build --config Release --target vmf_notification_state_test
 ctest --test-dir build -C Release -R '^vmf_notification_state$' --output-on-failure
 ```
 
-PE, static analysis and DUMPBIN cross-check the three complete bodies, 153 bytes, against
-the official primary on disk: 89BD90/47B, 89C210/73B, 889230/33B. No targeted
-execution or memory observation of these routines is claimed.
-Private evidence: `<private-evidence>/reprise-2026-10-31/vmf-notification-state-runtime-v1/`.
+PE, static analysis and DUMPBIN cross-check the three complete bodies,
+153 bytes, against the official primary on disk: 89BD90/47B, 89C210/73B,
+889230/33B. No targeted execution or memory observation of these routines is
+claimed.
 Four sources are frozen during the validation and six sensitive files
 (project guidelines, executables, banks) remain unchanged.
 

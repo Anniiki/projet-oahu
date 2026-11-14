@@ -8,7 +8,7 @@
 physique, entrées et interface. Le rendu natif est dans `src/render/d3d12/`.
 `tests/` contient les validations C++ ; `mod/` l’instrumentation Win32.
 `docs/evidence/` conserve les comportements établis et leurs limites.
-Les ressources commerciales et les captures privées restent hors du dépôt.
+Les ressources commerciales et les captures du jeu restent hors du dépôt.
 
 ## Construire et développer
 

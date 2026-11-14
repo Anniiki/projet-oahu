@@ -7,14 +7,13 @@ Its concrete frame can be borrowed by the real child path `89DD60`.
 ## Official reference
 
 The complete body `89BF80..89C06F`, 240 bytes, is corroborated by existing
-evidence from the PC MC1.66A primary, the secondary and static analysis. SHA-256 of the
-body:
+evidence from the PC MC1.66A primary, the secondary and static analysis.
+SHA-256 of the body:
 `35544d0b4b0f83204eed219a1e3ca3943250fff0156299f69597d31c861434dc`.
 Identity of the primary:
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The private evidence `vmf-effect-bf80-runtime-v1/native-proof.json` references
-these already closed exports. No new call to the game and no executable
-analysis in this batch; the C++ calls no native game routine.
+No new call to the game and no executable analysis in this batch; the C++
+calls no native game routine.
 
 ## Preserved order
 

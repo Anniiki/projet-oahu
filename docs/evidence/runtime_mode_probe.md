@@ -7,7 +7,7 @@ official-game test. It does not implement a world loader or fix a new-game hang.
 
 The reference is PC MC 1.66 A, SHA256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Private evidence documents global VA `0x010E7238`, the expected vptr
+The evidence documents global VA `0x010E7238`, the expected vptr
 `0x00F0B138`, and setter `0x009B4530`. The setter checks one byte at `+0x108`;
 when zero, it writes the previous mode at `+0x104` only if the new DWORD mode
 differs, then writes the current mode at `+0x100`.
@@ -48,11 +48,9 @@ pointer bounds, concurrent changes, coalescing, output limits and options.
 including refusal across an unreadable boundary and an unconsumed guard page.
 These checks do not establish that a player can start a new game.
 
-The isolated-start wrapper used for official trials is not published. It
-starts the observer as a separate, hidden child after the launcher's exact
-creation FILETIME is registered, keeps sampling within the bounded trial,
-owns its cleanup and preserves the save/reference audit if cleanup fails.
-Play sessions refuse this diagnostic.
+In official trials, the observer runs as a separate, hidden process, started
+once the launcher has published the target's creation FILETIME, and samples
+only within the bounded trial. Play sessions refuse this diagnostic.
 
 The loaded executable is identified through its file and process metadata;
 its loaded code is not compared with the file. A killed observer may leave
@@ -61,7 +59,7 @@ an empty report because the complete JSON is written at the end.
 ## Official startup baseline, 2026-11-02
 
 A fresh isolated copy was launched for 45 seconds, using the existing display
-bridge and private saves, without input or window-text collection. Sampling
+bridge and isolated saves, without input or window-text collection. Sampling
 began two seconds after resume and lasted 30 seconds. The observer returned
 success with 600 samples: 373 null-pointer samples followed by 227 available
 samples, no memory/type errors and no unstable samples. It recorded:
@@ -75,5 +73,4 @@ These are observed values, without assigning an unverified meaning to mode
 `0x12`. This did not exercise `ngam`, create a profile, load the world, or
 reproduce the reported new-game hang. The launcher's exit 1460 was its planned
 45-second deadline. All 6,697 reference files and 17 source-save files remained
-unchanged; the slot was released and no game process remained. Detailed reports
-are kept in the local `mode-startup-v1` evidence and isolated trial directory.
+unchanged and no game process remained.

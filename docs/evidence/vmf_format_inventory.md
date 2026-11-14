@@ -4,16 +4,15 @@
 
 Static study of 30 October 2026, on **20 Xbox VMF and
 19 PC VMF**, i.e. **23,844,792 bytes**. The Xbox files come from the banks
-already extracted by an earlier unpublished inventory; the PC files are
+already extracted by an earlier inventory; the PC files are
 the members of the inventoried local official installation, not a new
 extraction from the DVD. No VMF, game, XEX or script is executed.
 
-Private batch: `<private-evidence>/reprise-2026-10-30/vmf-format-inventory/`.
 `selected-vmf-manifest-v1.json` keeps bank, physical member, path, offset,
 size and SHA-256; the banks are verified before/after read-only copying. Its
 source index `ui-pairs.json` has the SHA-256
 `aa269f791a6bc8248c1de8de0682f5d8dd4545ba5665ade1df76547ef52b109d`.
-Only the private copies `selected-vmf-v1/` feed the parsers.
+Only these local copies feed the parsers.
 
 `map.vmf` witnesses, physical member 0:
 
@@ -177,8 +176,8 @@ The candidate SWF reading of the keyboard bits gives `flags>>9 & 0x7F`: codes
 57/55 Xbox, 43/45 PC. How physical buttons produce these codes remains
 unknown; no controller assignment is invented.
 
-On the secondary native side, the coordinated batch
-`ui-map-input-dispatch/session/` is based on the Paradise PE SHA-256
+On the secondary native side, the coordinated batch on the UI map input
+dispatch is based on the Paradise PE SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`:
 
 - `443AF0/760` reads 16-bit opcodes, separates values below `0x80` and above,
@@ -236,21 +235,20 @@ decoded here.
 | Action streams | 12,543 | 15,142 |
 | Instructions | 193,228 | 326,930 |
 
-The private parsers impose limits on file, depth and records, and verify
+The parsers impose limits on file, depth and records, and verify
 sizes/alignments/extents, frame tables, IDs, links and branch targets. They
 are corpus verifiers, not a library ready to accept hostile files. They use
 no OpenTDU engine code.
 
 The independent numeric review recomputes the counts and targets from the
-39 files, without importing these parsers or their JSON trees:
-`<private-evidence>/reprise-2026-10-30/vmf-format-review/verify_numeric.py`
-and `numeric-review.json`. It confirms the identities, the CRCs and the values
-above. It highlights prevalidations to add **before reading** in the future
-C++: bound a child's extent against its parent sprite before recursion; bound
-the four bytes of the long action header against its own stream; bound the
-button terminator against its own tag. The exploration scripts do not impose
-these three guards at the same stage and must not be transposed as-is into a
-parser of untrusted data.
+39 files, without importing these parsers or their JSON trees. It confirms
+the identities,
+the CRCs and the values above. It highlights prevalidations to add
+**before reading** in the future C++: bound a child's extent against its
+parent sprite before recursion; bound the four bytes of the long action
+header against its own stream; bound the button terminator against its own
+tag. The exploration scripts do not impose these three guards at the same
+stage and must not be transposed as-is into a parser of untrusted data.
 
 Realistic next module: owning C++ reader of the container, ID dictionary,
 timelines, raw conditions and normalised instructions with target
@@ -277,7 +275,7 @@ geometry 2/46, text 10/11/37, sound 14/15, rate/pause integration and
 keyboard/mouse/controller events. An interface displaying Xbox glyphs does
 not on its own satisfy the reproduction of these behaviours.
 
-## Reproducing the private evidence
+## Outputs of the study
 
 - `analyze_vmf_v1.py` → `structure-report-v1.json`: envelope and hierarchy.
 - `analyze_actions_v1.py` → `action-report-v1.json`: first check of the
@@ -287,13 +285,13 @@ not on its own satisfy the reproduction of these behaviours.
 - `header-crc-normalized-v1.json`: canonical recipe 39/39.
 - `asset-name-links-v2.json`: image links 39/39; version 1 keeps an
   ID+2 hypothesis that was **refuted**; it is not a rule of the format.
-- `readonly-audit-v1.json`: 39 banks and 39 private copies still identical
+- `readonly-audit-v1.json`: 39 banks and 39 local copies still identical
   after the analyses; no ISO opened by this study.
 - `corpus-summary-v1.json`: cumulative counters and End/other targets; the
   documentary SHA it keeps is the one from its creation, before the final
   review clarifications.
 
 The outputs are created exclusively and the previous ones preserved. Do not
-commit these resources, banks, PDFs or large reports. No new native static analysis
+commit these resources, banks or PDFs. No new native static analysis
 session was opened for this study; the existing analysis session remains the
 only one.

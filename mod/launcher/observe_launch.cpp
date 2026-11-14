@@ -1612,14 +1612,13 @@ int launch(const Options& value) {
             ",\"creation_filetime\":" + std::to_string(creation_filetime) +
             ",\"inherited_error_mode\":" + std::to_string(GetErrorMode()) +
             ",\"suspended\":true}\n");
-    // The Python wrapper registers this exact PID with the isolated copy
-    // before publishing the resume marker. No game code runs before that step.
+    // The parent process registers this exact PID before it publishes the
+    // resume marker. No game code runs before that step.
     const auto registration_deadline =
         std::chrono::steady_clock::now() + std::chrono::seconds(15);
     while (!fs::exists(value.resume_file)) {
         if (std::chrono::steady_clock::now() >= registration_deadline) {
-            throw std::runtime_error(
-                "No gameslot resume marker within 15 seconds");
+            throw std::runtime_error("No resume marker within 15 seconds");
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(25));
     }

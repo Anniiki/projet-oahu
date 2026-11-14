@@ -30,18 +30,15 @@ Case `83` to `445CB0` and common advance are established in [PC
 dispatch](pc_vmf_dispatch.md), evidence
 `74fec9dcbae64fe9e3fd8c5dd4163880c2dddda8e82b6bb27cc1c3c6a020e4b2`. This
 document does not close other handlers. Case `9A` to `445D40` has only one
-source: private static analysis export
-`ui-map-input-dispatch/session/29-pseudocode.json`,
-of same evidence, Ghidra pseudocode of `443AF0` whose jump table was not
-disassembled. Assembly listings take precedence over pseudocode ([action
-contracts](vmf_action_semantics.md)): this case remains to be confirmed by a
-listing of `443AF0`. Semantics of `445D40` ("the second pops target then URL")
-comes from [action contracts](vmf_action_semantics.md) and private DUMPBIN
-listings `vmf-host-callback-v1/dumpbin-445d40-445de1.txt`
-and `dumpbin-445cb0-445d3f.txt`, reread for this batch; see also [host
-commands](vmf_host_commands.md). Current stops:
-`reprise-2026-10-31/vmf-current-host-boundaries-v1/`. This batch required no
-new access to the game, process or executable.
+source: a static analysis export of the same evidence, the Ghidra pseudocode
+of `443AF0`, whose jump table was not disassembled. Assembly listings take
+precedence over pseudocode ([action contracts](vmf_action_semantics.md)):
+this case remains to be confirmed by a listing of `443AF0`. Semantics of
+`445D40` ("the second pops target then URL") comes from [action
+contracts](vmf_action_semantics.md) and the DUMPBIN listings of
+`445D40..445DE1` and `445CB0..445D3F`, reread for this batch; see also [host
+commands](vmf_host_commands.md). This batch required no new access to the
+game, process or executable.
 
 The listing of `445D40` reloads the context stack field before each of its two
 calls to `44B250`. The first result is overwritten; only the second becomes the
@@ -145,7 +142,7 @@ Limits:
 - If a foreign host is presented with an input fault (invalid limits, other
   program), it is the one receiving cancellation: the real host's slot remains
   reserved until its destruction.
-- With a host, the PC map is verified only by the private diagnostic below,
+- With a host, the PC map is verified only by the optional diagnostic below,
   with a synthetic receiver; in CTest, only synthetic movies are bound.
 
 ## Validation
@@ -187,14 +184,14 @@ bridge); 126 registered tests against 125 on the baseline, but only the 13
 batch targets are built: full x64 CTest is not run. Format: modified lines
 comply with clang-format 19.1.5, clean `git diff --check`.
 
-A/B measurement of `tdur_inspect_vmf_playback`, base `0d5bb79` against this
-corrected batch, x64: 39 private copies, 8 option sets and 2 invalid usages,
+A/B measurement of `tdur_inspect_vmf_playback`, the base revision against this
+corrected batch, x64: 39 local copies, 8 option sets and 2 invalid usages,
 totaling 314 byte-for-byte identical pairs (stdout, stderr, code). SHA256 of
 copies are unchanged; witnesses `pc_LOG_IN` (action 0, offset 2052,
 `FSCommand:sbdd`) and PC map (action 222, offset 3848) are present on both
 sides.
 
-Optional private diagnostic `--private-vmf`, outside CTest, aligned with the
+Optional diagnostic `--private-vmf`, outside CTest, aligned with the
 most complete options that `tdur_inspect_vmf_playback` accepts for each
 profile: in PC, data and text bindings, variables and properties; in Xbox,
 variables and properties, with PC text bindings rejecting the donor profile. The

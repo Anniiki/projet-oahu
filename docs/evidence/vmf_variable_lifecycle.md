@@ -10,18 +10,17 @@ The dictionary helpers were already corroborated in the official 1479-byte
 batch. This integration adds no new official observation of the wrappers or
 of an in-game invocation.
 
-| Routine | Fact used | Private export |
-| --- | --- | --- |
-| `445BA0` | Type 2 branch, then type 1, then text; value before name | `reprise-2026-10-30/vmf-action-interpreter/session/59-assembly.json` |
-| `449240/449290/4492E0` | Classification, then setter, then OR `200h` on the target | `reprise-2026-10-31/vmf-text-services/session/18,20,22-assembly.json` |
-| `443700/443770/4437F0` | NULL name or NULL insertion: return without assignment | `reprise-2026-10-31/vmf-host-context/session-v2/29,30,31-assembly.json` |
-| `448910` | If `200h` is set: scope cleanup, then node cleanup | `reprise-2026-10-31/vmf-display-lifecycle/session/45-assembly.json` |
-| `4438D0` | Ordered scan/compaction, scope 0 selects the non-zero entries | `reprise-2026-10-31/vmf-display-lifecycle/session/57-assembly.json` |
+| Routine | Fact used |
+| --- | --- |
+| `445BA0` | Type 2 branch, then type 1, then text; value before name |
+| `449240/449290/4492E0` | Classification, then setter, then OR `200h` on the target |
+| `443700/443770/4437F0` | NULL name or NULL insertion: return without assignment |
+| `448910` | If `200h` is set: scope cleanup, then node cleanup |
+| `4438D0` | Ordered scan/compaction, scope 0 selects the non-zero entries |
 
-These paths are relative to `<private-evidence>`. The envelopes keep their
-EvidenceID/SHA256; two earlier reviews separate the literal catalogue from
-the erroneous interpretations of a previous batch. The dictionary is at
-`instance+58`, the scope at `instance+E0`, the flags at `instance+6C`.
+Two earlier reviews separate the literal catalogue from the erroneous
+interpretations of a previous batch. The dictionary is at `instance+58`, the
+scope at `instance+E0`, the flags at `instance+6C`.
 
 ## Owned backend and writes
 
@@ -81,8 +80,7 @@ The `vmf_get_variable_test` binary keeps its read entry and adds `--write`
 and `--lifecycle`. The tests include a real run of the frame driver on
 synthetic PC 2.8/Xbox 2.5 data, exact sNaN/±0 bits, aliases, resumptions,
 quotas, the cache and the late rollback. Allocation failures of the new
-creation are injected one at a time. Receipts and the first fixture failures
-remain in the private evidence.
+creation are injected one at a time.
 
 The batch passes in Release x64 and Win32: **814 write checks**, **324
 lifecycle checks** and the **1,034 read checks** kept, fixtures included, per
@@ -100,7 +98,7 @@ The file diagnostic also accepts
 JSON whether the backend is enabled and how many variables it holds. It
 executes no commercial binary and renders no interface.
 
-The 39 private VMF copies were rechecked with and without the backend in both
+The 39 local VMF copies were rechecked with and without the backend in both
 architectures, 156 diagnostics in all: the same 37 text/focus refusals and
 2 stops on opcode 83, no complete invocation. The copies keep their hashes. These
 files therefore do not yet reach the execution of the new variables before

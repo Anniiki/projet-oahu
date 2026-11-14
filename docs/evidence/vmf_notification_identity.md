@@ -61,8 +61,7 @@ The three complete bodies, 292 bytes, match the official PC MC 1.66 A
 primary on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 PE, static analysis and DUMPBIN are cross-checked; nine frozen sources and six
-preserved sensitive files are recorded outside Git in
-`<private-evidence>/reprise-2026-10-31/vmf-notification-identity-runtime-v1/`.
+preserved sensitive files are verified.
 An independent review reported no concrete defect across the nine
 sources (71132 B); the initial, final and current hashes match. This
 review is accepted within the documented domain, and the preconditions

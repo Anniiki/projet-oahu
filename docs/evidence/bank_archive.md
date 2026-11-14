@@ -34,8 +34,8 @@ All integers are little-endian. The 5,003 `*.bnk` files examined have
 | `0x30..0x3c` | Offsets of the record, optional type, name and permutation sections |
 | `0x44` | Start of the payloads; zero in the five empty banks |
 
-Each metadata section carries a `{u32 taille, u32 somme}` prefix (size,
-checksum). The observed checksum is the complement of the public zlib
+Each metadata section carries a `{u32 size, u32 checksum}` prefix. The
+observed checksum is the complement of the public zlib
 `crc32()`, computed over the section body without prefix or alignment. Each record is
 16 bytes: payload offset and size, then two opaque DWORDs. A terminal record
 with zero size and zero DWORDs marks padding; it is not a resource. The two

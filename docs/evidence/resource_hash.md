@@ -17,8 +17,7 @@ identified official process, equal to the secondary. It also confirms
 all 256 table entries; code presence does not prove execution.
 
 A single static analysis session reuses the closed snapshot from the
-program study. It is exported and closed after nine operations;
-private batch `<private-evidence>/reprise-2026-10-30/shader-variant-hash/`.
+program study. It is exported and closed after nine operations.
 AddressSets are complete and contiguous; no original function or
 game resource is executed for this reconstruction.
 
@@ -72,8 +71,7 @@ Actual guard pages in the source-owned bench check no read for a
 count ≤ 0, stopping at the exact prefix and rejection of short spans.
 Serialization, offsets, canaries, 88-byte descriptors and inputs up
 to 1 MiB are covered. No invalid span is fabricated to test `SIZE_MAX`:
-the oversized-full-span guard is not claimed exercised. Private
-evidence: `<private-evidence>/reprise-2026-10-30/resource-hash-cpp/`.
+the oversized-full-span guard is not claimed exercised.
 
 ```powershell
 cmake --build build --config Release --target resource_hash_test

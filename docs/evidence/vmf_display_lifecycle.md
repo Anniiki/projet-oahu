@@ -7,14 +7,14 @@ Contracts established statically on the Paradise **secondary PC** binary, SHA-25
 They constitute neither a corroboration of the official code in memory, nor
 proof of Xbox behaviour, nor a VMF host already hooked up to the game.
 
-Private sources: `<private-evidence>/reprise-2026-10-31/`:
+Static analysis sources:
 
-- `vmf-host-context/session-v2/18`: 446B70, placement; 27: 4487F0,
+- Host context session v2, record 18: 446B70, placement; 27: 4487F0,
   timeline initialisation; 32: 4418B0, initial counter; bounded dumps of the
   wrappers 44AF80/44AFC0/448790. The four earlier comparisons cover
-  2,179 bytes; the old pseudocode 17–19 with fallback 84AC90 is excluded.
-- `vmf-display-lifecycle/session/24..69`: 22 bodies, 3,340 bytes, plus the
-  binary32 constant +1. `exact-byte-validation.json`, SHA
+  2,179 bytes; the old pseudocode 17-19 with fallback 84AC90 is excluded.
+- Display lifecycle session, records 24..69: 22 bodies, 3,340 bytes, plus
+  the binary32 constant +1. `exact-byte-validation.json`, SHA
   `f2ab6fa58d121e00defd621d03c2ae312a00748b9d39f8441b864b915591df75`,
   compares static analysis, the secondary PE and DUMPBIN. 448620 has two AddressSets
   of 13 and 65 bytes; the 3 intermediate bytes are not counted.
@@ -28,9 +28,9 @@ Private sources: `<private-evidence>/reprise-2026-10-31/`:
   their code is read/disassembled at the exact VAs, without fallback.
   The static analysis session finished with 0 after 83 operations, export/close succeeded.
 
-The private review `vmf-display-lifecycle-review/` keeps the fingerprints of
-the exports, the transitions and an independent comparison of the static analysis reads
-with the dumps, without reopening any PE or executing commercial code.
+A separate review keeps the fingerprints of the exports, the transitions and
+an independent comparison of the static analysis reads with the dumps,
+without reopening any PE or executing commercial code.
 The composition formulas of the transformations are treated separately.
 
 Main assembly anchors: 446B70/v2-18
@@ -44,7 +44,7 @@ Main assembly anchors: 446B70/v2-18
 447090/59
 `4ea41576d2d9984857c236134f1b467ed76c940546a06e346ec345000a0adc72`.
 The other VAs are linked to the Evidence IDs and fingerprints in the two
-private manifests, and to the numbered assembly listings of the same batch.
+manifests, and to the numbered assembly listings of the same batch.
 
 ## Resource, node, instance: distinct types
 
@@ -209,7 +209,7 @@ For a resource 37, 44BDC0 is called before the child is kept:
 resolution of the path at `resource+32`, lookup/initialisation of a variable,
 then reference caches written at `resource+70/+74`. These are mutations
 of the **shared runtime resource**, not fields belonging to the node.
-The following batch `vmf-runtime-scheduler/session/07..08` closes the helper
+The following runtime scheduler batch, records 07..08, closes the helper
 4436A0 (90 bytes compared). After lookup 4435D0, absence writes an empty
 string and returns AL0. Type 4 copies the inline text at `entry+2C`; types 2/5
 follow the pointer at that offset; the other types pass these bits to 442330

@@ -11,9 +11,9 @@ This batch adds no evidence of a call, of in-game script reading or of Xbox
 compatibility. The in-memory code equalities documented earlier do not extend
 to the called functions.
 
-Private evidence is under `reprise-2026-10-31/vmf-script-calls/`: fifteen
-successful queries, export and session closure, then a disassembly / secondary PE /
-DUMPBIN comparison of **1,384 bytes**, five ranges and four bodies:
+The evidence comprises fifteen successful queries, export and session
+closure, then a disassembly / secondary PE / DUMPBIN comparison of
+**1,384 bytes**, five ranges and four bodies:
 
 | Routine | Inclusive ranges and sizes |
 | --- | --- |
@@ -26,8 +26,8 @@ The Call body holds 306 bytes; the six bytes `4456FA..4456FF` are not part of
 its AddressSet. The report `exact-byte-validation.json` keeps the export and
 byte identities; the final snapshot has SHA-256
 `e97781f708cc7fd4e3250978025bc561ec5c2401c9a0ae3e4d7b6235be87f394`.
-Our independent cross-check of the exports and dumps alone is in
-`vmf-script-calls-review/validation.json`, with no new read of the PE.
+An independent cross-check covers the exports and dumps alone, with no new
+read of the PE.
 
 ## Contexts and shared stack
 

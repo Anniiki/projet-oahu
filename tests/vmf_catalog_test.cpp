@@ -203,7 +203,7 @@ assets::DatabaseStrings catalog(std::string_view source) {
 void owned_catalogs() {
     const auto strings = catalog(
         "{first} 1\n{ignored alias} 001\n{same} 2\n{same} 3\n{} 0\n{top} "
-        "18446744073709551615\n{étiquette} 9223372036854775808\n");
+        "18446744073709551615\n{jalapeño} 9223372036854775808\n");
     const auto other = catalog("{second table} 1\n");
     const std::array sources{VmfCatalogSource{0, &strings},
                              VmfCatalogSource{7, &other}};
@@ -232,7 +232,7 @@ void owned_catalogs() {
              "owned max uint64");
     const auto high =
         take(owned.lookup(0, 0x8000000000000000ULL), "owned high uint64");
-    check(top && top->text() == "top" && high && high->text() == "étiquette",
+    check(top && top->text() == "top" && high && high->text() == "jalapeño",
           "full uint64 identity and UTF8 bytes retained");
     const auto selected =
         take(owned.lookup(0x40000007, 1), "other bound catalog");

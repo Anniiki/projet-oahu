@@ -57,8 +57,7 @@ MSVC Release, C++ latest, `/W4 /WX /permissive- /utf-8`: 21 suites pass on
 x64 and Win32, including 314 checks from this batch. An independent Windows
 oracle verifies the 255 non-zero bytes; the other cases cover limits, NUL,
 duplicates, full table, aliasing, queues and refusals without writes. Seven
-frozen sources and six preserved sensitive files are recorded in the private
-evidence `reprise-2026-10-31/vmf-notification-text-runtime-v1/`. An
+frozen sources and six preserved sensitive files are verified. An
 independent review reported no concrete defect across six sources/59889B;
 a second review verified the two hash tables and five outputs. The slot
 oracles are retained under explicit occupancy preconditions, without a

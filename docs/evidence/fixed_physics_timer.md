@@ -188,9 +188,7 @@ the valid generation.
 [fixed_timer_test.cpp](../../tests/fixed_timer_test.cpp) passes **457,701
 checks on each of the x64 and x86 architectures**, in Release, MSVC
 19.44.35229.0, SDK 10.0.26100.0, `/std:c++latest /W4 /WX /permissive-
-/utf-8 /fp:precise`. Private builds under
-`<private-evidence>/reprise-2026-10-30/fixed-timer-cpp/build` and
-`build-x86`.
+/utf-8 /fp:precise`.
 The comparison test also links the `LegacyPhysicsTimer` implementation.
 
 The main integration also passes **28/28 CTest x64**, including the new

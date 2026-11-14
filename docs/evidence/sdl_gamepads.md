@@ -11,7 +11,7 @@ On October 30, 2026, `gh api repos/libsdl-org/SDL/releases/latest` returns
 [SDL 3.4.18, released October 2](https://github.com/libsdl-org/SDL/releases/tag/release-3.4.18).
 Only the integration step acquires the official ZIP, SHA-256
 `9cd42377704398796071b8597cd7e21da254a43bad98c4199739647adc13fa6f`.
-Private builds use its `SDL3::SDL3-static` CMake exports, with no further
+The validation builds use its `SDL3::SDL3-static` CMake exports, with no further
 download or reused SDL2/OpenTDU code. SDL uses the
 [zlib license](https://github.com/libsdl-org/SDL/blob/release-3.4.18/LICENSE.txt).
 
@@ -116,10 +116,9 @@ SDL queue, noise/hysteresis, sensitivity, synthetic focus, quotas, errors
 and threading. Counters observe `operator new` and SDL malloc/calloc/realloc
 hooks on the owner thread around measured calls; they do not cover the
 pump, OS drivers or other threads. No global SDL zero-allocation claim
-is made. Initial failing logs remain in
-`<private-evidence>/reprise-2026-10-30/sdl-gamepads-cpp/`.
+is made.
 
-Private Release x64 and Win32 builds pass `/std:c++latest /W4 /WX` with
+The Release x64 and Win32 validation builds pass `/std:c++latest /W4 /WX` with
 both official SDL3-static libraries prepared beforehand. Each
 architecture's test passes **1 011 checks**, linked version `3004018`.
 Measured controls/buttons/fixed-snapshot and virtual-removal calls count
@@ -130,17 +129,15 @@ The last case is explicitly qualified without fabricating history.
 
 The integration adds `tdur_sdl_gamepads` and CTest `sdl_gamepads_virtual`.
 Explicit target construction and **50/50 x64 CTests** pass; the integrated
-Win32 test also passes with the same SDL3.4.18. Parent evidence is in
-`native-input-async-integration-v1/` and
-`sdl-gamepads-cpp/parent-integration-win32-v1/`.
+Win32 test also passes with the same SDL3.4.18.
 
 ### Virtual test-bench isolation
 
-The `vmf-sampler-parent-integration-v1/` continuation reveals a fixture
-defect: its first pump also received a system JOYSTICK_AXIS_MOTION event
-(instance 1, axis 0, value -25932) before any virtual joystick creation.
-The neutral-start assertion therefore did not control all its inputs.
-The first batch retains its **52/53** failure with diagnostics and logs.
+A subsequent integration reveals a fixture defect: its first pump also
+received a system JOYSTICK_AXIS_MOTION event (instance 1, axis 0, value -25932)
+before any virtual joystick creation. The neutral-start assertion therefore
+did not control all its inputs. The first batch retains its **52/53** failure
+with diagnostics and logs.
 
 Only the test executable now disables the seven physical Windows backends
 through process-local hints before initialization and requires empty

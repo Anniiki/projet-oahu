@@ -66,7 +66,7 @@ With the banks, **12 798 checks** pass per architecture:
 
 The **289 primitives** bind without an invented fallback, for every declared
 variant. This does not choose which ones to draw. The banks remain
-unchanged. Private evidence: `<private-evidence>/reprise-2026-10-30/material-2dm-cpp/`.
+unchanged.
 
 This step does not render materials yet. It does not reconstruct all the
 parameters, shaders, external textures, transparency, lighting or loading

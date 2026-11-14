@@ -67,8 +67,8 @@ The preserved fields are the x87 control word, the raw MXCSR, the received
 timer identifier and, since the extension described above, the return address.
 No userdata pointer, key, account, pixel, clock or game thread
 is read on this path. The reserved counter is read after the slots:
-a reading may contain reservations not yet published, but its ready count
-cannot exceed the reservations. It remains an observation over
+a reading may contain reservations whose ready flag is not yet set, but its
+ready count cannot exceed the reservations. It remains an observation over
 an interval, with no atomic snapshot common to the 32 slots.
 
 Logging happens after an `S_OK` DXGI present, on the ordinary thread that
@@ -100,10 +100,9 @@ for the game. A cell absent from the fixture refuses any native attribution.
 The **production** object is disassembled with dumpbin: `Capture` contains
 FNSTCW, STMXCSR, integer operations and LOCK CMPXCHG, without any CALL. The gate
 calls only `Capture`, then performs a tail-JMP to the original without changing
-the argument stack. The assemblies and fingerprints are kept in
-`<private-evidence>/reprise-2026-10-30/physics-entry-context-cpp/` outside the
-repository. An independent review checked these elements. Its remark about the
-counter being read too early was corrected and covered by the concurrent reader.
+the argument stack. An independent review checked these elements. Its remark
+about the counter being read too early was corrected and covered by the
+concurrent reader.
 
 The **22 CTests of the observation mod** pass before this summary correction and
 the addition of the cell check; the three targeted capture/startup/exclusive
@@ -123,9 +122,9 @@ pass.
 
 Closed trial `20261030T134824-33340`, PID **29576**, isolated official copy
 verified and locked. Requested duration 75 s; the launch report indicates
-75.1912 s and termination by the Job object at the deadline, code 1460. The slot
-is released; the 6 697 reference files and the 17 before/after save fingerprints
-match. This is not a trial of the secondary binary.
+75.1912 s and termination by the Job object at the deadline, code 1460. The
+6 697 reference files and the 17 before/after save fingerprints match. This is
+not a trial of the secondary binary.
 
 Observer DLL of this trial, SHA-256:
 `3845d29e1a5ce5ffe8f49e57a5f9e295ea96bcb3c0d25d2ab7cff0985cfc2064`.
@@ -179,8 +178,8 @@ nor can the zero counter be extended to the whole duration of the trial.
 
 The code profile records **67 ranges / 14 863 bytes**. Its 16 additions are all
 identical to the secondary and different from the official disk image, with no
-own modification in these additions. The eight physics boundaries, their
-AddressSets and the table are kept in private evidence.
+own modification in these additions. The evidence records the eight physics
+boundaries, their AddressSets and the table.
 
 Five other ranges carry the known adaptations of the project's module:
 `81EE50/5`, `996850/7`, `97F2C8/2`, `97F668/2`, `7BEC34/2`, or **18 bytes**.
@@ -218,13 +217,12 @@ After integration, **33/33 x64 CTests and 24/24 Win32 CTests** pass.
 No official trial has yet observed these extensions. The results of
 trial 20 above remain attached to its former observer binary.
 
-## Private evidence of trial 20
+## Evidence of trial 20
 
 [Trial 21](official_trial_21.md) has since contributed the return address and
 its deferred classification in `winmm`, as well as 84 code reads. The figures
 below remain those of trial 20, without merging the batches.
 
-Root directory: `<isolated-copies>/20261030T134824-33340/`.
 The commercial files and bytes stay outside Git. The fingerprints of the summary
 were rechecked against the files, as were the 67 observed files:
 

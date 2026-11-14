@@ -11,11 +11,10 @@ synthetic data; the complete host service remains to be connected.
 Official PC MC 1.66 A executable, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 The 434 bytes of the ranges `894D50..894DBC` and `894DC0..894F04` are compared
-against the static analysis exports of the secondary and against the primary on disk. The
-three intermediate alignment bytes are excluded. SHA-256 of the concatenated
-ranges:
+against the static analysis exports of the secondary and against the primary
+on disk. The three intermediate alignment bytes are excluded. SHA-256 of the
+concatenated ranges:
 `010922009a821145bfb97aabc68bb67b37ab07b5d9e4af8a5148adba6c9ac6ff`.
-The private evidence is `vmf-identity-assignment-runtime-v1/native-proof.json`.
 No new native or in-game execution is required for this port.
 
 ## Catalog and insertions

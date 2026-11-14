@@ -49,6 +49,4 @@ unchanged. No 3DD transformation or original material is applied yet.
 
 The D3D12 debug layer is unavailable: admission rejected with `0x887A002D`.
 Normal trials pass; their validation counters remain explicitly `null`,
-without claiming a check by this layer. Private evidence:
-`<private-evidence>/reprise-2026-10-30/native-scene-draws-cpp/`, `validation-v2.json`
-and logs. No commercial game was launched.
+without claiming a check by this layer. No commercial game was launched.

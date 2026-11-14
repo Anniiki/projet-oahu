@@ -38,7 +38,7 @@ for the future sprite push by the `449070` wrapper.
 
 Analyzed secondary executable: SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Private exports `reprise-2026-10-31/vmf-text-services/session/`:
+Static analysis exports:
 
 - `12-assembly.json`, classifier `4491A0..449230`, 145 bytes,
   evidence `d28e107828510579d7075e3491a5a763d55542e7f18c26ba4a821c61cb817c40`;
@@ -64,24 +64,20 @@ matching the two disassembly/PE/DUMPBIN references of the previous text batch.
 Ordered sum:
 `26499ae44e80182cc340ae0f70a254ab31481d8b52780511e9031f5a3029548c`.
 
-Private batch `<isolated-copies>/20261031T065728-10592`, target PID 19608,
-creation FILETIME 134379034551153645, image 00400000; Python observer PID 10592.
-The executed private copy remains `20261030T035944-25460/game/` with the
-official SHA, verified and locked. After 100.155 seconds, the Job reaches its
-expected timeout (code 1460) and the slot is released. The observer's audit
-receipts report **6697 references and 17 source saves unchanged**.
+Isolated trial: target PID 19608, creation FILETIME 134379034551153645, image
+00400000. The executed isolated copy has the official SHA, verified and
+locked. After 100.155 seconds, the Job reaches its expected timeout (code
+1460). The trial audit records report **6697 references and 17 source saves
+unchanged**.
 
 The probe is read-only, with no constant, pointer walk or free address. The
 context remains instrumented x86, with the requested D3D9On12/borderless
 display; no UI input was sent. Presence of the code does not mean an
 attested call, a native x64/D3D12 final client or a playable menu.
 
-The private parent verifier `vmf-variable-reference-v1/verify-runtime.py`
-links the identities, captures, probe archives and audits. The launch receipt
-contains a 1479-byte auxiliary field inherited from the previous batch:
-`runtime-receipt-addendum.json` explicitly excludes it from this evidence. Only
-the current catalog, its two `secondary_references` and the probe identity are
-used. The history is not rewritten.
+An offline check links the identities, captures, probe archives and
+audits. Only the current catalog, its two `secondary_references`
+and the probe identity are used.
 
 ## Guards and validation
 

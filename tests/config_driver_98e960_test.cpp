@@ -1,6 +1,6 @@
-// Témoins : driver 98E960 composé des modules reconstruits.
-// Données synthétiques uniquement, aucun fichier du jeu. Registre et
-// sections de GamePC : sous-ensemble public (public subset).
+// Witnesses: driver 98E960 composed of the reconstructed modules.
+// Synthetic data only, no game file. Registry and sections of GamePC:
+// public subset.
 
 #include "tdur/game/config_driver_98e960.hpp"
 #include "tdur/game/config_external_loader.hpp"
@@ -27,7 +27,7 @@ void check(bool condition, const char* what, int line) {
     ++checks;
     if (!condition) {
         ++failures;
-        std::printf("FAIL ligne %d : %s\n", line, what);
+        std::printf("FAIL line %d: %s\n", line, what);
     }
 }
 #define CHECK(c) check((c), #c, __LINE__)
@@ -97,7 +97,7 @@ struct Fake final : reg::Constructor9896c0Ports,
     const Block11e2f3a* block_87b430 = nullptr;
     std::vector<BlockHandle> freed;
 
-    // Constructeur 9896C0.
+    // Constructor 9896C0.
     void call_4052b0_subobject_30(reg::ParserObject9896c0&) override {
         link_ok_at_construct =
             service->owner_10 == owner && service->flag_18 == 0;
@@ -126,7 +126,7 @@ struct Fake final : reg::Constructor9896c0Ports,
         return {};
     }
 
-    // Chargeur 6B1A00.
+    // Loader 6B1A00.
     void select_block_6b18d0(std::span<const char> path,
                              LoadSlots& slots) override {
         const std::string p = text_of(path);
@@ -145,7 +145,7 @@ struct Fake final : reg::Constructor9896c0Ports,
         return ExternalCallOutcome::native_returned;
     }
 
-    // Helpers de 438450.
+    // Helpers of 438450.
     ParseCursor prefix_4381b0(const SectionParseCall& call) override {
         if (call.section && *call.section == refuse_cursor_section) {
             return ParseCursor{call.data.size() + 1};
@@ -171,7 +171,7 @@ struct Fake final : reg::Constructor9896c0Ports,
         return eax;
     }
 
-    // Ports du driver.
+    // Driver ports.
     void copy_9ec36c(std::span<char> dest, NativeIdentity source,
                      std::optional<std::string_view> text,
                      std::uint32_t count) override {
@@ -212,7 +212,7 @@ struct Fake final : reg::Constructor9896c0Ports,
                                          : HelperCallOutcome::native_returned;
     }
     HelperCallOutcome call_98dd20(startup::StartupServiceBase& s) override {
-        trace.push_back(&s == service ? "98DD20" : "98DD20:autre");
+        trace.push_back(&s == service ? "98DD20" : "98DD20:other");
         if (on_98dd20) {
             on_98dd20();
         }
@@ -273,7 +273,7 @@ struct Bench {
         ctx.service_29c.fill(std::byte{0xAB});
         ctx.block_11e2f3a.text.fill('Q');
     }
-    // Bloc présent sur la route intégrée (drapeau 0) avec contenu donné.
+    // Block present on the integrated route (flag 0) with given content.
     BlockHandle present(const std::string& file, std::string_view content,
                         std::uint32_t size) {
         const BlockHandle h = store.add(bytes(content));
@@ -376,38 +376,38 @@ void test_full_order_and_reuse() {
         }
     }
     CHECK(r.section_calls == 20);
-    // 9896C0 réutilisé : sous-ensemble public (public subset) de 375
-    // enregistrements, lien hôte du service.
+    // 9896C0 reused: public subset of 375 registrations, host link of the
+    // service.
     CHECK(r.construct.outcome == reg::ConstructOutcome::completed);
     CHECK(r.construct.registrations == 375);
     CHECK(b.fake.calls_4378b0 == 375);
     CHECK(b.fake.link_ok_at_construct);
     CHECK(b.service.owner_10 == &b.owner);
     CHECK(b.service.flag_18 == 0);
-    // Même parser pour 438450 et 988FC0.
+    // Same parser for 438450 and 988FC0.
     CHECK(!b.fake.parsers.empty());
     CHECK(std::all_of(
         b.fake.parsers.begin(), b.fake.parsers.end(),
         [&b](const ParserObject* p) { return p == b.fake.parsers.front(); }));
-    CHECK(b.fake.parsers.size() == 21); // 20 commandes + 988FC0
-    // 438450 réutilisé : drapeau partagé remis à 0 en sortie native.
+    CHECK(b.fake.parsers.size() == 21); // 20 commands + 988FC0
+    // 438450 reused: shared flag reset to 0 on native exit.
     CHECK(b.state.stop_flag_10e8069 == 0);
-    // 6B1A00 réutilisé : décodage intégré en place, drapeau 0.
+    // 6B1A00 reused: integrated decoding in place, flag 0.
     const auto game = b.store.view(BlockHandle{0});
     CHECK(game && static_cast<char>((*game)[1]) == ('G' ^ 'x'));
     CHECK(b.ctx.storage_flag == 0);
-    // Tampon : 98DD20 avant l'initialisation ; jamais remis à zéro ensuite.
+    // Buffer: 98DD20 before the initialization; never reset to zero afterwards.
     CHECK(b.ctx.path[200] == '\0');
     CHECK(b.ctx.path[100] == 'M');
     CHECK(b.ctx.path[255] == '\0');
     CHECK(text_of(b.ctx.path) == "Replay.ini");
-    // Lectures au site des entrées de 986B60.
+    // Reads at the site of the inputs of 986B60.
     CHECK(b.fake.override_inputs.size() == 4);
     CHECK(b.fake.override_inputs[0].ebx_10e7350 == 0x1111);
     CHECK(b.fake.override_inputs[0].edi_10e734c == 0x2222);
-    // adddevice : seul le premier octet effacé avant l'override.
+    // adddevice: only the first byte cleared before the override.
     CHECK(b.fake.adddevice_path_at_override == "0hysics.ini");
-    // Données finales.
+    // Final data.
     CHECK(std::all_of(b.ctx.service_29c.begin(), b.ctx.service_29c.end(),
                       [](std::byte v) { return v == std::byte{0}; }));
     CHECK(b.ctx.block_11e2f3a.text[126] == 'Z');
@@ -425,7 +425,7 @@ void test_four_absences() {
     b.absent("GamePC.ini");
     b.absent("Physics.ini");
     b.absent("Replay.ini");
-    const DriverResult r = b.run(); // override adddevice laisse le chemin vide
+    const DriverResult r = b.run(); // adddevice override leaves the path empty
     CHECK(r.outcome == DriverOutcome::completed);
     CHECK(r.section_calls == 0);
     CHECK(count_prefix(b.fake.trace, "9A5D20:") == 3);
@@ -435,12 +435,12 @@ void test_four_absences() {
     CHECK(count_prefix(b.fake.trace, "98DE80:1") == 1);
     CHECK(count_prefix(b.fake.trace, "988FC0") == 1);
     CHECK(!r.files[0].present && !r.files[1].present && !r.files[3].present);
-    CHECK(!r.files[2].loader_called); // adddevice : chemin vide
-    CHECK(b.ctx.storage_flag == 1);   // route externe de 6B1A00
+    CHECK(!r.files[2].loader_called); // adddevice: empty path
+    CHECK(b.ctx.storage_flag == 1);   // external route of 6B1A00
     CHECK(b.ctx.physics_target == PhysicsTarget::car_168d230);
     CHECK(r.physics_release == PhysicsRelease::not_reached);
 
-    // adddevice non vide mais bloc absent : chargé, pas de Devices.
+    // adddevice not empty but block absent: loaded, no Devices.
     Bench c;
     c.absent("GamePC.ini");
     c.absent("Physics.ini");
@@ -455,7 +455,7 @@ void test_four_absences() {
 
 void test_present_empty() {
     Bench b;
-    // Handle d'indice 0, bloc de 0 octet : présent, données nulles possédées.
+    // Handle of index 0, block of 0 bytes: present, owned null data.
     b.present("GamePC.ini", "", 0);
     b.present("Physics.ini", "", 0);
     b.present("dev.ini", "", 0);
@@ -492,8 +492,8 @@ void test_gamepc_capture() {
     CHECK(b.fake.section_data.size() == 16);
     CHECK(std::all_of(b.fake.section_data.begin(), b.fake.section_data.end(),
                       [data](const std::byte* p) { return p == data; }));
-    // LoadSlots non remis à zéro : Physics voit l'emplacement muté puis
-    // la sélection le remet absent.
+    // LoadSlots not reset to zero: Physics sees the mutated slot, then
+    // the selection makes it absent again.
     CHECK(!r.files[1].present);
 }
 
@@ -501,7 +501,7 @@ void test_physics_reencode_and_copy() {
     Bench b;
     b.absent("GamePC.ini");
     b.absent("Replay.ini");
-    // Encodé de "xyzw" : x, x^y, y^z, z^w.
+    // Encoding of "xyzw": x, x^y, y^z, z^w.
     const char enc[] = {'x', 'x' ^ 'y', 'y' ^ 'z', 'z' ^ 'w', 0};
     const BlockHandle h = b.present("Physics.ini", enc, 4);
     const BlockHandle other = b.store.add(bytes("zzzz"));
@@ -514,8 +514,8 @@ void test_physics_reencode_and_copy() {
             for (std::size_t i = 0; i < c.size(); ++i) {
                 c[i] = static_cast<std::byte>(0x10 + i % 200);
             }
-            b.ctx.slots.block = other; // bloc capturé conservé
-            b.ctx.slots.size = 2;      // taille relue en 98EC5D
+            b.ctx.slots.block = other; // captured block kept
+            b.ctx.slots.size = 2;      // size reread at 98EC5D
         }
     };
     const DriverResult r = b.run();
@@ -530,14 +530,14 @@ void test_physics_reencode_and_copy() {
     CHECK(b.fake.target_at_98de80 == PhysicsTarget::bike_168ce80);
     CHECK(r.physics_release == PhysicsRelease::reencoded);
     CHECK(b.fake.freed.empty());
-    // Réencodage des 2 premiers octets seulement du bloc capturé.
+    // Reencoding of only the first 2 bytes of the captured block.
     const auto v = *b.store.view(h);
     CHECK(static_cast<char>(v[0]) == enc[0]);
     CHECK(static_cast<char>(v[1]) == enc[1]);
     CHECK(static_cast<char>(v[2]) == 'z');
     CHECK(static_cast<char>(v[3]) == 'w');
     CHECK(static_cast<char>((*b.store.view(other))[0]) == 'z');
-    // 940 octets copiés sur 944, remises à zéro, octets voisins.
+    // 940 of 944 bytes copied, resets to zero, neighboring bytes.
     bool copy_ok = true;
     for (std::size_t i = 0; i < kPhysicsCopyBytes; ++i) {
         const bool zero_dword = i >= 0x370 && i < 0x398;
@@ -555,7 +555,7 @@ void test_physics_reencode_and_copy() {
 }
 
 void test_physics_free_branches() {
-    // Drapeau relu non nul après Bike (mutation pendant Bike).
+    // Flag reread nonzero after Bike (mutation during Bike).
     Bench b;
     b.absent("GamePC.ini");
     b.absent("Replay.ini");
@@ -571,7 +571,7 @@ void test_physics_free_branches() {
     CHECK(b.fake.freed.size() == 1 && b.fake.freed[0] == h);
     CHECK(static_cast<char>((*b.store.view(h))[1]) == ('A' ^ 'x'));
 
-    // Route externe : drapeau 1 écrit par 6B1A00, bloc posé par 9A5D20.
+    // External route: flag 1 written by 6B1A00, block set by 9A5D20.
     Bench c;
     c.absent("GamePC.ini");
     c.absent("Replay.ini");
@@ -753,7 +753,7 @@ void test_refusals() {
         CHECK(r.outcome == DriverOutcome::refused_parser_construction);
         CHECK(b.service.owner_10 == &b.owner && b.service.flag_18 == 0);
         CHECK((b.fake.trace == std::vector<std::string>{"9896C0"}));
-        CHECK(b.ctx.path[0] == 'P'); // tampon non initialisé
+        CHECK(b.ctx.path[0] == 'P'); // buffer not initialized
     }
     {
         Bench b;
@@ -797,9 +797,9 @@ void test_refusals() {
         Bench b;
         b.absent("GamePC.ini");
         b.present("Physics.ini", "xAB", 3);
-        // Taille relue en 98EC5D après Car : 50 > 3, refus borné de 438450
-        // (Bike) avant tout réencodage ; une mutation pendant Bike n'a
-        // aucun effet sur la taille déjà relue.
+        // Size reread at 98EC5D after Car: 50 > 3, bounded refusal from 438450
+        // (Bike) before any reencoding; a mutation during Bike has no effect
+        // on the size already reread.
         b.fake.on_section = [&b](std::string_view s) {
             if (s == "Car") {
                 b.ctx.slots.size = 50;

@@ -2,12 +2,11 @@
 
 ## Observation and preservation
 
-Private batch `<isolated-copies>/20261030T172644-24736/`; PID
-31176, creation FILETIME 134378548139721974. The job object terminates the
-process at the 120-second deadline (code 1460), then the slot is released. The
-6 697 reference files and the 17 digests of the source savegames remain
-unchanged. The official file is verified by its SHA-256 and held under a read
-lock.
+Batch `20261030T172644-24736`; PID 31176, creation FILETIME
+134378548139721974. The job object terminates the process at the 120-second
+deadline (code 1460). The 6 697 reference files and the 17 digests of the
+source savegames remain unchanged. The official file is verified by its
+SHA-256 and held under a read lock.
 
 The enriched probe reads the same **seven DWORDs / 28 PE bytes** as before.
 The user ceiling is `7FFEFFFF`, QPC `10000000`, base `00400000`.

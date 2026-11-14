@@ -22,17 +22,16 @@ Addresses are x86 VAs, base `00400000`.
 | PC MC 1.66 A, `<installation>/TestDriveUnlimited.exe` | `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30` | Primary reference |
 | Local executable associated with Platinum/Paradise | `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed` | Secondary analysis image |
 
-The new evidence lives in the private folder
-`reprise-2026-10-30/`:
+The new static analysis covers:
 
-- `paradise-simulation-dispatch/`: loops, vtables, dispatch, constructor,
-  pause and physics writers; `targeted-disk-comparisons.json` gives the
-  lengths and SHAs of each exact comparison.
-- `paradise-simulation-follow/`: references to the pause and to the derived
-  constructors, registration of the core services.
-- `paradise-simulation-services/`: additional references to `9B4900`, AI
-  service, program vtable, pause variants and bounded reads of the bodies
-  that Ghidra does not attribute to a function.
+- loops, vtables, dispatch, constructor, pause and physics writers, with
+  targeted disk comparisons giving the lengths and SHAs of each exact
+  comparison;
+- references to the pause and to the derived constructors, and the
+  registration of the core services;
+- additional references to `9B4900`, the AI service, the program vtable,
+  pause variants and bounded reads of the bodies that Ghidra does not
+  attribute to a function.
 
 Ghidra 12.2 reuses the existing secondary snapshots. The unattributed
 bodies are completed with instruction inspection, raw byte reads and a
@@ -59,13 +58,12 @@ callback and of the integrator are detailed in
 cover the new bodies of this investigation. No game was launched for this
 static investigation; no account data was read.
 
-A later corroboration, from the closed private
-official trial `20261030T102129-30308`: the 14 added ranges cover the
-complete bodies of `9B4AC0`, `9B4830`, `97C6E0`, `97F260`, `7BEB90`,
-`7BE2E0`, `81EDA0` and `969E70`. All of them match in memory with both
-disks. The display catalog reaches 43 ranges and 11,916 bytes. The exact
-reports remain under `code-helpers/` in that batch; this is not an
-execution trace of the routines.
+A later corroboration, from the closed official trial
+`20261030T102129-30308`: the 14 added ranges cover the complete bodies of
+`9B4AC0`, `9B4830`, `97C6E0`, `97F260`, `7BEB90`, `7BE2E0`, `81EDA0` and
+`969E70`. All of them match in memory with both disks. The display catalog
+reaches 43 ranges and 11,916 bytes. This corroboration is not an execution
+trace of the routines.
 See [the scalar measurement](runtime_timing_probe.md).
 
 ## Program, scene and display iteration
@@ -142,9 +140,9 @@ other indices do not prove their activation.
 ## Services to separate
 
 `9B4E40` adds 13 core services. The nominal path of `97C8F0` adds 38, that
-is 51 in total if the preceding initializations succeed. The static analysis export
-`paradise-simulation-services/06-references.json` keeps the 51 references to
-`9B4900`, including those from code not attributed to a function.
+is 51 in total if the preceding initializations succeed. The static
+analysis export of the references keeps the 51 references to `9B4900`,
+including those from code not attributed to a function.
 
 | Object / vtable | Related update | Consequence for the rate |
 | --- | --- | --- |
@@ -229,8 +227,8 @@ The base of the physics service `1293880` gives the following aliases:
 
 `7B3450` handles among other things a camera/script transition; the first
 flag therefore cannot be renamed globally as "manual pause". The targeted
-scan of relative writes is kept in `physics-flag-write-candidates.json` and
-corroborated by the instructions read through static analysis.
+scan of relative writes is corroborated by the instructions read through
+static analysis.
 It does not constitute an exhaustive alias analysis.
 
 The WinMM callback `81EE50` skips integration for `ED != 0` and passes a

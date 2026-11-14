@@ -20,9 +20,7 @@ Files: `include/tdur/game/legacy_population.hpp`,
 
 ## Provenance and limits of the evidence
 
-The existing static analysis exports of
-`<private-evidence>/reprise-2026-10-30/paradise-ai-time/` are
-reused without a new session:
+The existing static analysis exports are reused without a new session:
 
 | Item | Evidence |
 | --- | --- |
@@ -37,10 +35,10 @@ image SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
 SHA-256 of the body in both files:
 `bb30e205c0f3427b01ad888308f691a18f56b5b82290333e2899af767209d150`.
-The private validation rechecks the files and this range by mapping the
+The validation rechecks the files and this range by mapping the
 PE sections. It does not prove an execution in official memory.
 
-The calling boundary was established in a separate private study:
+The calling boundary was established in a separate study:
 `90C760` is a distinct step after the world and other services of
 `969E70`, under conditions that may be modified earlier in the same pass.
 This component does not replace those conditions.
@@ -145,11 +143,8 @@ services, DWORD copy, binding replacement, NaN/infinities/ties, each of the
 sixteen slots, refusal without second choice, late errors, exceptions,
 reentrancy and release of objects after callback.
 
-Private configuration and reports:
-`<private-evidence>/reprise-2026-10-30/legacy-population-cpp/`.
-`validation.json` contains commands, versions, outputs, source and
-executable fingerprints, as well as the observed PE architectures. The two
-binaries are standalone witnesses; no game was launched for this delivery.
+The two test binaries are standalone witnesses; no game was launched for this
+delivery.
 
 After integrating the module and its test into the main CMake, the **32
 Release/x64 CTests pass**. An independent review found no blocking defect

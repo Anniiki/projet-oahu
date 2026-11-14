@@ -8,7 +8,7 @@ hang or a new-game test. No UI input or window text was collected.
 
 The Documents hook recorded `folder-a-redirected`, success, a current-user token,
 and main-image return RVA `005A4885`. The 17 locked source-save files and all
-6,697 reference files remained unchanged; the process slot was released.
+6,697 reference files remained unchanged.
 
 ## Primary code correlation
 

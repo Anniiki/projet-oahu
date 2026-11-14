@@ -10,12 +10,11 @@ not yet validate the commercial menus displayed in the game.
 
 Primary reference: PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The complete 298-byte body, `717FF0..718119`, is cross-checked against the static analysis
-responses for the secondary and the primary on disk. SHA-256:
+The complete 298-byte body, `717FF0..718119`, is cross-checked against the
+static analysis responses for the secondary and the primary on disk. SHA-256:
 `2c35c20c341f2ab277ad723a3e1c07ca56d558d85cdee97ce880ee47d81c5efb`.
 The constants `(ERR:1)` at `F39FF0` and `(ERR:4)` at `F39F50`, eight bytes each
-including their NUL, are also reread on the primary. Private evidence:
-`vmf-format-display-runtime-v1/native-proof.json` and `data-proof.json`.
+including their NUL, are also reread on the primary.
 No new native or in-game invocation is performed for this port.
 
 ## Branches and order of effects

@@ -32,9 +32,9 @@ policy will explicitly separate the manual pause reason from
 
 ## Admission and lifecycle
 
-The private option `TDUR_RETAIL_BACKGROUND=1` comes from the D3D12 trial
-wrapper; `--keep-focus-pause` keeps the baseline. No global environment is
-changed. The launcher opens the executable without write/delete sharing,
+The policy is enabled only by `TDUR_RETAIL_BACKGROUND=1`; without it, the
+baseline is kept. No global environment is changed. The launcher opens the
+executable without write/delete sharing,
 checks its SHA and keeps that handle until the process ends. It overwrites the
 inherited marker `TDUR_RETAIL_EXECUTABLE_VERIFIED`, even for a fixture. The
 module arms itself only during initial loading (`reserved != nullptr`); a late
@@ -82,7 +82,7 @@ share one page, restored only once.
 
 An error undoes only the words written by that transaction. If the state or
 its protections cannot be fully verified, the component terminates **its own
-private process before any resumption**; it does not continue with a partial
+isolated process before any resumption**; it does not continue with a partial
 patch. A persistent error refuses subsequent creations. The suspension is
 not a general engine synchronization: keep this initial point bounded.
 Microsoft describes the risk of waiting on a lock held by a suspended thread
@@ -139,16 +139,15 @@ DXGI S_OK presentation follow: source/viewport/output 2560×1440, borderless,
 The probe reads 47/47 ranges and 12 146 bytes. In the four touched ranges,
 the **only deviations** from the reference bodies are the three 2-byte
 prefixes and the seven bytes of the detour at 996850. The remaining
-instructions and branch displacements match entirely. The comparisons are in
-the `code-helpers/comparisons.json` file produced with this trial; they
+instructions and branch displacements match entirely. The comparisons
 explicitly identify the modifications made by our component, without
 attributing them to the original game.
 
 The 26 graphics samples read 28 values/91 bytes without failure: native
 activation 1, factor 1, period 1/90, measured delta source 1, EB/EC 0, ED 1
 and integrator counter 0. The menu advances; no loss of the world's real
-activation is observed. The job object closed its only copy, slot released, 6 697 files
-and 17 source saves unchanged. No online profile was created.
+activation is observed. The job object closed its only copy; 6 697 files and
+17 source saves unchanged. No online profile was created.
 
 DLL: `e136c22bbf6f765a89a76d35eaad3084ce98b7f6b0c3f3b825d8564e039b0038`.
 Launcher: `cdf11e16200ea62124073820bcd7c72d3ed5322dee2204a8bf95a3409c8bd479`.

@@ -1,12 +1,12 @@
 #pragma once
 
-// Driver 0x98E960 (chargement de configuration au démarrage).
-// Compose les modules acceptés : construct_9896c0 et sa table,
-// BlockStore, LoadSlots et run_config_file_loader_6b1a00,
+// Driver 0x98E960 (configuration loading at startup).
+// Composes the accepted modules: construct_9896c0 and its table,
+// BlockStore, LoadSlots and run_config_file_loader_6b1a00,
 // run_config_section_parser_438450, reencode_like_98ec91_in_place,
-// StartupServiceBase et GameModeRuntime. Les appelés non reconstruits
-// restent des ports ; aucune adresse native n'est appelée ni suivie.
-// Le natif ne pose aucun AL : le résultat ci-dessous est moderne.
+// StartupServiceBase and GameModeRuntime. Callees that are not
+// reconstructed remain ports; no native address is called or followed.
+// The native code sets no AL: the result below is modern.
 
 #include "tdur/game/config_block_store.hpp"
 #include "tdur/game/config_file_loader.hpp"
@@ -23,8 +23,8 @@
 
 namespace tdur::game::config {
 
-// Définition du type opaque de 438450 : contexte du parser construit
-// par 9896C0 et détruit par 988FC0. 438450 n'en connaît pas la définition.
+// Definition of the opaque type of 438450: parser context constructed
+// by 9896C0 and destroyed by 988FC0. 438450 does not know its definition.
 struct ParserObject {
     config_registry::ParserObject9896c0 registry;
 };
@@ -37,12 +37,12 @@ inline constexpr std::size_t kServiceBlock29cSize = 0x400; // 98EDCF
 inline constexpr std::uint32_t kFinalCopyBound = 0x7F;     // 98EDC6
 inline constexpr std::uint16_t kWord11e2fba = 0x2328;      // 9000
 
-// [0x10E7814] : cible des callbacks de section, écrite par le driver.
-// unset = valeur antérieure non établie, jamais écrite par 98E960.
+// [0x10E7814]: target of the section callbacks, written by the driver.
+// unset = earlier value not established, never written by 98E960.
 enum class PhysicsTarget : std::uint8_t { unset, car_168d230, bike_168ce80 };
 
-// Enregistrements natifs 0x168CE80 (Bike, octets 0..943) et 0x168D230
-// (Car, octets 944..1887), contigus comme au natif.
+// Native records 0x168CE80 (Bike, bytes 0..943) and 0x168D230
+// (Car, bytes 944..1887), contiguous as in the native code.
 struct PhysicsRecords {
     std::array<std::byte, 2 * kPhysicsRecordStride> bytes{};
     [[nodiscard]] std::span<std::byte, kPhysicsRecordStride> bike() noexcept {
@@ -53,51 +53,51 @@ struct PhysicsRecords {
     }
 };
 
-// Bloc 0x11E2F3A : 127 octets copiés, NUL à +0x7F, mot à +0x80.
+// Block 0x11E2F3A: 127 bytes copied, NUL at +0x7F, word at +0x80.
 struct Block11e2f3a {
     std::array<char, 0x80> text{};
     std::uint16_t word_80 = 0;
 };
 
-// Données possédées remplaçant la pile et les globales de 98E960. Les
-// ports peuvent les modifier ; chaque lecture du driver a lieu au site.
+// Owned data replacing the stack and the globals of 98E960. The ports
+// may modify them; each read by the driver happens at the site.
 struct DriverContext {
-    LoadSlots slots;               // S+0x14 (bloc) et S+0x0C (taille)
+    LoadSlots slots;               // S+0x14 (block) and S+0x0C (size)
     std::uint8_t storage_flag = 0; // S+0x10
-    std::array<char, kPathBufferSize> path{}; // S+0x100, initialisé 1 fois
+    std::array<char, kPathBufferSize> path{}; // S+0x100, initialized once
     PhysicsTarget physics_target = PhysicsTarget::unset; // [0x10E7814]
     PhysicsRecords physics;
-    startup::OpaqueWord global_10e7350 = 0; // table hôte, relue à chaque appel
-    std::uint32_t global_10e734c = 0;       // EDI lu avant chaque 986B60
+    startup::OpaqueWord global_10e7350 = 0; // host table, reread at each call
+    std::uint32_t global_10e734c = 0;       // EDI read before each 986B60
     std::array<std::byte, kServiceBlock29cSize> service_29c{}; // service+29C
     Block11e2f3a block_11e2f3a;
 };
 
-// Entrées de 986B60 lues au site : EBX est une table de pointeurs hôtes,
-// EDI garde ses 32 bits natifs (nombre interprété signé par l'appelé).
+// Inputs of 986B60 read at the site: EBX is a table of host pointers,
+// EDI keeps its 32 native bits (count interpreted as signed by the callee).
 struct Inputs986b60 {
     startup::OpaqueWord ebx_10e7350 = 0;
     std::uint32_t edi_10e734c = 0;
 };
 
-// Extension : retour natif atteint, ou refus moderne au site d'accès
-// invalide (aucune suite simulée). Jamais une réussite fonctionnelle.
+// Extension: native return reached, or modern refusal at the invalid
+// access site (no continuation simulated). Never a functional success.
 enum class HelperCallOutcome : std::uint8_t { native_returned, modern_refusal };
 
-// Points d'intégration. Les quatre helpers reconstruits sont fournis par
-// AuxDriverBinding ; les autres corps restent des ports.
+// Integration points. The four reconstructed helpers are supplied by
+// AuxDriverBinding; the other bodies remain ports.
 class DriverPorts {
   public:
     virtual ~DriverPorts() = default;
-    // CALL [0x9EC36C](dest, source, count), cdecl. Identité CRT non déduite.
-    // dest est borné à count octets ; verified_text est le label vérifié
-    // de la source, absent pour 0x143F5B6.
+    // CALL [0x9EC36C](dest, source, count), cdecl. CRT identity not deduced.
+    // dest is bounded to count bytes; verified_text is the verified label
+    // of the source, absent for 0x143F5B6.
     virtual void copy_9ec36c(std::span<char> dest, NativeIdentity source,
                              std::optional<std::string_view> verified_text,
                              std::uint32_t count) = 0;
-    // Extension : les quatre helpers reconstruits rendent un contrôle
-    // moderne, distinct de tout AL natif (ignoré par 98E960).
-    // 986B60(clé, tampon, 0xFF) ; tampon borné à 255 octets.
+    // Extension: the four reconstructed helpers return a modern control
+    // result, distinct from any native AL (ignored by 98E960).
+    // 986B60(key, buffer, 0xFF); buffer bounded to 255 bytes.
     virtual HelperCallOutcome override_986b60(NativeIdentity key,
                                               std::string_view label,
                                               std::span<char> path,
@@ -110,21 +110,21 @@ class DriverPorts {
     virtual void call_9a4750(NativeIdentity service_10e80c0) = 0;
     virtual void call_9a6040(NativeIdentity service_10e80c0,
                              std::uint32_t arg) = 0;
-    // 6B19C0 : EAX = bloc, pile = taille, ECX = &drapeau S+0x10.
+    // 6B19C0: EAX = block, stack = size, ECX = &flag S+0x10.
     virtual void release_6b19c0(BlockHandle block, std::uint32_t size,
                                 std::uint8_t& storage_flag) = 0;
-    // 674E0C(bloc), cdecl.
+    // 674E0C(block), cdecl.
     virtual void free_674e0c(BlockHandle block) = 0;
     // 87B430(0xF1B9A4, 0x11E2F3A, 0x2328), cdecl.
     virtual void call_87b430(NativeIdentity label_f1b9a4, Block11e2f3a& block,
                              std::uint32_t value) = 0;
-    // 988FC0 : EAX = parser.
+    // 988FC0: EAX = parser.
     virtual HelperCallOutcome destroy_988fc0(ParserObject& parser) = 0;
 };
 
 struct DriverPortSet {
     config_registry::Constructor9896c0Ports& constructor;
-    ConfigLoaderPorts& loader; // direct ou ExternalLoaderBinding
+    ConfigLoaderPorts& loader; // direct or ExternalLoaderBinding
     SectionParserPorts& sections;
     DriverPorts& driver;
 };
@@ -133,25 +133,25 @@ enum class ConfigFile : std::uint8_t { gamepc, physics, adddevice, replay };
 
 struct FileTrace {
     bool loader_called = false;
-    bool present = false;             // TEST du pointeur bloc au site
-    std::optional<BlockHandle> block; // valeur capturée
-    std::uint32_t size = 0;           // taille capturée au site
+    bool present = false;             // TEST of the block pointer at the site
+    std::optional<BlockHandle> block; // captured value
+    std::uint32_t size = 0;           // size captured at the site
 };
 
 enum class PhysicsRelease : std::uint8_t {
     not_reached,
-    freed_674e0c, // drapeau relu non nul (98EC84)
-    reencoded,    // drapeau relu nul : 98EC91..98ECAD
+    freed_674e0c, // flag reread nonzero (98EC84)
+    reencoded,    // flag reread zero: 98EC91..98ECAD
 };
 
 enum class DriverOutcome : std::uint8_t {
-    completed, // fin moderne après 988FC0 ; jamais un succès natif
-    refused_parser_construction,   // construct_9896c0 refusé
-    refused_loader,                // refus moderne de 6B1A00
-    refused_section_parser,        // refus moderne de 438450
-    refused_physics_block_unknown, // réencodage sur bloc inconnu/libéré
+    completed, // modern end after 988FC0; never a native success
+    refused_parser_construction,   // construct_9896c0 refused
+    refused_loader,                // modern refusal from 6B1A00
+    refused_section_parser,        // modern refusal from 438450
+    refused_physics_block_unknown, // reencoding on unknown/released block
     refused_physics_size_exceeds_storage,
-    refused_override_986b60, // extension : refus remonté du helper
+    refused_override_986b60, // extension: refusal propagated from the helper
     refused_98dd20,
     refused_98de80,
     refused_destroy_988fc0,
@@ -165,14 +165,14 @@ struct DriverResult {
     std::optional<LoaderResult> refused_loader;
     std::optional<SectionParseResult> refused_section_result;
     std::array<FileTrace, 4> files{};
-    std::uint32_t section_calls = 0; // appels de 438450 effectués
+    std::uint32_t section_calls = 0; // calls to 438450 performed
     PhysicsRelease physics_release = PhysicsRelease::not_reached;
 };
 
-// Exécute 98E960. Précondition : `service` est l'argument pile (0x1140360
-// au site connu) et `owner` l'EAX de l'appelant 9B4E40. Un refus moderne
-// s'arrête au point d'accès : effets antérieurs conservés, aucun effet
-// natif postérieur (988FC0 compris) simulé.
+// Runs 98E960. Precondition: `service` is the stack argument (0x1140360
+// at the known site) and `owner` the EAX of the caller 9B4E40. A modern
+// refusal stops at the access point: earlier effects are kept, no later
+// native effect (988FC0 included) is simulated.
 DriverResult
 run_configuration_driver_98e960(startup::StartupServiceBase& service,
                                 GameModeRuntime& owner, DriverContext& context,

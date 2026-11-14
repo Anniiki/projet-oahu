@@ -16,8 +16,6 @@ The four strings referenced at `F161D0`, `F161E0`, `F161F0` and `F16204`
 also match, totaling 60 bytes. Their texts come from the installation's
 loader; they are not distributed in the sources.
 
-Answers, Evidence identifiers and fingerprints stay out of Git in
-`vmf-child-dispatch-runtime-v2/native-proof.json` and `data-proof.json`.
 This cross-check reuses a static analysis session that was already closed. No new game
 launch, native call or game memory reading is performed.
 

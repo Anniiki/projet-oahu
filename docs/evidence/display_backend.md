@@ -77,16 +77,14 @@ any barrier, then normal rendering reused.
 A separate first visible attempt produced `0x887A0022`
 (NOT_CURRENTLY_AVAILABLE), without validating exclusive. This HRESULT is also
 used by our window guard; it is not enough to attribute the refusal to the
-DXGI call. A documented repetition under
-`<private-evidence>/reprise-2026-10-30/display-exclusive-current/result.json` lasts 0.231 s:
+DXGI call. A documented repetition lasts 0.231 s:
 window visible=1, window/process foreground=0. The error explicitly names
 `exclusive requires a visible foreground HWND`, so this repetition
 **does not call SetFullscreenState(TRUE)**. It is not established that the GPU
 refuses exclusive. **Real exclusive remains unvalidated.** The code does not
 replace this result with a borderless window announced as exclusive.
 The optional witness is explicitly named
-“TDU reconstruction - témoin D3D9On12 (aucun jeu)” (TDU reconstruction,
-D3D9On12 witness, no game):
+“TDU reconstruction - D3D9On12 witness (no game)”:
 
 ```powershell
 .\build-display-backend\Release\tdur_display_backend_test.exe --exclusive-visible
@@ -126,9 +124,11 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/tests/display_backend_tests.cmake")
 
 The `display_hooks_tests.cmake` and `display_failure_tests.cmake` snippets
 complete this foundation. The proxy is now linked to the bridge, enabled
-explicitly by the wrapper's `--d3d12-display`; diagnostics without this option
-keep the original path. The factory gate is armed before the entrypoint, but the
-real graphics loading/setup is deferred to the first public call, outside DllMain.
+explicitly by `TDUR_D3D12_DISPLAY=1` (see [the bridge note](display_hooks.md));
+without this variable the original path is kept. The factory gate is armed
+before the
+entrypoint, but the real graphics loading/setup is deferred to the first
+public call, outside DllMain.
 The methods of the real COM objects are intercepted: identity, GetDevice
 and secondary interfaces are preserved. Reset and the primary swapchain's
 presentations go through the same context. Partial presentation and

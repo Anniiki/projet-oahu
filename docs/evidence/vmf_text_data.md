@@ -4,8 +4,7 @@
 
 The PC Paradise secondary executable carries the SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-The private exports `reprise-2026-10-31/vmf-text-bindings-v2/session/`
-establish the following path:
+The static analysis exports establish the following path:
 
 - `21`, 4418B0: the loader replaces the first DWORD of the record with a
   vtable, at the same location. The type table `23` gives `table[37]=13`; the
@@ -24,7 +23,7 @@ starts, unchanged source. Snapshot SHA-256
 `6f76c9d820da18c1b48a5c78234fef19916f41038f3035cdf02e8238a3f75880`.
 This remains secondary static evidence, with no new official invocation.
 
-The 39 verified private VMF files contain 4,644 PC fields and 4,871 Xbox
+The 39 verified local VMF files contain 4,644 PC fields and 4,871 Xbox
 fields. The Xbox profiles come from observed data; the PC ASM does not prove
 their loader.
 

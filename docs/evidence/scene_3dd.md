@@ -89,7 +89,7 @@ memory; the present reader still retains raw primitive bindings.
 ## Transformations and assembly limits
 
 The reader retains the stored matrix and supplies an explicitly defined
-composition for row vectors: `local * parent_composé`, without axis
+composition for row vectors: `local * parent_composed`, without axis
 conversion. Matrices must be finite and affine within `1e-4`, but small
 stored residuals are not erased. Intermediate calculations use double,
 then round to float; no bitwise equality with an original engine cache
@@ -114,7 +114,7 @@ first entry is an established LOD policy.
 
 Static analysis examines the official PE with SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Local evidence in `<private-evidence>/reprise-2026-10-30/original-scene`:
+The findings are:
 
 - A byte search finds `.3DD` at `0x00f12f58`, Evidence
   `9204f872cc0f092f9d97df224c5f2523a7bb66911375fd7d5bcf2c8cf5745eb3`.
@@ -145,11 +145,9 @@ aliases and strict pairing:
 | A3_V6 | 103 | 35 | 34 | 62 | 64 |
 
 These new totals include every variant, unlike the earlier counters that
-considered only `INS+0x60`. The independent static analysis inventory is retained in
-`material-bindings/variant-bindings.json`.
+considered only `INS+0x60`.
 
-All three banks retain their before/after SHA-256. Local reports:
-`build-scene-3dd/official-scenes.txt` and `official-bank-sha256.json`.
+All three banks retain their before/after SHA-256.
 After CMake integration, run `scene_3dd_test` without arguments for
 fixtures, or with these bank paths: members 0/1 are then supplied
 explicitly by the convention of the three official fixtures, without

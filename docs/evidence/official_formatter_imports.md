@@ -28,10 +28,7 @@ of both cells; no targeted call to the CRT or to the game is executed.
 The reader's self-tests pass in Release x64 and Win32. The comparator checks
 the eight bytes, the identities, the before/after snapshots and the hashes of
 the frozen sources. The 6697 references and 17 verified saves are
-unchanged; the isolated copy is released. Private evidence is
-kept in
-`<private-evidence>/reprise-2026-10-31/vmf-formatter-imports-official-v1/`,
-notably `comparison.json` and `probe-validation.json`.
+unchanged.
 
 This observation proves neither the behavior of every CRT case nor the
 execution of the formatting paths. The D3D9On12/DXGI bridge used for the
@@ -49,11 +46,8 @@ cell. The name comparison is case-sensitive; no locale conversion or
 `_strnicmp` comparison is inferred from its use.
 
 The self-tests pass in x64 and Win32; snapshots, 6 697 references and
-17 verified saves are unchanged, and the slot is released. The evidence
-is kept separately in
-`<private-evidence>/reprise-2026-10-31/vmf-named-import-official-v1/`.
-This profile follows no pointer, calls no game function and does not
-establish the execution of the lookup path.
+17 verified saves are unchanged. This profile follows no pointer, calls no
+game function and does not establish the execution of the lookup path.
 
 ## Numeric helpers of the percentage
 
@@ -66,9 +60,7 @@ bytes differ from the primary on disk.
 The isolated trial of 01/11/2026, PID 33516, lasts 100.211 seconds. The
 metadata of the same process and the exports of the verified module confirm
 `floor` at cell `9EC34C`. The self-tests pass in x64 and Win32; snapshots,
-6 697 references and 17 verified saves are preserved, slot released.
-Private evidence is kept in
-`<private-evidence>/reprise-2026-10-31/vmf-format-numeric-official-v1/`.
+6 697 references and 17 verified saves are preserved.
 
 This reading corroborates the code and the binding, without a targeted
 invocation of these two functions. The x86 computation check program runs

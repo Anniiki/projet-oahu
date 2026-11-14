@@ -31,16 +31,13 @@ Addresses are x86 VAs, base `00400000`.
 - Platinum/Paradise secondary: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-The new private evidence is in
-`<private-evidence>/reprise-2026-10-30/physics-thread-adapter/`:
-`session/`, `disk-comparisons.json`, `evidence-index.json` and the bounded
-assemblies. No commercial byte is added to the repository.
+No commercial byte is added to the repository.
 
 | Range | Established result |
 | --- | --- |
 | `81DFD0..81EE44`, 3 701 bytes | Complete integrator body, identical in both files on disk; SHA `15d05060f6cf7d23fdff8521434c156bb8f4c1aa92e0f0d1f475e96f06a6063c` |
 | `81F0B0/223`, `84D570/2276`, `846CF0/1263` | Worker, init and cleanup identical in both files on disk |
-| `852AA0/88`, `8E45D0/541`, `9B4560/58` | Time, update and dispatch helpers reread; private comparison of the exact ranges |
+| `852AA0/88`, `8E45D0/541`, `9B4560/58` | Time, update and dispatch helpers reread; comparison of the exact ranges |
 | `606F20/70`, `607010/73`, `606B60/40`, `606B90/47` | Differ on disk; official/secondary memory equality already established by closed trial 16 |
 | `606F70/128` | Differs on disk; corroborated in official memory by closed trials 18 and 19 |
 | `606FF0/16`, `47DA40/158` | Differ on disk; official/secondary memory agreement established by closed trial 20, without editing these ranges |
@@ -71,18 +68,15 @@ not an execution observation of the complete integrator.
 No protection mechanism is studied or modified.
 
 Runtime complement (official trial 20): trial `20261030T134824-33340`,
-PID `29576`, official reference verified and locked. The private folder
-`<isolated-copies>/20261030T134824-33340/` keeps
-`code-helpers/{observations,comparisons}.json`, the captured binaries,
-`physics-context.json`, `timing-scalars.json` and the logs. The sizes
-and SHAs of the 67 captures, 14 863 bytes in all, were rechecked. The eight
-physics boundaries and the priority table have `own_edits=[]` and
-agree with the secondary. For `43BD90`, there are two blocks
-`[43BD90,43BF29)` and `[43BF30,43BFC0)`: the 553 bytes of the AddressSet
-are covered, but neither the seven excluded bytes `43BF29..43BF2F` nor a
-contiguous span of 560 bytes. The post-check reports 6 697 reference files
-and 17 saves unchanged; the slot is released. This update uses
-these existing files, without a new trial or code change.
+PID `29576`, official reference verified and locked. The sizes and SHAs of
+the 67 captures, 14 863 bytes in all, were rechecked. The eight physics
+boundaries and the priority table have `own_edits=[]` and agree with the
+secondary. For `43BD90`, there are two blocks `[43BD90,43BF29)` and
+`[43BF30,43BFC0)`: the 553 bytes of the AddressSet are covered, but neither
+the seven excluded bytes `43BF29..43BF2F` nor a contiguous span of 560 bytes.
+The post-check reports 6 697 reference files and 17 saves unchanged. This
+update uses the existing files of this trial, without a new trial or code
+change.
 
 ## Why move integration out of the WinMM callback
 
@@ -162,7 +156,7 @@ arguments `-15` and `+15`. Microsoft names them
 
 The 128-byte body is corroborated in official memory, SHA
 `bbdc8dcbca33d4095679e2e07a8a3d953f625bd3f8a2931fb9227e719565bb50`,
-by `20261030T121220-31820/code-helpers/comparisons.json`. **The 16-byte
+by trial `20261030T121220-31820`. **The 16-byte
 table lies outside these 128 bytes and differs on disk**; it is
 now corroborated separately by trial 20, SHA
 `7ff834c21d6f11d097393c4b7f1e3ee12d1e846d060f8e353702430cbfa4337b`.

@@ -17,7 +17,7 @@ evidence limitations are retained in those notes.
 | Simulation and driving | [Fixed-step calendar](evidence/fixed_step.md), [physics worker](evidence/fixed_physics_worker.md), [automatic transmission](evidence/adaptive_automatic.md), [shift band after the finish line](evidence/retail_finish_band.md) |
 | Controllers | [SDL3 transport](evidence/sdl_gamepads.md), [bindings](evidence/controller_bindings.md), [mod gamepad bridge](input_gamepad_proxy.md) |
 | Interface | [VMF execution](evidence/vmf_execution.md), [menu registry](evidence/vmf_menu_registry.md), [global commands](evidence/vmf_fscommand_global.md), [GetURL host bridge](evidence/vmf_host_url.md) |
-| Observations | [Observation mod](mod-observation.md), [Present timing diagnostics](frametime_recording.md) |
+| Observations | [Observation mod](mod-observation.md), [Present timing diagnostics](frametime_recording.md), [crash and hang diagnostics](evidence/crash_hang_diagnostics.md), [save-path witness](evidence/save_path_witness.md) |
 | Dependencies | [Versions and notices](dependencies.md) |
 
 Evidence distinguishes the official PC executable, secondary references and

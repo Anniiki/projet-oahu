@@ -15,8 +15,7 @@ An independent inventory, then its re-execution, record the following:
 | TDU_Tutorials.fr | 11 | 441392 | 81938 | 562 entries |
 
 The bank hashes are recorded in
-[menu data loading](vmf_menu_data.md). The private validation data
-stays in reprise-2026-10-31/vmf-common-help-runtime-v1.
+[menu data loading](vmf_menu_data.md).
 
 ## Schema and identities
 

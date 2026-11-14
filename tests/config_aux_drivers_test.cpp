@@ -1,5 +1,5 @@
-// Validation : 98DD20, 98DE80 et composition depuis 98E960.
-// Les jetons de chemin "<...>" sont des données de test, pas des noms natifs.
+// Validation: 98DD20, 98DE80 and composition from 98E960.
+// The path tokens "<...>" are test data, not native names.
 #include "tdur/game/config_aux_drivers.hpp"
 
 #include <algorithm>
@@ -55,7 +55,7 @@ struct Ctor final : reg::Constructor9896c0Ports {
     void call_4377b0(reg::ParserObject9896c0& o) override {
         built.push_back(&o);
         if (!(leave_first_unset && built.size() == 1)) {
-            o.link_80 = OpaqueWord{0}; // établi par le test (port)
+            o.link_80 = OpaqueWord{0}; // established by the test (port)
         }
     }
     std::optional<std::string_view>
@@ -79,8 +79,8 @@ struct Ctor final : reg::Constructor9896c0Ports {
 
 struct Loader final : cfg::ConfigLoaderPorts {
     cfg::BlockStore* store = nullptr;
-    std::set<std::string> present; // jetons servis par un bloc intégré
-    std::set<std::string> refused; // jetons dont 9A5D20 refuse
+    std::set<std::string> present; // tokens served by an integrated block
+    std::set<std::string> refused; // tokens refused by 9A5D20
     std::vector<std::string> paths;
     static std::string token(std::span<const char> p) {
         return std::string(p.begin(), std::find(p.begin(), p.end(), '\0'));
@@ -184,7 +184,7 @@ struct Teardown final : cfg::ParserTeardownPorts {
     std::vector<const reg::ParserObject9896c0*> destroyed;
     std::optional<std::span<const std::byte, 4>>
     resolve_prefix(OpaqueWord link) override {
-        for (auto& b : ctor->blocks) { // préfixe = 4 octets possédés
+        for (auto& b : ctor->blocks) { // prefix = 4 owned bytes
             if (b.size() >= 4 &&
                 std::bit_cast<OpaqueWord>(b.data() + 4) == link) {
                 return std::span<const std::byte, 4>(b.data(), 4);
@@ -360,9 +360,9 @@ void test_composition() {
               std::string(w.auxp.table0.name_1c.data()) == "n405",
           "fa9d30 table effects");
     check(w.auxp.calls_896160 == 1, "896160 once");
-    // Un parser par cadre : 3 constructions, 3 destructions, mêmes objets.
-    // Ordre natif : 98E960 construit, 98DD20 et 98DE80 construisent et
-    // détruisent leur cadre, puis 98E960 détruit le sien.
+    // One parser per frame: 3 constructions, 3 destructions, same objects.
+    // Native order: 98E960 constructs, 98DD20 and 98DE80 construct and
+    // destroy their frame, then 98E960 destroys its own.
     const std::vector<const reg::ParserObject9896c0*> order{
         w.ctor.built.size() == 3 ? w.ctor.built[1] : nullptr,
         w.ctor.built.size() == 3 ? w.ctor.built[2] : nullptr,
@@ -388,10 +388,10 @@ struct Run98e960 {
     }
 };
 
-// Extension : refus remontés par le binding jusqu'à 98E960.
+// Extension: refusals propagated by the binding up to 98E960.
 void test_propagation() {
     {
-        Run98e960 t; // 986B60 refusé (élément illisible) : avant 6B1A00
+        Run98e960 t; // 986B60 refused (unreadable element): before 6B1A00
         t.w.ctx.global_10e734c = 1;
         cfg::AuxDriverBinding b(t.w.inner, t.w.env());
         const cfg::DriverResult r = t.go(b);
@@ -401,7 +401,7 @@ void test_propagation() {
               "98dd20 lookup refusal propagates to 98e960");
     }
     {
-        Run98e960 t; // 98DD20 refusé : chemin non remis à zéro, arrêt
+        Run98e960 t; // 98DD20 refused: path not reset to zero, stop
         t.w.loader.refused = {"<F7655C>"};
         t.w.ctx.path[0] = 'Z';
         cfg::AuxDriverBinding b(t.w.inner, t.w.env());
@@ -412,7 +412,7 @@ void test_propagation() {
               "98dd20 refusal stops before path reset");
     }
     {
-        Run98e960 t; // 98DE80 refusé : arrêt avant adddevice
+        Run98e960 t; // 98DE80 refused: stop before adddevice
         t.w.loader.refused = {"<F76540>"};
         cfg::AuxDriverBinding b(t.w.inner, t.w.env());
         const cfg::DriverResult r = t.go(b);
@@ -422,7 +422,7 @@ void test_propagation() {
               "98de80 refusal stops before adddevice");
     }
     {
-        Run98e960 t; // 98DE80 garde > 0 : retour natif, 98E960 continue
+        Run98e960 t; // 98DE80 guard > 0: native return, 98E960 continues
         t.w.aux.guard_10e7544 = 5;
         cfg::AuxDriverBinding b(t.w.inner, t.w.env());
         const cfg::DriverResult r = t.go(b);
@@ -431,7 +431,7 @@ void test_propagation() {
               "98de80 guard exit is native, 98e960 continues");
     }
     {
-        Run98e960 t; // 988FC0 refusé pour le parser de 98E960
+        Run98e960 t; // 988FC0 refused for the parser of 98E960
         t.w.ctor.leave_first_unset = true;
         cfg::AuxDriverBinding b(t.w.inner, t.w.env());
         const cfg::DriverResult r = t.go(b);
@@ -442,7 +442,7 @@ void test_propagation() {
               "988fc0 refusal not reported completed, effects kept");
     }
     {
-        Run98e960 t; // AL = 0 natif de 986B60 (aucun match) : continue
+        Run98e960 t; // native AL = 0 from 986B60 (no match): continues
         cfg::AuxDriverBinding b(t.w.inner, t.w.env());
         const cfg::DriverResult r = t.go(b);
         check(r.outcome == cfg::DriverOutcome::completed &&
@@ -454,7 +454,7 @@ void test_propagation() {
 
 void test_refusals() {
     {
-        World w; // refus externe moderne dans 98DD20 : arrêt après 6B1A00
+        World w; // modern external refusal in 98DD20: stop after 6B1A00
         w.loader.refused = {"<F7655C>"};
         Service s;
         const cfg::AuxResult r =
@@ -465,7 +465,7 @@ void test_refusals() {
               "98dd20 stops on external refusal");
     }
     {
-        World w; // AL=0 natif simulé : retour natif, pas de refus
+        World w; // simulated native AL=0: native return, no refusal
         Service s;
         const cfg::AuxResult r =
             cfg::run_aux_driver_98dd20(s, w.env(), w.inner);
@@ -474,7 +474,7 @@ void test_refusals() {
               "98dd20 absent file still tears down");
     }
     {
-        World w; // garde signée > 0 : aucun effet
+        World w; // signed guard > 0: no effect
         w.aux.guard_10e7544 = 1;
         Service s;
         const cfg::AuxResult r =
@@ -483,7 +483,7 @@ void test_refusals() {
                   w.ctor.built.empty() && w.auxp.calls_896160 == 0 &&
                   w.ctx.physics_target == cfg::PhysicsTarget::unset,
               "98de80 guard exits first");
-        w.aux.guard_10e7544 = 0x8000'0000u; // négatif signé : on continue
+        w.aux.guard_10e7544 = 0x8000'0000u; // signed negative: we continue
         const cfg::AuxResult n =
             cfg::run_aux_driver_98de80(s, 1, w.env(), w.inner);
         check(n.outcome == cfg::AuxOutcome::native_return && !n.present &&
@@ -491,7 +491,7 @@ void test_refusals() {
               "98de80 negative guard, 985610 loop without file");
     }
     {
-        World w; // refus externe dans 98DE80 : pas de boucle 985610
+        World w; // external refusal in 98DE80: no 985610 loop
         w.loader.refused = {"<F76540>"};
         Service s;
         const cfg::AuxResult r =
@@ -502,7 +502,7 @@ void test_refusals() {
               "98de80 stops on external refusal, keeps earlier effects");
     }
     {
-        World w; // label inconnu : refus au site de la 1re section
+        World w; // unknown label: refusal at the site of the 1st section
         w.loader.present = {"<F7655C>"};
         w.auxp.labels.erase(0xF038AC);
         Service s;
@@ -513,7 +513,7 @@ void test_refusals() {
               "98dd20 unknown label refused");
     }
     {
-        World w; // sorties du chargeur non réinitialisées par le driver
+        World w; // loader outputs not reinitialized by the driver
         const cfg::BlockHandle stale = w.store.add(std::vector<std::byte>(3));
         w.dd.slots.block = stale;
         w.dd.slots.size = 3;

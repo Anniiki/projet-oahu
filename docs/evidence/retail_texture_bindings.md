@@ -197,13 +197,12 @@ established through their own path before being implemented.
 
 ## Preserved evidence and remaining boundary
 
-Private evidence: `<private-evidence>/reprise-2026-10-30/texture-bindings/`.
-The single session reuses the closed `material-bindings` snapshot, then is
-**exported and closed** after 72 operations. The bundle keeps 1 013 pieces of
-evidence, including the imported ones. `verify-findings.py` checks the two PE
-SHAs, the AddressSets, the retained raw reads, the before/after banks and the
-asset results; it opens no process. Results are in
-`disk-comparisons.json`, `asset-native-contract.json` and `evidence-index.json`.
+The single static analysis session reuses the closed snapshot of the
+material bindings study, then is **exported and closed** after 72
+operations. The bundle keeps 1 013 pieces of evidence, including the
+imported ones. An offline check verifies the two PE SHAs, the
+AddressSets, the retained raw reads, the before/after banks and the asset
+results; it opens no process.
 
 | Static analysis evidence | Subject |
 | --- | --- |
@@ -218,23 +217,23 @@ asset results; it opens no process. Results are in
 
 `runtime-catalog-v1.json` supplied the **12 reads / 1 258 bytes** of the
 exclusive `assets-textures` profile integrated separately.
-It does not contain the 84 earlier ranges. The private catalog keeps the
+It does not contain the 84 earlier ranges. The catalog keeps the
 secondary hashes, sections, EvidenceIDs and bounds; this work modified no
 probe.
 
 ## Trial 23: bounded official corroboration
 
-Closed trial: `<isolated-copies>/20261030T174712-27428/`.
+Closed trial `20261030T174712-27428`.
 PID **33928**, creation FILETIME **`134378560639742868`**, identical in
 the suspended PID, the launcher report and the code observations. Base
 `00400000`, SHA of the official file rechecked, file locked during the
 trial. Reported duration **120.186 s**, closed by the Job object at the
-timeout, code **1460**. The postflight confirms that the slot was
-released, that the **6 697 reference files** are unchanged and that the
-fingerprints of the **17 saves** are identical.
+timeout, code **1460**. The postflight confirms that the **6 697 reference
+files** are unchanged and that the fingerprints of the **17 saves** are
+identical.
 
 The independent recheck rereads the twelve `.bin` files, the two complete
-PEs, the private catalog, the static analysis results and the closed reports. It
+PEs, the catalog, the static analysis results and the closed reports. It
 recomputes the SHAs, the byte-by-byte differences against the official disk
 image and the bounds. The twelve ranges are readable, **exactly equal to the
 secondary** and all different from the official file on disk:
@@ -280,9 +279,9 @@ Closed trial files and recomputed fingerprints:
 | `startup-report.json` | 2 621 | `66c3615b480c804d368c8f11200b8a3e3a2ef1cee23d524340936000fda594c6` |
 | `postflight.json` | 1 984 | `999731889460606043a75d754b9fdf27240c3231beb4d94a3f76c2ca974af107` |
 
-In the private evidence, `verify-runtime23.py --pid 33928 --creation-filetime
-134378560639742868` consults files only. Its report
-`runtime23-verification.json`, **17 340 bytes**, SHA-256
+An offline check consults files only. Its report
+`runtime23-verification.json`,
+**17 340 bytes**, SHA-256
 `1a2ed13c89f9f10fb889ba971650f644eb42d2d4aef734935a9eb7d84d2c4ead`,
 keeps the twelve results, the file provenance and the checks.
 No commercial binary, asset, snapshot or listing is intended for Git.

@@ -29,13 +29,11 @@ modification dates are identical before and after the pass.
 
 ## Method and anchors
 
-Exclusive private batch:
-`reprise-2026-10-30/vmf-primary-file-comparison/`.
 `compare_file_windows.py` first checks the two expected SHAs, then the
 DOS/PE signatures, the PE32 profile, the section headers and bounds.
 For each file, it computes separately
 `RVA = VA - ImageBase`, then
-`offset_fichier = PointerToRawData + RVA - VirtualAddress`.
+`file_offset = PointerToRawData + RVA - VirtualAddress`.
 
 The window must fit entirely within SizeOfImage, VirtualSize and
 SizeOfRawData of the same section, then within the file. No section
@@ -45,8 +43,8 @@ In both PEs, `.text` starts at RVA/raw `0x1000`, VirtualSize
 `0x5EA966`, SizeOfRawData `0x5EB000`; this explains the identical offsets
 of the nine comparisons, without assuming that relationship in the computation.
 
-The entries and sizes come from the closed **secondary** static analysis exports
-`ui-map-input-dispatch/session/`: resolutions 09,10,18,25,30,31,32,33,42.
+The entries and sizes come from the closed **secondary** static analysis
+exports, resolutions 09,10,18,25,30,31,32,33,42.
 Each AddressSet holds a single inclusive interval whose `total_bytes`
 and `span_bytes` equal the requested size. The comparator checks these
 relations and the subject's SHA before using the anchor.

@@ -9,9 +9,9 @@ neither game startup, D3D12 rendering nor working co-op.
 
 The official x86 PE analyzed statically has SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-Local project evidence `original/02-pe-imports.json` identifies
-`DirectInput8Create`, along with Shell32 imports `SHGetFolderPathA`,
-`SHFileOperationA`, `ShellExecuteA` and `ShellExecuteExA`.
+Its import analysis identifies `DirectInput8Create`, along with Shell32
+imports `SHGetFolderPathA`, `SHFileOperationA`, `ShellExecuteA` and
+`ShellExecuteExA`.
 
 `mod/src/dinput8_proxy.cpp`, `observation_hooks.cpp` and the witnesses
 are infrastructure code written for this project: no game routine is
@@ -20,8 +20,8 @@ unmodified in `mod/src/vendor/detours`, at commit
 `1dbd4ea281d73d478aa8d09a8b83fbd265f715f7`. `PROVENANCE.json` contains
 file checksums, with the original MIT license.
 
-The method applies local isolated-trial procedures: proxy DLL, private
-copies, process slot, save locking and checksum comparison. This module
+The method applies local isolated-trial procedures: proxy DLL, isolated
+copies, save locking and checksum comparison. This module
 does not yet install a network bridge or synchronization mechanism.
 
 ## Loading and contract
@@ -48,7 +48,11 @@ Configure the environment **before** process creation:
 | `TDUR_OBSERVATION_LOG` | Log file beneath the private directory. |
 
 Invalid configuration makes DLL initialization fail: no fallback to
-the owner's Documents. No global redirection, registry key or ACL is changed.
+the user's Documents. No global redirection, registry key or ACL is changed.
+
+When the observed process crashes or stops responding, the launcher can
+also write minidumps and record the event in its report; see
+[crash and hang diagnostics](evidence/crash_hang_diagnostics.md).
 
 ## Diagnostic isolation
 
@@ -84,12 +88,15 @@ Every write-intent open whose path has a `savegame` component also writes
 its own line, `save-write-observed` or `save-write-refused`, with the
 access, disposition and options of the request, up to 4096 lines per event
 and per process before the summaries.
+The [save-path witness](evidence/save_path_witness.md) note describes these
+lines, the path component test and their limits.
 
 The external launcher keeps original saves open read-only, without
 write or deletion sharing, then compares their inventory and SHA-256.
 It assigns the suspended process to a non-breakaway Job limited to one
-process before resumption authorized by the gameslot wrapper.
-`ShellExecute`, `WinExec` and usual `CreateProcess` families are explicitly rejected.
+process; resumption waits for a resume marker published by the parent
+process. `ShellExecute`, `WinExec` and usual `CreateProcess` families are
+explicitly rejected.
 
 These rejections deliberately limit this initial diagnostic: a secondary
 launcher, a device requesting a noncanonical open or a protection action
@@ -132,5 +139,4 @@ is in `build-mod-observation/bin/normal/Release/`; the launcher is in
 Every run creates new evidence under `fixture-normal`, `fixture-mutant`
 or `launcher-fixture`: `result.json`/launcher report and logs. Witness
 manifests pin their checksums and those of the DLLs; `LastTest.log`
-retains CTest results. Never launch the commercial game directly from
-these tests: use the gameslot wrapper and a prepared game copy.
+retains CTest results. These tests never launch the commercial game.

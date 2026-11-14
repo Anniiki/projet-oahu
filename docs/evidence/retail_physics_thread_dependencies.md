@@ -31,13 +31,10 @@ Platinum/Paradise secondary, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 x86 VA, base `00400000`.
 
-The `physics-thread-adapter` and `paradise-physics-owner` exports were
-reused. The new private evidence is in
-`<private-evidence>/reprise-2026-10-30/physics-thread-dependencies/`:
-`session/`, `asm/`, `callee-index.json`, `disk-comparisons.json`,
-`pe-tls-metadata.json` and `evidence-index.json`. Each new body studied,
-selected instruction or table read is compared with both disks over its
-exact ranges; AddressSet gaps are not treated as read code.
+The exports of the earlier adapter and physics owner studies were reused.
+Each new body studied, selected instruction or table read is compared with
+both disks over its exact ranges; AddressSet gaps are not treated as read
+code.
 
 The static analysis catalog of the integrator's callees, output `02`, carries the ID
 `ee81003c02ea209f66a378368dfc58581cf03cf7d5c47a87a37a9b6ec1641678`.
@@ -61,10 +58,7 @@ by `20261030T134824-33340`, PID `29576`, base `00400000`:
 | `4AF750` | 76 | Four direct descendants not closed |
 | `5026F0` | 5 | Thunk with a terminal jump: its short body does not close its dependency |
 
-The private evidence is in
-`<isolated-copies>/20261030T134824-33340/`:
-`code-helpers/observations.json`, `comparisons.json` and the associated `.bin` files.
-The 67 files total 14,863 bytes; their sizes and SHA-256 were
+The 67 captured files total 14,863 bytes; their sizes and SHA-256 were
 rechecked against the catalog. For the eight bodies above,
 `matches_secondary=true` and `own_edits=[]`: no project-made edit is used to
 explain the match. Their difference from the official disk remains
@@ -74,7 +68,7 @@ For `43BD90`, the exact intervals are `[43BD90,43BF29)` and
 `[43BF30,43BFC0)`. They cover the 553 bytes of the static analysis AddressSet, including the
 `JMP 43BF30` at `43BF27`, but not the seven bytes `43BF29..43BF2F` excluded
 from that AddressSet. **This is not a contiguous 560-byte capture.**
-The two SHAs correspond to the two blocks of `disk-comparisons.json`.
+The two SHAs correspond to the two blocks of the disk comparisons.
 
 The absence of FS or FPU control in a thunk is not an observation
 of its destination. Code comparisons establish neither branch execution
@@ -133,7 +127,7 @@ serve as a substitute for an attach that has not been established.
 
 New evidence: init `47`, constructor `56`, references of `FAC040`
 `57`, global setter `60`, configuration `62`, simulation `64`, table/vtable
-`65/66`, simulation target `68`. Their full IDs are in the index.
+`65/66`, simulation target `68`.
 
 ## Concrete FPU precondition
 
@@ -153,7 +147,7 @@ this distinction in
 
 ### Entry context observed in trial 20
 
-`physics-context.json` normalizes 32 immutable slots from the private log
+`physics-context.json` normalizes 32 immutable slots from the log
 `documents/observer.log`. The sizes and SHAs of its four reference files
 were rechecked. All these entries of `81EE50` carry
 `timer_id=16`, `CWx87=027Fh` and the MXCSR control `1F80h`.
@@ -190,7 +184,7 @@ native policy to copy nor the provenance of the measured entry context**.
 The CRT entry body is not analyzed further.
 
 `_beginthreadex` governs the CRT startup of the reconstruction's worker; it does
-not prove equivalence with the floating-point context and the private data of
+not prove equivalence with the floating-point context and the internal data of
 `MSVCR71.dll` used by the game. Before a native integration, an explicit
 FPU policy must be justified by the state observed on the real physics
 path, then applied and checked on the worker. No state is inferred

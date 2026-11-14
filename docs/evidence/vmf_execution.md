@@ -76,7 +76,7 @@ measure this total work.
 
 ## Fidelity and references
 
-Source: assemblies in static analysis batch `vmf-action-interpreter/session/`:
+Source: assemblies in the action interpreter static analysis batch:
 exports 11..13,24..34 for operations and Jump/If contracts from the
 preceding batch. Secondary SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
@@ -127,7 +127,7 @@ x64 and Win32: two data profiles, aliasing, compact branches, budgets,
 resumption, errors and stopping before each of the 17 host opcodes.
 NaN payload and the order of unmasked traps are outside the contract.
 
-Diagnostics on the 39 unchanged private files: **27685 isolated entries
+Diagnostics on the 39 unchanged local files: **27685 isolated entries
 with an empty stack**, same results on both architectures. 147 reach
 End, 27538 await a host, with no 1000-instruction overflow or fault.
 11022 instructions are actually executed; the rest is not simulated.

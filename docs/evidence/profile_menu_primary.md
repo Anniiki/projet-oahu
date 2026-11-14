@@ -7,8 +7,7 @@ session. The original executable hash remained unchanged after closure.
 
 Instruction addresses and normalized listing text match the supplied secondary
 catalogue for all 23 procedures. This is a listing comparison, not independent
-byte equality or a semantic audit. The primary evidence, extents and comparison
-manifest remain outside Git in `profile-menu-subsystem-v1`.
+byte equality or a semantic audit.
 
 ## Connected behavior
 

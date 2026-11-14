@@ -3,12 +3,12 @@
 `construct_9896c0` reconstructs the complete driver at `0x9896C0` from the
 official PC MC 1.66 A executable (SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`).
-The private static analysis listing contains 5,439 instructions and 16,626 corroborated
+The static analysis listing contains 5,439 instructions and 16,626 corroborated
 bytes. An independent extraction compared all 405 registration calls, their
-receivers, descriptors, tags, name operands and ordering. The integrated revision preserves that
-data; its table changes only the indirect-source enumerator and comments.
-The public table is a supported subset of 375 of these 405
-registrations, kept in native order with unchanged identities.
+receivers, descriptors, tags, name operands and ordering. The integrated
+revision preserves that data; its table changes only the indirect-source
+enumerator and comments. The public table is a supported subset of 375 of
+these 405 registrations, kept in native order with unchanged identities.
 
 ## Construction and live state
 
@@ -41,6 +41,6 @@ This constructor model does not implement the parser destructor or the bodies
 of the registration, conversion and allocation helpers.
 
 The ordinary CTest uses synthetic data and catalogue sentinels, with no game
-files or private listing. The one-time mechanical comparison remains separate
-evidence. Component validation establishes constructor behavior, not INI parsing,
-a successfully loaded game world or a working solo profile.
+files or static analysis listing. The one-time mechanical comparison remains
+separate evidence. Component validation establishes constructor behavior, not
+INI parsing, a successfully loaded game world or a working solo profile.

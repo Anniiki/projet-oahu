@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <bit>
 
-// Construit contre le complément v2 du chargeur (LoaderResult).
+// Built against the loader result contract (LoaderResult).
 
 namespace tdur::game::config {
 
@@ -40,7 +40,7 @@ class Frame {
   public:
     Frame(AuxEnvironment env, AuxResult& r) : env_(env), r_(r) {}
 
-    // ECX = &parser, pile = service (lien hôte, comme 98E974).
+    // ECX = &parser, stack = service (host link, as in 98E974).
     bool construct(startup::StartupServiceBase& service) {
         const auto link = std::bit_cast<OpaqueWord>(&service);
         const config_registry::ConstructResult c =
@@ -54,7 +54,7 @@ class Frame {
         return true;
     }
 
-    // EBX/EDI relus au site, juste avant 986B60.
+    // EBX/EDI reread at the site, just before 986B60.
     bool lookup(NativeIdentity key, std::span<char> buffer,
                 std::uint32_t bound) {
         const Inputs986b60 in{env_.globals.global_10e7350,
@@ -73,7 +73,7 @@ class Frame {
               std::uint8_t& flag) {
         const LoaderResult lr = run_config_file_loader_6b1a00(
             path, slots, flag, env_.store, env_.loader);
-        // Complément v2 : tout refus (externe compris) arrête la suite.
+        // Any refusal (external included) stops the sequence.
         if (!lr.native_returned()) {
             refuse(r_, AuxOutcome::refused_loader);
             return false;
@@ -81,7 +81,7 @@ class Frame {
         return true;
     }
 
-    // Capture au site : pointeur testé, taille lue une fois si non nul.
+    // Capture at the site: pointer tested, size read once if non-null.
     void capture(const LoadSlots& slots) {
         r_.present = slots.block.has_value();
         r_.block = slots.block;
@@ -127,10 +127,10 @@ class Frame {
   private:
     AuxEnvironment env_;
     AuxResult& r_;
-    ParserObject parser_{}; // un seul parser par cadre
+    ParserObject parser_{}; // a single parser per frame
 };
 
-// 98DEF2..98DF79 : table 0xFA9D30.
+// 98DEF2..98DF79: table 0xFA9D30.
 bool Frame::table_405() {
     AuxGlobals& g = env_.aux;
     g.count_fa9db8 = 0; // 98DF0F
@@ -143,7 +143,7 @@ bool Frame::table_405() {
         }
         const std::uint32_t bytes = e->count_10 << 3; // 98DF20..98DF26
         const OpaqueWord data = e->data_18;           // 98DF23
-        if (bytes != 0) {                             // REP STOS sur 0 : rien
+        if (bytes != 0) {                             // REP STOS on 0: nothing
             const std::optional<std::span<std::byte>> d =
                 env_.aux_ports.resolve_data(data);
             if (!d || bytes > d->size()) {
@@ -178,12 +178,12 @@ bool Frame::table_405() {
             return false;
         }
         std::copy_n(name->begin(), nul + 1, dst->name_1c.begin());
-        entry = g.base_fa9dc0 + offset; // 98DF6F..98DF75 : base relue
+        entry = g.base_fa9dc0 + offset; // 98DF6F..98DF75: base reread
     }
     return true;
 }
 
-// 98E01F..98E06F : boucle 985610, globales absolues 11403C4/11403D0.
+// 98E01F..98E06F: loop 985610, absolute globals 11403C4/11403D0.
 bool Frame::records_985610() {
     AuxGlobals& g = env_.aux;
     std::uint32_t offset = 0; // EDI
@@ -261,7 +261,7 @@ AuxResult run_aux_driver_98dd20(startup::StartupServiceBase& service,
         }
         driver.release_6b19c0(*r.block, r.size, f.storage_flag); // 98DE5D
     }
-    frame.teardown(); // 98DE66, toujours
+    frame.teardown(); // 98DE66, always
     return r;
 }
 
@@ -269,7 +269,7 @@ AuxResult run_aux_driver_98de80(startup::StartupServiceBase& service,
                                 std::uint32_t n, AuxEnvironment env,
                                 DriverPorts& driver) {
     AuxResult r;
-    // 98DE80..98DE8D : garde lue avant tout effet, signée.
+    // 98DE80..98DE8D: guard read before any effect, signed.
     if (static_cast<std::int32_t>(env.aux.guard_10e7544) > 0) {
         return refuse(r, AuxOutcome::guard_exit);
     }
@@ -301,7 +301,7 @@ AuxResult run_aux_driver_98de80(startup::StartupServiceBase& service,
             }
         }
         env.aux_ports.format_9ec378(std::span(f.formed), kFormat9ec378, n);
-        // 98E006 : ESI = local de 32 octets, aucun format supposé.
+        // 98E006: ESI = 32-byte local, no format assumed.
         if (!frame.section_view(
                 std::string_view(f.formed.data(), f.formed.size()),
                 kFormat9ec378)) {
@@ -309,7 +309,7 @@ AuxResult run_aux_driver_98de80(startup::StartupServiceBase& service,
         }
         driver.release_6b19c0(*r.block, r.size, f.storage_flag); // 98E01A
     }
-    if (!frame.records_985610()) { // aussi sans fichier
+    if (!frame.records_985610()) { // also without a file
         return r;
     }
     frame.teardown(); // 98E078
@@ -345,7 +345,7 @@ HelperCallOutcome
 AuxDriverBinding::call_98de80(startup::StartupServiceBase& service,
                               std::uint32_t arg) {
     last_98de80 = run_aux_driver_98de80(service, arg, env_, *this);
-    // La sortie de garde (98DE8D) est un RET 8 natif.
+    // The guard exit (98DE8D) is a native RET 8.
     return control(last_98de80->outcome == AuxOutcome::native_return ||
                    last_98de80->outcome == AuxOutcome::guard_exit);
 }

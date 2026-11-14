@@ -10,20 +10,18 @@ The primary reference remains the official PC MC 1.66 A executable, SHA-256
 This batch establishes neither an official invocation nor the execution of
 Xbox movies.
 
-The new exports are in the private batch
-`reprise-2026-10-31/vmf-target-resolution/session/`: resolutions 02..06,
-then assembly/raw reads by pairs 09/10, 11/12, 13/14, 15/16, 17/18.
+The new exports are resolutions 02..06, then assembly/raw reads by pairs
+09/10, 11/12, 13/14, 15/16, 17/18.
 They cover respectively `443FE0/169`, `447FE0/132`, `4443E0/74`,
 `444430/95` and `444090/124`: **594 bytes in five bodies**. The earlier
-pseudocode exports 81, 91, 49, 50 and 80 of `vmf-action-interpreter` serve as
-landmarks; the contracts below rest on the assembly.
+pseudocode exports 81, 91, 49, 50 and 80 serve as landmarks; the contracts
+below rest on the assembly.
 
 The parent report `exact-byte-validation.json` covers 24 successful requests,
 880 bytes of code and 64 of data, including label reads outside this
-sub-batch. Our review `vmf-target-resolution-review/validation.json`
-independently cross-checks the five ranges studied, **594 static analysis bytes = dumps**,
-and 33 files unchanged before/after, without opening the PE. The final
-snapshot has SHA-256
+sub-batch. An independent review cross-checks the five ranges studied,
+**594 static analysis bytes = dumps**, and 33 files unchanged before/after,
+without opening the PE. The final snapshot has SHA-256
 `9502991c02c030d2df3ca9df21c6f74f7509ecd06a2dfe6b88035f0762e66c6a`.
 
 ## Inputs, outputs and mutations

@@ -2,11 +2,10 @@
 
 ## Independent sources
 
-Routines 433DF0/87B and 434AB0/40B come from private exports `05/06`
-in `reprise-2026-10-31/vmf-focus-services/session/`. The subject is
-the secondary PC Paradise f452afcd…de6ed; `exact-byte-validation.json`
-compares disassembly/PE/DUMPBIN bytes. No keyboard/gamepad role is inferred
-from identifier 0.
+Routines 433DF0/87B and 434AB0/40B come from the static analysis exports.
+The subject is the secondary PC Paradise f452afcd…de6ed; an exact byte
+validation compares disassembly/PE/DUMPBIN bytes. No keyboard/gamepad role is
+inferred from identifier 0.
 
 Independent oracles were frozen before this C++ code: 16 lookups and
 8 resets, reread from the assembly. They were translated into

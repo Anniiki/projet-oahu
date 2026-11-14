@@ -29,12 +29,12 @@ it does not independently prove an exception occurred.
 ## Validation
 
 `observation_launcher_lifecycle` exercises five source-owned fixture modes:
-normal exit, owned timeout, private INI argument, unrestricted play lifetime and
-an explicit `ExitProcess(0xc0000005)` status. The last mode does not raise an
-exception. No commercial game is launched by this test.
+normal exit, owned timeout, isolated INI argument, unrestricted play lifetime
+and an explicit `ExitProcess(0xc0000005)` status. The last mode does not raise
+an exception. No commercial game is launched by this test.
 
 The Python harness keeps an independent handle from suspended registration
 through termination and compares the creation time, exact exit time and exit
 code with the final report. It also checks original-save immutability, injected
-initialization and private play-session behavior. Notifications are checked when
-delivered; they are never prerequisites for reporting a process exit.
+initialization and isolated play-session behavior. Notifications are checked
+when delivered; they are never prerequisites for reporting a process exit.

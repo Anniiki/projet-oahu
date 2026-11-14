@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-Static analysis batch `vmf-action-interpreter/session/`, secondary PC SHA-256
+Static analysis batch on the secondary PC executable, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 The AddressSets and the assembly listings take precedence over pseudocode,
 which sometimes loses SSE computations and register parameters. No commercial
@@ -143,9 +143,8 @@ Secondary paths established by pseudocode 123..131:
   back after a callback in the scripts, without proving that this path ran in game.
 
 Resolutions 132/134 bound `8DDC00/158` and `8DDCC0/157`. A static PE
-comparison finds these **315 bytes identical in both files**, private
-evidence `vmf-core-runtime-25/map-zoom-file-comparison.json`. They were not
-read in the process of trial 25. Pseudocode 133/135 shows:
+comparison finds these **315 bytes identical in both files**. They were
+not read in the process of trial 25. Pseudocode 133/135 shows:
 
 | Body | When the byte `+250` equals 0 |
 | --- | --- |

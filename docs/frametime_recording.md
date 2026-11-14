@@ -9,7 +9,7 @@ This feature does not launch the game by itself. It is enabled through
 environment variables: `TDUR_FRAMETIME_DIAGNOSTICS=1` together with
 `TDUR_D3D12_DISPLAY=1`. Missing or `0` disables it. Other values refuse startup.
 The source installation must be identified. The observation log must be inside
-the validated private documents directory and outside both the original
+the validated isolated documents directory and outside both the original
 installation and the launched executable's directory. Reparse paths are refused.
 
 Each device uses fixed arrays of 256 samples. A `frametime-summary` record is

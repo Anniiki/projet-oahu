@@ -37,9 +37,9 @@ bounded logging during the 100,001-call flood fixture.
 
 The unchanged hooks failed the new decision checks. With the adverse witness,
 invented device, bare-name and absolute-with-root requests incorrectly created
-private files, while trailing-separator directory requests failed with a
-missing-parent error. Detached witness stderr was unavailable; these red results
-were verified through the private files and observation log.
+files in the isolated directory, while trailing-separator directory requests
+failed with a missing-parent error. Detached witness stderr was unavailable;
+these red results were verified through those files and the observation log.
 
 The proposed hooks compile under MSVC Win32, C++ latest, `/W4 /WX`. Four native
 tests pass: Documents/path behavior, source-write mutation detection, launcher

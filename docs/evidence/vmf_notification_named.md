@@ -21,9 +21,7 @@ The complete ranges were compared again against the primary on disk:
 | `719AD0` | 364 | `4427a3d46f384da4a0e1388e7d9f134c2e001536c7244304f6dbae3103b0e795` |
 
 For `719AD0`, the two three-byte padding intervals are excluded.
-The private evidence files `vmf-named-backend-runtime-v1/native-proof.json`
-and `constants-proof.json` keep the answers, identities and bounds. The second
-also rechecks the earlier bodies `716C40`/`898890` and 296 bytes of data.
+The earlier bodies `716C40`/`898890` and 296 bytes of data are also rechecked.
 This does not amount to a new invocation of these routines in the game.
 
 ## Branches of `7178C0`
@@ -106,7 +104,7 @@ failed before correction: club fallback and cache copy before suspension.
 The 22 tracked sources and six sensitive files are unchanged between the
 start and the end of the validation. Getter and money-boundary fixtures are
 synthetic in the isolated tests; sums, counters, catalogs, unit effects and
-replacement engines are the repository's real implementations. The private
+replacement engines are the repository's real implementations. The
 report distinguishes the x64/Win32 checks, the static evidence and the
 absence of any game trial. No final rendering, commercial network or
 two-machine co-op is validated by these tests.

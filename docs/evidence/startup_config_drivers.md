@@ -10,18 +10,17 @@ service that represents argument `1140360`.
 
 Reference: official PC MC 1.66 A, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-The retained primary static analysis listings are
-`controller-startup-host-v1/gate-session/06..08-assembly.json`.
-They contain 463, 112 and 117 instructions respectively. Every listed
+The retained primary static analysis listings are three assemblies of a
+startup gate session. They contain 463, 112 and 117 instructions
+respectively. Every listed
 instruction is reachable from its entry; all internal branch destinations
 are listed, and each caller ends in `RET 4`. This control-flow check does
 not establish the bodies or return behavior of their callees.
 
 The 25 referenced path formats, filenames and section labels were read
 through bounded, read-only windows of the unchanged official PE. Their
-section, file offset and read digest are retained in
-`startup-config-stages-v1/labels.json`. The primary section-call sites and
-labels form the independent test fixture
+section, file offset and read digest are recorded. The primary section-call
+sites and labels form the independent test fixture
 `tests/fixtures/startup_config_stages.txt`.
 
 The function at `9EC378` has not been identified as a particular CRT

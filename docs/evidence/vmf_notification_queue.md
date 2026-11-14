@@ -87,9 +87,8 @@ ctest --test-dir build -C Release -R '^vmf_notification_(queue|record)$' --outpu
 The four complete bodies, 498 bytes, match the official primary
 MC1.66A on disk, SHA-256
 `3e371d4918ff2b05ce9cb291162fcefee6378305227cefff2d367c4e132a9a30`.
-PE, static analysis and DUMPBIN are cross-checked. Six frozen sources and six preserved
-sensitive files are recorded outside Git in
-`<private-evidence>/reprise-2026-10-31/vmf-notification-queue-runtime-v2/`.
+PE, static analysis and DUMPBIN are cross-checked. Six frozen sources and six
+preserved sensitive files are verified.
 
 An independent review reported no concrete defect on nine frozen sources, 87 923
 bytes; a second reviewer verified their hashes and five deliverables. Its

@@ -60,8 +60,7 @@ pass on each of the x64 and Win32 architectures**, including 138 pre-scan
 checks. Ordering, duplicates, the 24 permutations of four indices, int32
 limits, truncated backing, crossed NULs and the preserved temporary value
 are verified. Eight frozen sources and six sensitive files remain unchanged
-during validation. Private logs and evidence:
-`<private-evidence>/reprise-2026-10-31/vmf-notification-scan-runtime-v1/`.
+during validation.
 A Win32 helper separate from the game also ran 16 cases against the same
 verified `MSVCR71.dll` file, confirming the returns and the preservation of
 the integer. The sign/NUL case corrected the first port before commit; the

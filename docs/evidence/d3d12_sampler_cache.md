@@ -69,9 +69,8 @@ prohibition on recycling an older heap; no unbounded historical registry is
 added.
 
 `GetDesc` reports NodeMask=1 for a creation with NodeMask=0 on our two
-single-node devices. Only this normalization is accepted. A private
-micro-fixture retains the tuples; Microsoft prescribes NodeMask=0 on a single
-adapter.
+single-node devices. Only this normalization is accepted. A micro-fixture
+retains the tuples; Microsoft prescribes NodeMask=0 on a single adapter.
 [D3D12_DESCRIPTOR_HEAP_DESC](https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_descriptor_heap_desc).
 
 Each draw already retains its heap in the submission before the commands.
@@ -97,11 +96,8 @@ presentation path.
 
 ## Source-owned evidence
 
-Private batch: `<private-evidence>/reprise-2026-10-30/sampler-layout-cache-cpp/`.
-`validate.py`, `validation-final.json`, logs, fingerprint listings and
-generated RGBA pixels. x64 Release build, MSVC 19.44, SDK 10.0.26100.0,
-`/std:c++latest /W4 /WX`. This `/std:c++latest` language-standard mode is
-still a draft.
+x64 Release build, MSVC 19.44, SDK 10.0.26100.0, `/std:c++latest /W4 /WX`.
+This `/std:c++latest` language-standard mode is still a draft.
 
 **15/15 CTests pass**, including **93 cache checks per adapter** on RX 6950 XT
 hardware and WARP. The existing async, native, texture and depth tests and the
@@ -132,12 +128,12 @@ adapter may return the singleton, so they do not constitute this case.
 [D3D12CreateDevice](https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-d3d12createdevice).
 This part of the fixture requires both adapters on its host.
 
-A private copy of the previous renderer, source SHA-256
+A separate copy of the previous renderer, source SHA-256
 `0486b32c7fff5d97c423435ccdf0d0d490c5674fb9c0906260d01176074e3a0f`,
 runs the same suite of 33 readbacks, without calling the new APIs.
-The capture carries revision `c5497410`; this file is identical to the one in
-`ec2ec9b`, common Git blob `48b94903f4b238d29f7b5171ecba34e839ceeb12`.
-Before/after comparison **byte by byte**: **1 081 344 bytes, zero difference** for
+The capture records an earlier revision; this file is identical to the one in
+a second earlier revision (same Git blob). Before/after comparison
+**byte by byte**: **1 081 344 bytes, zero difference** for
 both adapters together. The 33 synthetic images are also identical between
 the two adapters on this workstation; this defines no universal tolerance for
 real assets or other GPUs. No game, commercial asset or game process was
@@ -153,11 +149,11 @@ stutter remain to be measured separately.
 
 ## Integration into the main repository
 
-The `vmf-sampler-parent-integration-v1/` batch builds the 50 explicit
+The integration batch builds the 50 explicit
 Release/x64 executable targets, then passes **53/53 CTest**, including the two
 new tests `d3d12_sampler_cache_hardware` and `d3d12_sampler_cache_warp`.
 Each of them reproduces the 93 checks, the 256 hits without new
 C++/heap/sampler allocation in the measured preparation and the 33 readbacks.
-The three cache sources have the same fingerprints as the final private batch.
+The three cache sources have the same fingerprints as the final batch.
 The batch also retains the first 52/53 run and the fix for the SDL virtual
 test bench, described in [its evidence](sdl_gamepads.md).

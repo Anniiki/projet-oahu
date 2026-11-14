@@ -26,10 +26,9 @@ x86 VAs, preferred base `00400000`:
 - Secondary Platinum/Paradise: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-The existing exports `paradise-focus-follow`, `paradise-simulation-dispatch`
-and `paradise-video-defaults` were reread before the new static analysis session.
-The new private evidence is under
-`<private-evidence>/reprise-2026-10-30/paradise-physics-owner/`:
+The existing exports of the earlier focus, simulation dispatch and video
+defaults studies were reread before the new static analysis session. Its
+outputs are grouped as follows:
 
 | Static analysis outputs | Content |
 | --- | --- |
@@ -42,10 +41,10 @@ Ghidra 12.2 does not recognize several bodies as attributed functions.
 The static analysis inspections/reads are supplemented by bounded MSVC `dumpbin`
 14.44.35229.0 disassemblies. The absence of an xref is not enough to exclude
 a call: `81EFA9` is not in the Ghidra listing, but its bytes and its
-disassembly establish the call. The private `.text` scans provide
+disassembly establish the call. The `.text` scans provide
 candidates; aliases and unresolved indirect calls remain a limit.
 
-`targeted-disk-comparisons.json` retains each exact range and its SHA.
+The targeted disk comparisons retain each exact range and its SHA.
 Matching across the disks: physics init `84D570/2276`, teardown
 `846CF0/1263`, worker `81F0B0/223`, callback `81EE50/596`, integrator
 entry `81DFD0/112`, end `81EDA0/176`, mode control and the two
@@ -65,11 +64,10 @@ No protection mechanism was transformed or traced.
 | `606B60/40` | `e5b0f56172623db11f3f322ce3f88c2ce582010d3ddefd88b17056c150c9e6a9` |
 | `606B90/47` | `8cab123d9a681b6f56c4383851f4e84cafd30bbda9429d771a53b1cb0b1bb4cb` |
 
-The private report is
-`<isolated-copies>/20261030T105708-19480/code-helpers/comparisons.json`:
-47 ranges, 12,146 bytes in total. The API names are corroborated by the
-code and by the secondary's imports export; the official IAT in memory is
-not reread by this investigation. Code equality does not prove its execution.
+The trial 16 report covers 47 ranges, 12,146 bytes in total. The API names
+are corroborated by the code and by the secondary's imports export; the
+official IAT in memory is not reread by this investigation. Code equality
+does not prove its execution.
 
 The earlier official corroborations cover the complete callback, the
 worker and the integrator prefix; trial 14 adds its epilogue

@@ -23,8 +23,7 @@ x86 VA, preferred base `00400000`:
 - Secondary Platinum/Paradise: SHA-256
   `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 
-The private static analysis exports already available are reused from
-`reprise-2026-10-30/paradise-ai-time/`:
+The static analysis exports already available are reused:
 
 | Export | Evidence |
 | --- | --- |
@@ -41,14 +40,12 @@ The closed official trials 18 (`20261030T120132-19748`) and 19
 | `407FB0/67` | `3746f26cc005f8d8338e9d06254cc9489d71dfc008ec69f396b606d0c06cc28c` |
 | `407F80/3` | `1d10894625976bca9d8906f3ecf1e766b94e9219ec3bf1c30e02feea5e18e45a` |
 
-Reports reviewed:
-`<isolated-copies>/<run>/code-helpers/comparisons.json`,
-51 ranges and 12,350 bytes per trial. The equality covers the complete
-bodies, with no edits to those ranges; it does not prove their execution. No
-IAT read or protection transformation is needed for this reconstruction. The
-pseudocode serves as a lead, the assembly establishes the contract. The
-original static analysis session was exported then closed; no new session is opened for
-this module.
+The reviewed comparison reports cover 51 ranges and 12,350 bytes per trial.
+The equality covers the complete bodies, with no edits to those ranges; it
+does not prove their execution. No IAT read or protection transformation is
+needed for this reconstruction. The pseudocode serves as a lead, the assembly
+establishes the contract. The original static analysis session was exported
+then closed; no new session is opened for this module.
 
 ## Observed ABI and layout
 
@@ -180,7 +177,7 @@ contract for valid inputs, not reconstructed native error handling.
 ## Standalone validation
 
 MSVC 19.44.35229.0, Release, `/std:c++latest /W4 /WX /permissive- /utf-8`,
-with x64 and Win32 compilation recorded in the private evidence: **1,682 checks
+with x64 and Win32 compilation: **1,682 checks
 passed on each of the two architectures**. The expected traces are written
 separately from the algorithm; a family of linear chains of zero to 35
 states verifies progression and bounded resumptions.
@@ -192,8 +189,7 @@ callback, lifetime preservation, exceptions at the three phases with and
 without mutations, reentrancy and the refusal of a null binding. The noop is
 tested directly and then through a dispatcher transition.
 
-Binaries, logs and hashes remain private under
-`reprise-2026-10-30/legacy-state-machine-cpp/`. The format of the three C++
+The format of the three C++
 files is checked with clang-format 19.1.5, four spaces and 80 columns. After
 integrating the `tdur_legacy_state_machine` library and the
 `original_state_machine_dispatch` test into the main CMake, the **29

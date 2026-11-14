@@ -15,14 +15,12 @@ primary, the secondary and the static analysis exports. SHA-256:
 The NUL-terminated key at `F0A8F8`, fifteen bytes, also matches. Its text
 must be supplied by the installation loader.
 
-The twelve-request static analysis session is exported and closed. It also establishes
-240 bytes of [89BF80](vmf_notification_effect_bf80.md) and 556 of
+The twelve-request static analysis session is exported and closed. It also
+establishes 240 bytes of [89BF80](vmf_notification_effect_bf80.md) and 556 of
 [89DB30](vmf_notification_effect_db30.md), integrated in later batches.
 The evidence for the 870 bytes alone did not constitute a delivery of the
 three services; their C++ validations are documented separately.
-Private evidence: `vmf-remaining-effects-runtime-v1/native-proof.json` and
-`vmf-toggle-runtime-v1/native-proof.json`. No game launch, native call or
-read of game memory was performed.
+No game launch, native call or read of game memory was performed.
 
 ## Preserved order
 

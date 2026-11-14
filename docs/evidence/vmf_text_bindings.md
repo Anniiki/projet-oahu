@@ -10,17 +10,14 @@ does not acknowledge that command.
 
 Secondary static reference PC Paradise, SHA-256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
-Private sources under `reprise-2026-10-31/`:
+Static analysis sources:
 
-- `vmf-display-lifecycle/session/49`: initializer `44BDC0`;
-  `30`, `4483B0`: removal without unregistration if `resource+2E & 10`;
-  `67`, `44A440`: real unregistration, kept as a boundary.
-- `vmf-host-context/session-v2/18`, `446B70`: resource assignment, name
-  clearing, text initialization, then destruction of the former child.
-- `vmf-runtime-scheduler/session/07`, `4436A0`: typed copy, NUL on miss;
-  `vmf-text-services/session/12/18`: classification and write `449240`.
-- Batch `reprise-2026-10-30/vmf-action-interpreter/session/108/96`:
-  `4435D0` calls the hash `443390`, which dereferences the name without a
+- Initializer `44BDC0`; `4483B0`: removal without unregistration if
+  `resource+2E & 10`; `44A440`: real unregistration, kept as a boundary.
+- `446B70`: resource assignment, name clearing, text initialization, then
+  destruction of the former child.
+- `4436A0`: typed copy, NUL on miss; classification and write `449240`.
+- `4435D0` calls the hash `443390`, which dereferences the name without a
   NULL guard.
 
 The manifests of the earlier batches cross-check these bodies against the PE
@@ -74,7 +71,7 @@ The first fixtures without a TXIX table were corrected without modifying the
 parser; the frame test also revealed the former removal guard, corrected
 after rereading `4483B0`.
 
-The 390 diagnostics on 39 private movies are identical across architectures.
+The 390 diagnostics on 39 local movies are identical across architectures.
 The 312 earlier configurations remain unchanged. Of the 19 PC movies with
 active binding, 13 reach `0x83`, two `0x23`, one `0x9F` and three complete
 the 16 bounded invocations of the diagnostic. In total, 47 text resources are

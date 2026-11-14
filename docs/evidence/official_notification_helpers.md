@@ -2,7 +2,7 @@
 
 ## Isolated trial of 01/11/2026
 
-The new `ui-vmf-notification-helpers` profile of the unpublished code probe reads
+The new `ui-vmf-notification-helpers` profile of the code probe reads
 five fixed ranges representing four complete bodies, that is **255 bytes**.
 It also reads one non-executable byte at FAC598: total budget **256 bytes**.
 The six alignment bytes between the two ranges of the wrapper are excluded.
@@ -36,8 +36,7 @@ a default value nor its stability throughout the whole game session. The
 future C++ caller must supply the observed mode explicitly.
 
 The **6,697 reference files and 17 savegames** checked remain unchanged;
-the copy uses isolated savegames and the isolated copy is released
-at the end of the trial. The sources and tools tracked by the snapshots
+the copy uses isolated savegames. The sources and tools tracked by the snapshots
 are also preserved during the run.
 
 ## Checks and limits
@@ -47,10 +46,7 @@ Win32. Its owned self-test checks the exact read of a one-byte scalar,
 its integrity, eight access/identity refusals and two table-size refusals.
 The earlier four-byte scalars keep their size; the shared reader, already
 compatible with 1/4/8 bytes, remains unchanged.
-The code probe and its self-test are not published in this repository.
 
-The complete evidence and comparisons remain outside Git in
-`<private-evidence>/reprise-2026-10-31/vmf-notification-helpers-official-v1/`.
 The presence of the code does not prove its targeted execution. No forced
 native call or UI input injection takes place. The D3D9On12 bridge of this
 trial remains temporary; the final native renderer, playable menus and

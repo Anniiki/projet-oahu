@@ -54,8 +54,7 @@ x64 and Win32**, including 31 targeted checks. They cover each index, the
 wrap-around, the truncation, the padding, the preservation of the other
 slots, the live aliases, the null sources and the errors after a partial
 write. Four frozen sources and six sensitive files remain unchanged during
-the validation, recorded outside Git in
-`<private-evidence>/reprise-2026-10-31/vmf-notification-rings-runtime-v1/`.
+the validation.
 
 ```powershell
 cmake --build build --config Release --target vmf_notification_rings_test

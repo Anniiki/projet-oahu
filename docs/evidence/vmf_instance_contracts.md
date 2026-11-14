@@ -7,9 +7,8 @@ SHA-256 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 This static evidence does not establish an invocation in the official game.
 The [C++ runtime](vmf_display_runtime.md) now carries the instance lifetimes;
 the complete wiring to the scripts and to the rendering remains to be done.
-The exports come from the private batch
-`reprise-2026-10-31/vmf-host-context/`; the resource oracles provide
-values, without establishing a live instance or its scheduling.
+The resource oracles provide values, without establishing a live instance or
+its scheduling.
 
 ## Construction and capacity
 
@@ -58,7 +57,7 @@ seed. A path without a variable name can produce a sprite reference; an empty
 string after `:`, by contrast, remains a genuine empty key. The future x64 port
 must keep these identities separate from its handles and generations.
 
-The private review `vmf-host-variables-review/` covers 29 exports, 8490 hash
+A separate review covers 29 exports, 8490 hash
 vectors and 28 synthetic scope allocations. The hash keeps the high bytes of
 the last partial word; keys are stored on 31 bytes, but the hash and the
 lookups receive the full name. The CRT comparison depends on LC_CTYPE. The new

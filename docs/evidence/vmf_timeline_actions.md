@@ -9,8 +9,8 @@ studied is the **secondary PC** binary, SHA256
 `f452afcdacc3d69858ea8188befd4764b0994c72120892d78a7cac98c77de6ed`.
 No official invocation or equivalence with the XEX code is inferred here.
 
-Main sources: `vmf-host-context/session/`, assemblies 05/06/11/12/13.
-The matching pseudocode of the `vmf-action-interpreter` batch serves as a map,
+Main sources: host context assemblies 05/06/11/12/13. The matching
+pseudocode of the action interpreter batch serves as a map,
 but the signed branches and widths below come from the assemblies.
 
 | Action | Body | Evidence ID |
@@ -82,8 +82,8 @@ runtime only admits current1 in 1..C+1 and requested1 in 1..C.
 ## IP, stack and executor admission
 
 None of the five bodies reads or writes the stack, the action IP or its
-advance flag. The common advance 443A90, assembly 40 of the
-`ui-map-input-dispatch/session/` batch, is exact:
+advance flag. The common advance 443A90, assembly 40 of the input dispatch
+batch, is exact:
 
 - short opcode 04..07: +2 physical bytes, +1 compact unit;
 - opcode 81 with a 2-byte WORD payload: +6 physical, +5 compact;
@@ -94,7 +94,7 @@ Proof for 443A90:
 Its body and the two spans of the dispatcher 443AF0 have their presence
 corroborated by [trial 25](official_trial_25.md), without attested invocation.
 
-Assembly 02 of the `vmf-script-calls/session/` batch closes the common
+Assembly 02 of the script calls batch closes the common
 steps of 443AF0, evidence
 `f39bbd061fbd28e2246c82f787dccff246df3eab1afe02b167cde693ae673c19`:
 
