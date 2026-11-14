@@ -10,6 +10,7 @@
 
 #include <array>
 #include <bit>
+#include <cstdio>
 #include <cwchar>
 #include <string_view>
 
@@ -104,6 +105,31 @@ BOOL CALLBACK InitializeDisplay(PINIT_ONCE, PVOID, PVOID*) noexcept {
         initializationResult = E_INVALIDARG;
         return TRUE;
     }
+    // C2: borderless constraint, enabled by default, "0" disables it. An
+    // invalid value is an explicit, logged refusal of the whole bridge.
+    std::array<wchar_t, 4> constraint{};
+    SetLastError(ERROR_SUCCESS);
+    const auto constraintLength = GetEnvironmentVariableW(
+        L"TDUR_BORDERLESS_CONSTRAINT", constraint.data(),
+        static_cast<DWORD>(constraint.size()));
+    const auto constraintSetting = tdur::mod::ParseSwitchSetting(
+        constraint.data(), constraintLength, GetLastError());
+    if (constraintSetting == tdur::mod::SwitchSetting::invalid) {
+        TdurObservationRecord("display-borderless-constraint-invalid",
+                              ERROR_INVALID_DATA);
+        initializationResult = E_INVALIDARG;
+        return TRUE;
+    }
+    options.display.constrain_borderless =
+        constraintSetting != tdur::mod::SwitchSetting::disabled;
+    char constraintReason[48]{};
+    std::snprintf(
+        constraintReason, sizeof(constraintReason), "enabled=%u source=%s",
+        options.display.constrain_borderless ? 1U : 0U,
+        constraintSetting == tdur::mod::SwitchSetting::absent ? "default"
+                                                              : "environment");
+    TdurObservationRecord("display-borderless-constraint", ERROR_SUCCESS,
+                          nullptr, constraintReason);
     initializationResult = tdur::mod::InstallDisplayHooks(options);
     TdurObservationRecord("display-deferred-initialization",
                           static_cast<DWORD>(initializationResult));

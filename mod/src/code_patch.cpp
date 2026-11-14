@@ -3,6 +3,7 @@
 #include <intrin.h>
 #include <tlhelp32.h>
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <cstring>
@@ -94,9 +95,21 @@ HRESULT Collect(Threads& threads) {
     return GetLastError() == ERROR_NO_MORE_FILES ? S_OK : LastError();
 }
 
+// One validated edit: a two-byte prefix (CAS16) or a detour of 5..8 bytes,
+// whose window the caller proves free of return addresses (code_patch.hpp).
+struct Edit {
+    enum class Write : std::uint8_t { cas16, cas64, bytes };
+    std::uintptr_t address{};
+    std::uint8_t length{}; // bytes written
+    std::uint8_t window{}; // suspended IPs refused in [address, +window)
+    std::array<std::uint8_t, 8> before{};
+    std::array<std::uint8_t, 8> after{};
+    Write write = Write::cas16;
+    std::uintptr_t quadword{}; // aligned base when write == cas64
+};
+
 bool SignatureMatches(const CodeSignature& signature,
-                      std::span<const CodePatch> patches,
-                      bool modified) noexcept {
+                      std::span<const Edit> edits, bool modified) noexcept {
     std::array<std::uint8_t, 64> observed{};
     if (!Read(signature.address, observed.data(), signature.bytes.size()))
         return false;
@@ -105,12 +118,10 @@ bool SignatureMatches(const CodeSignature& signature,
         if (modified) {
             const auto address =
                 reinterpret_cast<std::uintptr_t>(signature.address) + i;
-            for (const auto& patch : patches) {
-                const auto start =
-                    reinterpret_cast<std::uintptr_t>(patch.address);
-                if (address >= start && address - start < 2)
-                    expected = static_cast<std::uint8_t>(
-                        patch.after >> (8 * (address - start)));
+            for (const auto& edit : edits) {
+                if (address >= edit.address &&
+                    address - edit.address < edit.length)
+                    expected = edit.after[address - edit.address];
             }
         }
         if (observed[i] != expected)
@@ -145,64 +156,142 @@ struct Page {
 
 } // namespace
 
-CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
-                                 std::span<const CodeSignature> signatures,
-                                 CodePatchOperations operations) noexcept {
-    CodePatchResult outcome;
-    if (patches.empty() || patches.size() > 3 || signatures.empty() ||
-        signatures.size() > 3) {
-        outcome.result = E_INVALIDARG;
-        return outcome;
+namespace {
+
+// Signature covering [address, address + bytes), or nullptr.
+const CodeSignature* Covering(std::span<const CodeSignature> signatures,
+                              std::uintptr_t address,
+                              std::size_t bytes) noexcept {
+    for (const auto& signature : signatures) {
+        const auto start = reinterpret_cast<std::uintptr_t>(signature.address);
+        if (address >= start && address - start <= signature.bytes.size() &&
+            signature.bytes.size() - (address - start) >= bytes)
+            return &signature;
     }
+    return nullptr;
+}
+
+std::uint64_t LoadQuadword(std::uintptr_t address) noexcept {
+    std::uint64_t value = 0;
+    std::memcpy(&value, reinterpret_cast<const void*>(address), sizeof(value));
+    return value;
+}
+
+bool StoreByte(volatile std::uint8_t* address, std::uint8_t value) noexcept {
+    *address = value;
+    return true;
+}
+long long Exchange64(volatile long long* address, long long wanted,
+                     long long expected) noexcept {
+    return _InterlockedCompareExchange64(address, wanted, expected);
+}
+
+// What one write attempt left in memory. none: nothing was written.
+enum class Written : std::uint8_t { none, partial, all };
+
+// Replace from by to inside one aligned quadword, keeping the other bytes.
+// One compare-exchange: all or nothing, for every thread.
+Written ExchangeQuadword(const Edit& edit,
+                         const std::array<std::uint8_t, 8>& from,
+                         const std::array<std::uint8_t, 8>& to,
+                         const CodePatchOperations& operations) noexcept {
+    const auto observed = LoadQuadword(edit.quadword);
+    auto bytes = std::bit_cast<std::array<std::uint8_t, 8>>(observed);
+    const auto offset = edit.address - edit.quadword;
+    for (std::size_t i = 0; i < edit.length; ++i) {
+        if (bytes[offset + i] != from[i])
+            return Written::none;
+        bytes[offset + i] = to[i];
+    }
+    const auto wanted = std::bit_cast<long long>(bytes);
+    const auto expected = std::bit_cast<long long>(observed);
+    return operations.exchange64(
+               reinterpret_cast<volatile long long*>(edit.quadword), wanted,
+               expected) == expected
+               ? Written::all
+               : Written::none;
+}
+
+// Not atomic: only the inventoried threads are suspended. Every byte is
+// checked before the first write (rollback also accepts a byte already equal
+// to its target, after a partial write). Bytes 1..length-1 are written first,
+// the opcode byte last, then everything is read back.
+Written ExchangeBytes(const Edit& edit, const std::array<std::uint8_t, 8>& from,
+                      const std::array<std::uint8_t, 8>& to,
+                      const CodePatchOperations& operations,
+                      bool rollback) noexcept {
+    auto* code = reinterpret_cast<volatile std::uint8_t*>(edit.address);
+    for (std::size_t i = 0; i < edit.length; ++i)
+        if (code[i] != from[i] && !(rollback && code[i] == to[i]))
+            return Written::none;
+    bool changed = false;
+    for (std::size_t k = 1; k <= edit.length; ++k) {
+        const auto i = k % edit.length;
+        if (code[i] == to[i])
+            continue;
+        const bool stored = operations.store(&code[i], to[i]);
+        changed |= code[i] != from[i];
+        if (!stored)
+            return changed ? Written::partial : Written::none;
+    }
+    for (std::size_t i = 0; i < edit.length; ++i)
+        if (code[i] != to[i])
+            return Written::partial;
+    return Written::all;
+}
+
+Written Exchange(const Edit& edit, bool forward,
+                 const CodePatchOperations& operations) noexcept {
+    const auto& from = forward ? edit.before : edit.after;
+    const auto& to = forward ? edit.after : edit.before;
+    switch (edit.write) {
+    case Edit::Write::cas16: {
+        const auto expected = std::bit_cast<short>(
+            static_cast<std::uint16_t>(from[0] | from[1] << 8));
+        const auto wanted = std::bit_cast<short>(
+            static_cast<std::uint16_t>(to[0] | to[1] << 8));
+        return _InterlockedCompareExchange16(
+                   reinterpret_cast<volatile short*>(edit.address), wanted,
+                   expected) == expected
+                   ? Written::all
+                   : Written::none;
+    }
+    case Edit::Write::cas64:
+        return ExchangeQuadword(edit, from, to, operations);
+    case Edit::Write::bytes:
+        return ExchangeBytes(edit, from, to, operations, !forward);
+    }
+    return Written::none;
+}
+
+CodePatchResult Transact(std::span<const Edit> edits,
+                         std::span<const CodeSignature> signatures,
+                         CodePatchOperations operations) noexcept {
+    CodePatchResult outcome;
     if (!operations.protect)
         operations.protect = Protect;
     if (!operations.flush)
         operations.flush = Flush;
+    if (!operations.store)
+        operations.store = StoreByte;
+    if (!operations.exchange64)
+        operations.exchange64 = Exchange64;
     try {
         std::array<Page, 3> pages{};
         std::size_t page_count = 0;
         SYSTEM_INFO system{};
         GetSystemInfo(&system);
-        for (std::size_t i = 0; i < patches.size(); ++i) {
-            const auto& patch = patches[i];
-            const auto address =
-                reinterpret_cast<std::uintptr_t>(patch.address);
-            if (!address || address % 2 || patch.instruction_bytes < 2 ||
-                patch.instruction_bytes > 6 || patch.before == patch.after) {
-                outcome.result = E_INVALIDARG;
-                return outcome;
-            }
-            bool covered = false;
-            for (const auto& signature : signatures) {
-                const auto start =
-                    reinterpret_cast<std::uintptr_t>(signature.address);
-                if (!start || signature.bytes.empty() ||
-                    signature.bytes.size() > 64) {
-                    outcome.result = E_INVALIDARG;
-                    return outcome;
-                }
-                if (address >= start &&
-                    address - start <= signature.bytes.size() &&
-                    signature.bytes.size() - (address - start) >=
-                        patch.instruction_bytes)
-                    covered = true;
-            }
-            for (std::size_t j = 0; j < i; ++j)
-                if (patches[j].address == patch.address)
-                    covered = false;
-            if (!covered) {
-                outcome.result = E_INVALIDARG;
-                return outcome;
-            }
+        for (const auto& edit : edits) {
             MEMORY_BASIC_INFORMATION region{};
-            if (VirtualQuery(patch.address, &region, sizeof(region)) !=
-                    sizeof(region) ||
+            if (VirtualQuery(reinterpret_cast<const void*>(edit.address),
+                             &region, sizeof(region)) != sizeof(region) ||
                 region.State != MEM_COMMIT || !Executable(region.Protect)) {
                 outcome.result = HRESULT_FROM_WIN32(ERROR_INVALID_ADDRESS);
                 return outcome;
             }
-            const auto page = address - address % system.dwPageSize;
-            if (address + patch.instruction_bytes > page + system.dwPageSize) {
+            const auto page = edit.address - edit.address % system.dwPageSize;
+            if (edit.address + std::max(edit.window, edit.length) >
+                page + system.dwPageSize) {
                 outcome.result = E_INVALIDARG;
                 return outcome;
             }
@@ -214,7 +303,7 @@ CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
                                        system.dwPageSize, region.Protect};
         }
         for (const auto& signature : signatures) {
-            if (!SignatureMatches(signature, patches, false)) {
+            if (!SignatureMatches(signature, edits, false)) {
                 outcome.result = HRESULT_FROM_WIN32(ERROR_REVISION_MISMATCH);
                 return outcome;
             }
@@ -244,10 +333,8 @@ CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
                 break;
             }
             const auto ip = static_cast<std::uintptr_t>(context.Eip);
-            for (const auto& patch : patches) {
-                const auto start =
-                    reinterpret_cast<std::uintptr_t>(patch.address);
-                if (ip >= start && ip - start < patch.instruction_bytes)
+            for (const auto& edit : edits) {
+                if (ip >= edit.address && ip - edit.address < edit.window)
                     outcome.result = HRESULT_FROM_WIN32(ERROR_BUSY);
             }
             if (FAILED(outcome.result))
@@ -255,7 +342,7 @@ CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
         }
         if (SUCCEEDED(outcome.result)) {
             for (const auto& signature : signatures)
-                if (!SignatureMatches(signature, patches, false))
+                if (!SignatureMatches(signature, edits, false))
                     outcome.result =
                         HRESULT_FROM_WIN32(ERROR_REVISION_MISMATCH);
         }
@@ -278,32 +365,41 @@ CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
         }
         std::size_t written = 0;
         if (SUCCEEDED(outcome.result)) {
-            for (const auto& patch : patches) {
-                const auto observed = _InterlockedCompareExchange16(
-                    static_cast<volatile short*>(patch.address),
-                    std::bit_cast<short>(patch.after),
-                    std::bit_cast<short>(patch.before));
-                if (observed != std::bit_cast<short>(patch.before)) {
+            for (const auto& edit : edits) {
+                const auto exchanged = Exchange(edit, true, operations);
+                // Count only what this transaction wrote: a refused edit
+                // (nothing written, memory differs from before) is not
+                // rolled back; a partial byte-wise write is, byte by byte,
+                // and fails closed otherwise.
+                if (exchanged == Written::none) {
                     outcome.result =
                         HRESULT_FROM_WIN32(ERROR_REVISION_MISMATCH);
                     break;
                 }
                 ++written;
-            }
-            for (const auto& signature : signatures) {
-                if (!operations.flush(signature.address,
-                                      signature.bytes.size()) ||
-                    !SignatureMatches(signature, patches, true))
+                if (exchanged == Written::partial) {
                     outcome.result = HRESULT_FROM_WIN32(ERROR_WRITE_FAULT);
+                    break;
+                }
+            }
+            // Only a complete write is checked as modified: a refusal keeps
+            // its own cause instead of a signature mismatch on unwritten code.
+            if (SUCCEEDED(outcome.result)) {
+                for (const auto& signature : signatures) {
+                    if (!operations.flush(signature.address,
+                                          signature.bytes.size()) ||
+                        !SignatureMatches(signature, edits, true))
+                        outcome.result = HRESULT_FROM_WIN32(ERROR_WRITE_FAULT);
+                }
             }
         }
         const auto rollback = [&]() noexcept {
             while (written != 0) {
-                const auto& patch = patches[--written];
+                const auto& edit = edits[--written];
                 MEMORY_BASIC_INFORMATION region{};
                 const bool writable =
-                    VirtualQuery(patch.address, &region, sizeof(region)) ==
-                        sizeof(region) &&
+                    VirtualQuery(reinterpret_cast<const void*>(edit.address),
+                                 &region, sizeof(region)) == sizeof(region) &&
                     (region.Protect & PAGE_GUARD) == 0 &&
                     ((region.Protect & 0xffU) == PAGE_EXECUTE_READWRITE ||
                      (region.Protect & 0xffU) == PAGE_EXECUTE_WRITECOPY);
@@ -311,17 +407,13 @@ CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
                     outcome.bytes_restored = false;
                     continue;
                 }
-                const auto observed = _InterlockedCompareExchange16(
-                    static_cast<volatile short*>(patch.address),
-                    std::bit_cast<short>(patch.before),
-                    std::bit_cast<short>(patch.after));
                 outcome.bytes_restored &=
-                    observed == std::bit_cast<short>(patch.after);
+                    Exchange(edit, false, operations) == Written::all;
             }
             for (const auto& signature : signatures)
                 outcome.bytes_restored &=
                     Flush(signature.address, signature.bytes.size()) &&
-                    SignatureMatches(signature, patches, false);
+                    SignatureMatches(signature, edits, false);
         };
         if (FAILED(outcome.result) && written != 0)
             rollback();
@@ -366,6 +458,92 @@ CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
         outcome.result = E_OUTOFMEMORY;
         return outcome;
     }
+}
+
+bool Overlaps(const Edit& left, const Edit& right) noexcept {
+    const auto left_end = left.address + std::max(left.window, left.length);
+    const auto right_end = right.address + std::max(right.window, right.length);
+    return left.address < right_end && right.address < left_end;
+}
+
+} // namespace
+
+CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
+                                 std::span<const CodeSignature> signatures,
+                                 CodePatchOperations operations) noexcept {
+    return ApplyCodePatches(patches, std::span<const CodeDetour>{}, signatures,
+                            operations);
+}
+
+CodePatchResult ApplyCodePatches(std::span<const CodePatch> patches,
+                                 std::span<const CodeDetour> detours,
+                                 std::span<const CodeSignature> signatures,
+                                 CodePatchOperations operations) noexcept {
+    CodePatchResult outcome;
+    outcome.result = E_INVALIDARG;
+    const auto total = patches.size() + detours.size();
+    if (total == 0 || total > 3 || signatures.empty() || signatures.size() > 3)
+        return outcome;
+    for (const auto& signature : signatures)
+        if (!signature.address || signature.bytes.empty() ||
+            signature.bytes.size() > 64)
+            return outcome;
+    // Copied before any suspension: no allocation in the transaction.
+    std::array<Edit, 3> edits{};
+    std::size_t count = 0;
+    for (const auto& patch : patches) {
+        const auto address = reinterpret_cast<std::uintptr_t>(patch.address);
+        // Two-byte prefixes keep their aligned CAS16 rule.
+        if (!address || address % 2 || patch.instruction_bytes < 2 ||
+            patch.instruction_bytes > 6 || patch.before == patch.after ||
+            !Covering(signatures, address, patch.instruction_bytes))
+            return outcome;
+        auto& edit = edits[count++];
+        edit.address = address;
+        edit.length = 2;
+        edit.window = patch.instruction_bytes;
+        edit.before[0] = static_cast<std::uint8_t>(patch.before);
+        edit.before[1] = static_cast<std::uint8_t>(patch.before >> 8);
+        edit.after[0] = static_cast<std::uint8_t>(patch.after);
+        edit.after[1] = static_cast<std::uint8_t>(patch.after >> 8);
+        edit.write = Edit::Write::cas16;
+    }
+    for (const auto& detour : detours) {
+        const auto address = reinterpret_cast<std::uintptr_t>(detour.address);
+        if (!address || detour.length < 5 || detour.length > 8 ||
+            std::memcmp(detour.before.data(), detour.after.data(),
+                        detour.length) == 0)
+            return outcome;
+        for (std::size_t i = detour.length; i < 8; ++i)
+            if (detour.before[i] || detour.after[i])
+                return outcome;
+        const auto* signature = Covering(signatures, address, detour.length);
+        if (!signature)
+            return outcome;
+        const auto offset =
+            address - reinterpret_cast<std::uintptr_t>(signature->address);
+        if (std::memcmp(signature->bytes.data() + offset, detour.before.data(),
+                        detour.length) != 0)
+            return outcome;
+        auto& edit = edits[count++];
+        edit.address = address;
+        edit.length = detour.length;
+        edit.window = detour.length;
+        edit.before = detour.before;
+        edit.after = detour.after;
+        if (address / 8 == (address + detour.length - 1) / 8) {
+            edit.write = Edit::Write::cas64;
+            edit.quadword = address & ~std::uintptr_t{7};
+        } else {
+            edit.write = Edit::Write::bytes;
+        }
+    }
+    for (std::size_t i = 0; i < count; ++i)
+        for (std::size_t j = 0; j < i; ++j)
+            if (Overlaps(edits[i], edits[j]))
+                return outcome;
+    return Transact(std::span<const Edit>(edits.data(), count), signatures,
+                    operations);
 }
 
 } // namespace tdur::mod::detail

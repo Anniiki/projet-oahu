@@ -316,6 +316,143 @@ void optional_cases() {
     expect(records.size() == 1, "optional: cleared instance is silent");
 }
 
+// C5: injected classifier. A stands for the retail site, B for the main
+// image elsewhere, C for the system dinput8.dll.
+// Writable, so identical-data folding can never merge their addresses.
+char site_a{}, site_b{}, site_c{};
+CallerOrigin FakeClassifier(const void* caller) noexcept {
+    SetLastError(4242); // a real classifier may clobber the last error
+    if (caller == &site_a)
+        return CallerOrigin::retail_site;
+    if (caller == &site_b)
+        return CallerOrigin::main;
+    if (caller == &site_c)
+        return CallerOrigin::dinput8;
+    return CallerOrigin::unresolved;
+}
+
+std::size_t LinesFrom(const void* caller) {
+    std::size_t count = 0;
+    for (const auto& seen : records)
+        if (seen.event == "cursor-op" && seen.caller == caller)
+            ++count;
+    return count;
+}
+
+void RetailThenOthers(CursorDiagnostics& diagnostics) {
+    fake.show_result = -1;
+    for (unsigned index = 0; index != 20; ++index)
+        diagnostics.show_cursor(FALSE, &site_a);
+    fake.show_result = 0;
+    fake.error = 77;
+    diagnostics.show_cursor(TRUE, &site_c);
+    diagnostics.show_cursor(TRUE, &site_b);
+}
+
+void origin_cases() {
+    records.clear();
+    fake = {};
+    CursorDiagnostics diagnostics(FakeTable(), Collect, CursorLimits{},
+                                  FakeClassifier);
+    RetailThenOthers(diagnostics);
+    expect(GetLastError() == 77, "origin: classifier keeps the last error");
+    expect(LinesFrom(&site_a) == 2,
+           "origin: retail site detailed only twice per window");
+    bool dinput8 = false;
+    for (const auto& seen : records)
+        dinput8 |= seen.caller == &site_c &&
+                   seen.reason == "show-cursor arg=true count=0 origin=dinput8";
+    expect(dinput8, "origin: external show written with its origin");
+    expect(LinesFrom(&site_b) == 1 &&
+               records.back().reason ==
+                   "show-cursor arg=true count=0 origin=main",
+           "origin: main image classified");
+    expect(records.front().reason ==
+               "show-cursor arg=false count=-1 origin=retail-site",
+           "origin: retail site classified");
+    diagnostics.activation(WM_ACTIVATEAPP, TRUE);
+    const auto& summary = records[records.size() - 2];
+    expect(summary.event == "cursor-summary" &&
+               Has(summary.reason, "show1=2 show0=20") &&
+               Has(summary.reason, " ext1=1 ext0=0"),
+           "origin: summary counts external shows");
+    // The marker reopens the retail budget.
+    const auto before = records.size();
+    diagnostics.show_cursor(FALSE, &site_a);
+    expect(records.size() == before + 1,
+           "origin: activation reopens the retail budget");
+
+    // Negative witness: same sequence without a classifier (earlier format).
+    records.clear();
+    fake = {};
+    CursorDiagnostics plain(FakeTable(), Collect);
+    RetailThenOthers(plain);
+    expect(LinesFrom(&site_a) == 16 && LinesFrom(&site_c) == 0 &&
+               LinesFrom(&site_b) == 0,
+           "origin witness: retail flood hides the external show");
+    plain.activation(WM_ACTIVATEAPP, TRUE);
+    bool ext = false;
+    for (const auto& seen : records)
+        ext |= Has(seen.reason, "ext1") || Has(seen.reason, "origin=");
+    expect(!ext, "origin witness: no origin field without a classifier");
+}
+
+void origin_names() {
+    expect(CallerOriginFromModule(L"D3D9.DLL", false, false) ==
+                   CallerOrigin::d3d9 &&
+               CallerOriginFromModule(L"d3d9on12.dll", false, false) ==
+                   CallerOrigin::d3d9on12 &&
+               CallerOriginFromModule(L"dxgi.dll", false, false) ==
+                   CallerOrigin::dxgi &&
+               CallerOriginFromModule(L"D3D12Core.dll", false, false) ==
+                   CallerOrigin::d3d12 &&
+               CallerOriginFromModule(L"d3d12.dll", false, false) ==
+                   CallerOrigin::d3d12 &&
+               CallerOriginFromModule(L"win32u.dll", false, false) ==
+                   CallerOrigin::user32 &&
+               CallerOriginFromModule(L"USER32.dll", false, false) ==
+                   CallerOrigin::user32,
+           "origin: fixed system module table, case-insensitive");
+    expect(CallerOriginFromModule(L"dinput8.dll", false, true) ==
+                   CallerOrigin::proxy &&
+               CallerOriginFromModule(L"dinput8.dll", false, false) ==
+                   CallerOrigin::dinput8,
+           "origin: proxy decided by handle, not by name");
+    expect(CallerOriginFromModule(L"kernel32.dll", false, false) ==
+                   CallerOrigin::other &&
+               CallerOriginFromModule(L"anything.exe", true, false) ==
+                   CallerOrigin::main &&
+               CallerOriginFromModule(L"", false, false) ==
+                   CallerOrigin::unresolved &&
+               CallerOriginFromModule(nullptr, false, false) ==
+                   CallerOrigin::unresolved,
+           "origin: other, main and unresolved");
+    const char* names[] = {"unresolved", "main",     "retail-site", "proxy",
+                           "d3d9",       "d3d9on12", "dxgi",        "d3d12",
+                           "dinput8",    "user32",   "other"};
+    bool all = true;
+    for (unsigned index = 0; index != 11; ++index)
+        all &=
+            std::string(CallerOriginName(static_cast<CallerOrigin>(index))) ==
+            names[index];
+    expect(all, "origin: every class name");
+
+    const std::uint32_t most = 0xFFFFFFFFu;
+    CursorRecord widest{"cursor-summary"};
+    FormatCursorSummary(CursorPeriod{most, most, most, most, most, most, most,
+                                     most, most, most, most, most},
+                        widest, true);
+    const std::string expected =
+        "period show1=4294967295 show0=4294967295 hidden=4294967295 "
+        "set0=4294967295 set1=4294967295 clip=4294967295 "
+        "unclip=4294967295 clipfail=4294967295 release=4294967295 "
+        "releasefail=4294967295 ext1=4294967295 ext0=4294967295";
+    expect(std::string(widest.reason) == expected && expected.size() == 218 &&
+               expected.size() < sizeof(widest.reason) &&
+               sizeof(widest.reason) == 256,
+           "origin: widest summary with origin fits in 256");
+}
+
 std::vector<std::string> order;
 
 LRESULT CALLBACK BaseProcedure(HWND window, UINT message, WPARAM wparam,
@@ -395,6 +532,8 @@ int main() {
     summary_cases();
     activation_cases();
     optional_cases();
+    origin_cases();
+    origin_names();
     subclass_cases();
     std::printf("{\"suite\":\"cursor_diagnostics\",\"checks\":%d,"
                 "\"failures\":%d,\"game_executed\":false}\n",

@@ -80,6 +80,11 @@ source installation, protected ancestors and hook initialization remain
 detailed. Totals are periodic snapshots; the final partial interval
 is not necessarily written during forced shutdown.
 
+Every write-intent open whose path has a `savegame` component also writes
+its own line, `save-write-observed` or `save-write-refused`, with the
+access, disposition and options of the request, up to 4096 lines per event
+and per process before the summaries.
+
 The external launcher keeps original saves open read-only, without
 write or deletion sharing, then compares their inventory and SHA-256.
 It assigns the suspended process to a non-breakaway Job limited to one

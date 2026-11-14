@@ -429,7 +429,7 @@ constexpr NTSTATUS NotADirectory = static_cast<NTSTATUS>(0xC0000103UL);
 void Expect(bool ok, const char* label, unsigned long code = 0) {
     if (!ok) {
         ++failures;
-        std::cerr << "form case failed: " << label << " code=0x" << std::hex
+        std::cerr << "Witness case failed: " << label << " code=0x" << std::hex
                   << code << std::dec << '\n';
     }
 }
@@ -681,6 +681,136 @@ void CheckTrailingSeparators() {
                "D2 reparse point stays refused", throughError);
     }
 }
+
+// --- Save-path write witness ----------------------------------
+// Every write-intent open whose path has a "savegame" component gets its own
+// save-write-observed or save-write-refused line; run_fixture.py reads them.
+// Invented TDUR_WITNESS_* names only, inside this run's private documents.
+constexpr NTSTATUS PathNotFound = static_cast<NTSTATUS>(0xC000003AUL);
+constexpr NTSTATUS NameCollision = static_cast<NTSTATUS>(0xC0000035UL);
+
+std::array<wchar_t, MAX_PATH + 8> NativeName(const wchar_t* folder,
+                                             const wchar_t* leaf) {
+    std::array<wchar_t, MAX_PATH + 8> name{};
+    if (swprintf_s(name.data(), name.size(), L"\\??\\%s\\%s", folder, leaf) <=
+        0) {
+        ++failures;
+        name[0] = L'\0';
+    }
+    return name;
+}
+
+void CheckSaveWrites() {
+    const auto folder = Environment(L"TDUR_PRIVATE_DOCUMENTS");
+    const auto source = Environment(L"TDUR_SOURCE_DOCUMENTS");
+    const auto base = Join(folder.data(), L"TDUR_WITNESS_SAVES");
+    Expect(CreateDirectoryW(base.data(), nullptr) != FALSE,
+           "C3 private base directory", GetLastError());
+    const auto saves = Join(base.data(), L"savegame");
+    // A save file whose savegame directory is missing.
+    // The caller gets the native missing-path error and may create it.
+    const HANDLE early = CreateFileW(
+        Join(saves.data(), L"TDUR_WITNESS_PROFILE.dat").data(), GENERIC_WRITE,
+        FILE_SHARE_READ, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+    const DWORD earlyError =
+        early == INVALID_HANDLE_VALUE ? GetLastError() : ERROR_SUCCESS;
+    Expect(early == INVALID_HANDLE_VALUE &&
+               earlyError == ERROR_PATH_NOT_FOUND && !Exists(saves.data()),
+           "C3 save file under a missing savegame directory", earlyError);
+    if (early != INVALID_HANDLE_VALUE)
+        CloseHandle(early);
+    // The same request relative to a directory handle, the form of the game's
+    // fallback, and as a bare name without root.
+    bool opened = false;
+    const HANDLE root = CreateFileW(
+        base.data(), FILE_LIST_DIRECTORY,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+        OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+    Expect(root != INVALID_HANDLE_VALUE, "C3 root handle", GetLastError());
+    if (root != INVALID_HANDLE_VALUE) {
+        const auto status =
+            NativeOpen(L"savegame\\TDUR_WITNESS_ROOTED.dat", GENERIC_WRITE,
+                       DispositionCreate, OptionNonDirectory, opened, root);
+        Expect(status == PathNotFound && !opened && !Exists(saves.data()),
+               "C3 rooted save name under a missing directory", Code(status));
+        CloseHandle(root);
+    }
+    auto status = NativeOpen(L"savegame\\TDUR_WITNESS_BARE.dat", GENERIC_WRITE,
+                             DispositionCreate, OptionNonDirectory, opened);
+    Expect(status == PathSyntaxBad && !opened, "C3 bare save name without root",
+           Code(status));
+    // Nine more refusals: thirteen in all, beyond the eight individual lines
+    // of the generic refusal events.
+    for (unsigned index = 0; index < 9; ++index) {
+        std::array<wchar_t, 48> name{};
+        swprintf_s(name.data(), name.size(),
+                   L"savegame\\TDUR_WITNESS_BARE_%02u.dat", index);
+        status = NativeOpen(name.data(), GENERIC_WRITE, DispositionCreate,
+                            OptionNonDirectory, opened);
+        Expect(status == PathSyntaxBad && !opened, "C3 repeated bare save name",
+               Code(status));
+    }
+    // The directory itself, then the collision of a second creation.
+    const auto savesName = NativeName(base.data(), L"savegame");
+    status = NativeOpen(savesName.data(), FILE_LIST_DIRECTORY,
+                        DispositionCreate, OptionDirectory, opened);
+    Expect(status >= 0 && opened && IsDirectory(saves.data()),
+           "C3 savegame directory created", Code(status));
+    status = NativeOpen(savesName.data(), FILE_LIST_DIRECTORY,
+                        DispositionCreate, OptionDirectory, opened);
+    Expect(status == NameCollision && !opened,
+           "C3 second savegame creation collides", Code(status));
+    // Twelve entries: more than the eight individual lines of the generic
+    // file-write-observed sample.
+    for (unsigned index = 0; index < 12; ++index) {
+        std::array<wchar_t, 40> leaf{};
+        swprintf_s(leaf.data(), leaf.size(), L"TDUR_WITNESS_SAVE_%02u.sav",
+                   index);
+        status = NativeOpen(NativeName(saves.data(), leaf.data()).data(),
+                            GENERIC_WRITE, DispositionCreate,
+                            OptionNonDirectory, opened);
+        Expect(status >= 0 && opened &&
+                   Exists(Join(saves.data(), leaf.data()).data()),
+               "C3 save entry created", Code(status));
+    }
+    // A transient entry: only its creation crosses NtCreateFile.
+    const auto transient = Join(saves.data(), L"TDUR_WITNESS_TRANSIENT.tmp");
+    status = NativeOpen(
+        NativeName(saves.data(), L"TDUR_WITNESS_TRANSIENT.tmp").data(),
+        GENERIC_WRITE, DispositionCreate, OptionNonDirectory, opened);
+    Expect(status >= 0 && opened, "C3 transient entry created", Code(status));
+    Expect(DeleteFileW(transient.data()) != FALSE && !Exists(transient.data()),
+           "C3 transient entry deleted", GetLastError());
+    // Names that only resemble the component get no save line.
+    status = NativeOpen(NativeName(base.data(), L"savegame.bak").data(),
+                        GENERIC_WRITE, DispositionCreate, OptionNonDirectory,
+                        opened);
+    Expect(status >= 0 && opened, "C3 lookalike file", Code(status));
+    for (const auto* lookalike : {L"xsavegame", L"savegames"}) {
+        status = NativeOpen(NativeName(base.data(), lookalike).data(),
+                            FILE_LIST_DIRECTORY, DispositionCreate,
+                            OptionDirectory, opened);
+        Expect(status >= 0 && opened, "C3 lookalike directory", Code(status));
+    }
+    status = NativeOpen(
+        NativeName(base.data(), L"savegames\\TDUR_WITNESS_INNER.dat").data(),
+        GENERIC_WRITE, DispositionCreate, OptionNonDirectory, opened);
+    Expect(status >= 0 && opened, "C3 file under a lookalike directory",
+           Code(status));
+    // The source saves stay refused, and the refusal names the save path.
+    const auto guarded =
+        Join(source.data(), L"savegame\\TDUR_WITNESS_SOURCE.dat");
+    const HANDLE refused =
+        CreateFileW(guarded.data(), GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+                    CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    const DWORD refusedError =
+        refused == INVALID_HANDLE_VALUE ? GetLastError() : ERROR_SUCCESS;
+    Expect(refused == INVALID_HANDLE_VALUE &&
+               refusedError == ERROR_ACCESS_DENIED && !Exists(guarded.data()),
+           "C3 source save stays refused", refusedError);
+    if (refused != INVALID_HANDLE_VALUE)
+        CloseHandle(refused);
+}
 } // namespace
 
 int main() {
@@ -701,6 +831,7 @@ int main() {
     CheckMissingParentErrors();
     CheckNtNameForms();
     CheckTrailingSeparators();
+    CheckSaveWrites();
     CheckCurrentProcessFolderToken();
     CheckFrequentFolderCalls();
     const auto refused = ShellExecuteW(nullptr, L"open", L"cmd.exe", L"/c exit",

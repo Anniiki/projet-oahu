@@ -17,6 +17,63 @@ namespace tdur::mod {
 namespace {
 using Microsoft::WRL::ComPtr;
 
+// The bridge's own window operations on this thread (mode, repair, monitor
+// and restoration), innermost first. Messages a window receives from its own
+// thread during SetWindowPos/SetWindowLongPtrW are sent synchronously, so the
+// HWND procedure can tell them from foreign changes. Each operation records
+// the host-handler depth where it began: a message received deeper comes
+// from a call made by the host's handler while the operation was running
+// (the host reacting to the bridge's WM_SIZE), not from the bridge. Thread
+// state, not an Impl flag: ~Impl runs restoreWindow() after the owning
+// unique_ptr has already been cleared.
+thread_local unsigned hostHandlerDepth = 0;
+struct WindowOperation;
+thread_local const WindowOperation* currentOperation = nullptr;
+struct WindowOperation {
+    // What the operation leaves on screen. Only borderless is constrained.
+    enum class Target : std::uint8_t {
+        windowed,
+        borderless,
+        exclusive,
+        restore,
+        monitor
+    };
+    WindowOperation(HWND target_window, Target operation_target) noexcept
+        : window(target_window), target(operation_target),
+          level(hostHandlerDepth), previous(currentOperation) {
+        currentOperation = this;
+    }
+    ~WindowOperation() { currentOperation = previous; }
+    WindowOperation(const WindowOperation&) = delete;
+    WindowOperation& operator=(const WindowOperation&) = delete;
+
+    HWND window;
+    Target target;
+    unsigned level;
+    const WindowOperation* previous;
+};
+
+WindowOperation::Target TargetOf(WindowMode mode) noexcept {
+    switch (mode) {
+    case WindowMode::windowed:
+        return WindowOperation::Target::windowed;
+    case WindowMode::borderless:
+        return WindowOperation::Target::borderless;
+    case WindowMode::exclusive:
+        break;
+    }
+    return WindowOperation::Target::exclusive;
+}
+
+// Innermost operation of the bridge on this HWND, or null.
+const WindowOperation* OperationOn(HWND window) noexcept {
+    for (auto* operation = currentOperation; operation != nullptr;
+         operation = operation->previous)
+        if (operation->window == window)
+            return operation;
+    return nullptr;
+}
+
 void Check(HRESULT result, const char* operation) {
     if (FAILED(result))
         throw DisplayError(result, operation);
@@ -237,6 +294,125 @@ double EffectiveFrameCap(const DisplayPreferences& preferences,
                : refresh;
 }
 
+DisplayHostHandlerScope::DisplayHostHandlerScope() noexcept {
+    ++hostHandlerDepth;
+}
+
+DisplayHostHandlerScope::~DisplayHostHandlerScope() { --hostHandlerDepth; }
+
+bool DisplayWindowOperationActive() noexcept {
+    return currentOperation != nullptr &&
+           currentOperation->level == hostHandlerDepth;
+}
+
+SwitchSetting ParseSwitchSetting(const wchar_t* value, DWORD length,
+                                 DWORD last_error) noexcept {
+    if (length == 0)
+        return last_error == ERROR_ENVVAR_NOT_FOUND ? SwitchSetting::absent
+                                                    : SwitchSetting::invalid;
+    if (length == 1 && value != nullptr && value[0] == L'1')
+        return SwitchSetting::enabled;
+    if (length == 1 && value != nullptr && value[0] == L'0')
+        return SwitchSetting::disabled;
+    return SwitchSetting::invalid;
+}
+
+BorderlessCorrectionGuard::Verdict
+BorderlessCorrectionGuard::record(Kind kind, std::uint64_t now_ms) noexcept {
+    opened_ = false;
+    if (!anchored_) {
+        anchored_ = true;
+        last_summary_ms_ = now_ms;
+    }
+    if (kind == Kind::migration) {
+        ++counters_.migrations;
+        return Verdict::apply;
+    }
+    if (episode_ && now_ms >= suspended_until_) {
+        // A fresh ring: the instants suspended inside the episode must not
+        // reopen it at once, or a lasting cause would suspend forever.
+        episode_ = false;
+        ring_count_ = 0;
+        ring_next_ = 0;
+    }
+    ring_[ring_next_] = now_ms;
+    ring_next_ = (ring_next_ + 1) % storm_corrections;
+    if (ring_count_ < storm_corrections)
+        ++ring_count_;
+    // Oldest of the last five instants, the current one included.
+    const std::uint64_t oldest = ring_[ring_next_];
+    if (!episode_ && ring_count_ == storm_corrections &&
+        now_ms - oldest < storm_window_ms) {
+        episode_ = opened_ = true;
+        suspended_until_ = now_ms + suspension_ms;
+        ++counters_.storms;
+    }
+    if (kind == Kind::constrained) {
+        ++counters_.constrained;
+        return opened_ ? Verdict::apply_storm : Verdict::apply;
+    }
+    if (episode_) {
+        ++counters_.suspended;
+        return Verdict::suspend;
+    }
+    ++counters_.repaired;
+    return Verdict::apply;
+}
+
+bool BorderlessCorrectionGuard::take_individual_line() noexcept {
+    if (individual_left_ == 0)
+        return false;
+    --individual_left_;
+    return true;
+}
+
+bool BorderlessCorrectionGuard::take_storm_line() noexcept {
+    if (storm_left_ == 0)
+        return false;
+    --storm_left_;
+    return true;
+}
+
+bool BorderlessCorrectionGuard::changed() const noexcept {
+    return counters_.constrained != summarized_.constrained ||
+           counters_.repaired != summarized_.repaired ||
+           counters_.suspended != summarized_.suspended ||
+           counters_.storms != summarized_.storms ||
+           counters_.migrations != summarized_.migrations ||
+           counters_.skipped != summarized_.skipped;
+}
+
+bool BorderlessCorrectionGuard::summary_due(std::uint64_t now_ms) noexcept {
+    if (!anchored_ || !changed())
+        return false;
+    // 5 s for the first 32 summaries, then 10 s, 20 s, 40 s... (capped
+    // shift: about 60 days, far beyond any session).
+    const unsigned doubling =
+        summaries_ < summary_lines
+            ? 0U
+            : std::min(summaries_ - summary_lines + 1U, 20U);
+    if (now_ms - last_summary_ms_ < (summary_interval_ms << doubling))
+        return false;
+    ++summaries_;
+    last_summary_ms_ = now_ms;
+    summarized_ = counters_;
+    return true;
+}
+
+bool BorderlessCorrectionGuard::take_sparse_notice() noexcept {
+    if (sparse_noticed_ || summaries_ < summary_lines)
+        return false;
+    sparse_noticed_ = true;
+    return true;
+}
+
+bool BorderlessCorrectionGuard::final_summary_due() noexcept {
+    if (!changed())
+        return false;
+    summarized_ = counters_;
+    return true;
+}
+
 PresentationPolicy SelectPresentationPolicy(bool exclusive, bool tearing,
                                             bool allowTearing,
                                             bool vsync) noexcept {
@@ -298,6 +474,9 @@ struct DisplayBackend::Impl {
         bool returned = false;
     };
     std::unique_ptr<BlitLifetime> pendingBlit;
+    BorderlessCorrectionGuard guard;
+    bool skippedMonitorLogged = false;
+    bool skippedRectangleLogged = false;
 
     Impl(HWND target, DisplayPreferences prefs)
         : window(target), ownerThread(GetCurrentThreadId()),
@@ -347,6 +526,7 @@ struct DisplayBackend::Impl {
     }
 
     void restoreWindow() noexcept {
+        WindowOperation operation(window, WindowOperation::Target::restore);
         if (swapchain)
             swapchain->SetFullscreenState(FALSE, nullptr);
         if (IsWindow(window) && GetCurrentThreadId() == ownerThread) {
@@ -366,7 +546,246 @@ struct DisplayBackend::Impl {
         }
     }
 
-    ~Impl() { restoreWindow(); }
+    ~Impl() {
+        finalSummary();
+        restoreWindow();
+    }
+
+    // Owner-thread correction log; a no-op without preferences.log.
+    void logText(const char* text) const noexcept {
+        if (preferences.log)
+            preferences.log(text, preferences.log_context);
+    }
+
+    void stormLine() noexcept {
+        if (!guard.take_storm_line())
+            return;
+        const auto& n = guard.counters();
+        char text[192]{};
+        std::snprintf(text, sizeof(text),
+                      "display-borderless-correction-storm constrained=%llu "
+                      "repaired=%llu suspended=%llu storms=%llu",
+                      static_cast<unsigned long long>(n.constrained),
+                      static_cast<unsigned long long>(n.repaired),
+                      static_cast<unsigned long long>(n.suspended),
+                      static_cast<unsigned long long>(n.storms));
+        logText(text);
+    }
+
+    void summaryLine() const noexcept {
+        const auto& n = guard.counters();
+        char text[256]{};
+        std::snprintf(text, sizeof(text),
+                      "display-borderless-correction-summary constrained=%llu "
+                      "repaired=%llu suspended=%llu storms=%llu "
+                      "migrations=%llu skipped=%llu",
+                      static_cast<unsigned long long>(n.constrained),
+                      static_cast<unsigned long long>(n.repaired),
+                      static_cast<unsigned long long>(n.suspended),
+                      static_cast<unsigned long long>(n.storms),
+                      static_cast<unsigned long long>(n.migrations),
+                      static_cast<unsigned long long>(n.skipped));
+        logText(text);
+    }
+
+    void periodicSummary() noexcept {
+        if (!guard.summary_due(GetTickCount64()))
+            return;
+        summaryLine();
+        // Once: the summaries go on, at a doubling interval.
+        if (guard.take_sparse_notice())
+            logText("display-borderless-correction-summary-sparse after=32 "
+                    "next_interval_ms=10000 doubling=1");
+    }
+
+    // C2 had to abstain: counted in every summary, one line per reason.
+    void skipped(bool& logged, const char* reason, DWORD error) noexcept {
+        guard.record_skipped();
+        if (logged)
+            return;
+        logged = true;
+        char text[128]{};
+        std::snprintf(
+            text, sizeof(text),
+            "display-borderless-constraint-skipped reason=%s "
+            "error=%lu n=%llu",
+            reason, static_cast<unsigned long>(error),
+            static_cast<unsigned long long>(guard.counters().skipped));
+        logText(text);
+    }
+
+    void finalSummary() noexcept {
+        if (guard.final_summary_due())
+            summaryLine();
+    }
+
+    BorderlessCorrectionGuard::Verdict
+    recordCorrection(BorderlessCorrectionGuard::Kind kind) noexcept {
+        const auto verdict = guard.record(kind, GetTickCount64());
+        if (guard.opened_episode())
+            stormLine();
+        return verdict;
+    }
+
+    DisplayBackend::WindowConstraint constrain(UINT message, WPARAM wparam,
+                                               LPARAM lparam) noexcept {
+        DisplayBackend::WindowConstraint result;
+        // The innermost bridge operation on this HWND, if any, decides what
+        // must stay on screen; outside any, the current mode does. At the
+        // operation's own level the message is the bridge's: exempt unless
+        // the operation targets borderless, where the bridge's request equals
+        // the bounds and any difference was written by the host handler. A
+        // deeper message is a call made by the host handler meanwhile.
+        const WindowOperation* operation = OperationOn(window);
+        const bool ownLevel =
+            operation != nullptr && operation->level == hostHandlerDepth;
+        const bool borderless =
+            operation != nullptr
+                ? operation->target == WindowOperation::Target::borderless
+                : preferences.mode == WindowMode::borderless;
+        const char* bridge = operation == nullptr ? "none"
+                             : ownLevel           ? "altered"
+                                                  : "reaction";
+        // Ignored cases are not refusals and write nothing: another thread,
+        // another mode, a bridge operation that does not target borderless,
+        // a dead HWND.
+        if (GetCurrentThreadId() != ownerThread || !borderless ||
+            !preferences.constrain_borderless || status.exclusive_active ||
+            window == nullptr || !IsWindow(window))
+            return result;
+        char text[192]{};
+        if (message == WM_WINDOWPOSCHANGING) {
+            auto* position = reinterpret_cast<WINDOWPOS*>(lparam);
+            if (position == nullptr || position->hwnd != window)
+                return result;
+            const UINT flags = position->flags;
+            if ((flags & SWP_NOSIZE) && (flags & SWP_NOMOVE))
+                return result;
+            // Abstentions below are counted and announced once per reason.
+            RECT current{};
+            if ((flags & (SWP_NOSIZE | SWP_NOMOVE)) &&
+                !GetWindowRect(window, &current)) {
+                skipped(skippedRectangleLogged, "rect", GetLastError());
+                return result;
+            }
+            const RECT bounds = status.monitor.bounds;
+            if (bounds.right <= bounds.left || bounds.bottom <= bounds.top) {
+                skipped(skippedMonitorLogged, "monitor", ERROR_SUCCESS);
+                return result;
+            }
+            const long x = (flags & SWP_NOMOVE) ? current.left : position->x;
+            const long y = (flags & SWP_NOMOVE) ? current.top : position->y;
+            const long width = (flags & SWP_NOSIZE)
+                                   ? current.right - current.left
+                                   : position->cx;
+            const long height = (flags & SWP_NOSIZE)
+                                    ? current.bottom - current.top
+                                    : position->cy;
+            const RECT target{x, y, x + width, y + height};
+            if (EqualRect(&target, &bounds))
+                return result;
+            // Minimized or being minimized: never restore or resize.
+            if ((GetWindowLongPtrW(window, GWL_STYLE) & WS_MINIMIZE) != 0 ||
+                (x <= -32000 && y <= -32000))
+                return result;
+            // An exact other monitor is a shell migration (Win+Shift+arrow).
+            const HMONITOR other =
+                MonitorFromRect(&target, MONITOR_DEFAULTTONULL);
+            MONITORINFO info{};
+            info.cbSize = sizeof(info);
+            if (other && other != status.monitor.handle &&
+                GetMonitorInfoW(other, &info) &&
+                EqualRect(&info.rcMonitor, &target)) {
+                recordCorrection(BorderlessCorrectionGuard::Kind::migration);
+                if (guard.take_individual_line()) {
+                    std::snprintf(text, sizeof(text),
+                                  "display-borderless-monitor-migration n=%llu",
+                                  static_cast<unsigned long long>(
+                                      guard.counters().migrations));
+                    logText(text);
+                }
+                return result;
+            }
+            position->x = bounds.left;
+            position->y = bounds.top;
+            position->cx = bounds.right - bounds.left;
+            position->cy = bounds.bottom - bounds.top;
+            position->flags &= ~static_cast<UINT>(SWP_NOMOVE | SWP_NOSIZE);
+            result.changed = result.position = true;
+            result.requested_width = width;
+            result.requested_height = height;
+            recordCorrection(BorderlessCorrectionGuard::Kind::constrained);
+            if (guard.take_individual_line()) {
+                std::snprintf(text, sizeof(text),
+                              "display-borderless-constrained kind=position "
+                              "req=%ldx%ld out=%ldx%ld n=%llu bridge=%s",
+                              width, height, bounds.right - bounds.left,
+                              bounds.bottom - bounds.top,
+                              static_cast<unsigned long long>(
+                                  guard.counters().constrained),
+                              bridge);
+                logText(text);
+            }
+            periodicSummary();
+            return result;
+        }
+        if (message != WM_STYLECHANGING)
+            return result;
+        auto* change = reinterpret_cast<STYLESTRUCT*>(lparam);
+        if (change == nullptr)
+            return result;
+        if (static_cast<int>(wparam) == GWL_STYLE) {
+            // Removing a frame never restores a minimized window, so the
+            // style constraint also applies while minimized.
+            constexpr DWORD decoration = WS_CAPTION | WS_THICKFRAME |
+                                         WS_SYSMENU | WS_MINIMIZEBOX |
+                                         WS_MAXIMIZEBOX;
+            const DWORD next = (change->styleNew & ~decoration) | WS_POPUP;
+            if (next == change->styleNew)
+                return result;
+            const unsigned caption =
+                (change->styleNew & WS_CAPTION) == WS_CAPTION ? 1U : 0U;
+            const unsigned frame =
+                (change->styleNew & WS_THICKFRAME) != 0 ? 1U : 0U;
+            change->styleNew = next;
+            result.changed = result.style = true;
+            recordCorrection(BorderlessCorrectionGuard::Kind::constrained);
+            if (guard.take_individual_line()) {
+                std::snprintf(text, sizeof(text),
+                              "display-borderless-constrained kind=style "
+                              "caption=%u frame=%u n=%llu bridge=%s",
+                              caption, frame,
+                              static_cast<unsigned long long>(
+                                  guard.counters().constrained),
+                              bridge);
+                logText(text);
+            }
+        } else if (static_cast<int>(wparam) == GWL_EXSTYLE) {
+            constexpr DWORD edges = WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE |
+                                    WS_EX_CLIENTEDGE | WS_EX_STATICEDGE;
+            const DWORD removed = change->styleNew & (edges | WS_EX_TOPMOST);
+            if (removed == 0)
+                return result;
+            change->styleNew &= ~(edges | WS_EX_TOPMOST);
+            result.changed = result.extended_style = true;
+            recordCorrection(BorderlessCorrectionGuard::Kind::constrained);
+            if (guard.take_individual_line()) {
+                std::snprintf(text, sizeof(text),
+                              "display-borderless-constrained kind=exstyle "
+                              "edges=%u topmost=%u n=%llu bridge=%s",
+                              (removed & edges) ? 1U : 0U,
+                              (removed & WS_EX_TOPMOST) ? 1U : 0U,
+                              static_cast<unsigned long long>(
+                                  guard.counters().constrained),
+                              bridge);
+                logText(text);
+            }
+        } else {
+            return result;
+        }
+        periodicSummary();
+        return result;
+    }
 
     void checkUsable() {
         if (FAILED(status.backend_failure))
@@ -424,6 +843,7 @@ struct DisplayBackend::Impl {
             !status.exclusive_active;
     }
 
+    // Callers hold a WindowOperation naming what this call leaves on screen.
     void style(WindowMode mode) {
         owner();
         refresh();
@@ -494,12 +914,38 @@ struct DisplayBackend::Impl {
             GetWindowLongPtrW(window, GWL_EXSTYLE) &
             (WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE |
              WS_EX_STATICEDGE | WS_EX_TOPMOST);
-        if ((bits & (WS_POPUP | WS_CAPTION | WS_THICKFRAME)) != WS_POPUP ||
-            edges || actual.left != target.left || actual.top != target.top ||
-            actual.right != target.right || actual.bottom != target.bottom)
+        const bool styleMismatch =
+            (bits & (WS_POPUP | WS_CAPTION | WS_THICKFRAME)) != WS_POPUP ||
+            edges;
+        const bool rectangleMismatch =
+            actual.left != target.left || actual.top != target.top ||
+            actual.right != target.right || actual.bottom != target.bottom;
+        if (styleMismatch || rectangleMismatch) {
             // The host can resize its visible HWND after CreateDevice/Reset.
             // Repair only a mismatch; stable frames never call SetWindowPos.
-            style(WindowMode::borderless);
+            // The shared guard suspends repairs during a correction storm;
+            // the storm line announces it and the counters keep the trace.
+            const auto verdict =
+                recordCorrection(BorderlessCorrectionGuard::Kind::repaired);
+            if (verdict != BorderlessCorrectionGuard::Verdict::suspend) {
+                if (guard.take_individual_line()) {
+                    char text[160]{};
+                    std::snprintf(
+                        text, sizeof(text),
+                        "display-borderless-repaired style=%u "
+                        "rect=%u w=%ld h=%ld n=%llu",
+                        styleMismatch ? 1U : 0U, rectangleMismatch ? 1U : 0U,
+                        actual.right - actual.left, actual.bottom - actual.top,
+                        static_cast<unsigned long long>(
+                            guard.counters().repaired));
+                    logText(text);
+                }
+                WindowOperation operation(window,
+                                          WindowOperation::Target::borderless);
+                style(WindowMode::borderless);
+            }
+        }
+        periodicSummary();
     }
 
     void loadRuntime() {
@@ -725,6 +1171,8 @@ struct DisplayBackend::Impl {
     }
 
     void setMode(WindowMode mode) {
+        // Covers the attempt and the rollback, SetFullscreenState included.
+        WindowOperation operation(window, TargetOf(mode));
         owner();
         checkUsable();
         if (mode != WindowMode::windowed && mode != WindowMode::borderless &&
@@ -780,6 +1228,7 @@ struct DisplayBackend::Impl {
         } catch (...) {
             // A refused exclusive transition must not leave a borderless
             // window labeled windowed. Restore the previous public API state.
+            operation.target = TargetOf(oldMode);
             if (swapchain)
                 swapchain->SetFullscreenState(wasExclusive, oldOutput.Get());
             SetWindowLongPtrW(window, GWL_STYLE, oldStyle);
@@ -1065,11 +1514,13 @@ struct DisplayBackend::Impl {
 
 DisplayBackend::DisplayBackend(HWND window, DisplayPreferences preferences)
     : impl_(std::make_unique<Impl>(window, preferences)) {
+    WindowOperation operation(window, TargetOf(preferences.mode));
     impl_->style(preferences.mode);
 }
 
 DisplayBackend::~DisplayBackend() {
     if (impl_ && !impl_->retireFailedSubmission()) {
+        impl_->finalSummary();
         impl_->restoreWindow();
         // Completion is unknown. Keep the entire failed command context and
         // resource ownership until process exit instead of freeing in-use GPU
@@ -1082,7 +1533,19 @@ DisplayBackend::~DisplayBackend() {
 
 void DisplayBackend::set_mode(WindowMode mode) { impl_->setMode(mode); }
 
+DisplayBackend::WindowConstraint
+DisplayBackend::constrain_window_message(UINT message, WPARAM wparam,
+                                         LPARAM lparam) noexcept {
+    return impl_ ? impl_->constrain(message, wparam, lparam)
+                 : WindowConstraint{};
+}
+
+BorderlessCorrectionCounters DisplayBackend::corrections() const noexcept {
+    return impl_ ? impl_->guard.counters() : BorderlessCorrectionCounters{};
+}
+
 void DisplayBackend::move_to_monitor(HMONITOR monitor) {
+    WindowOperation operation(impl_->window, WindowOperation::Target::monitor);
     impl_->owner();
     const auto target = DescribeMonitor(monitor);
     const auto requested = impl_->preferences.mode;

@@ -1,4 +1,5 @@
 #include "tdur/mod/display_hooks.hpp"
+#include "tdur/mod/window_diagnostics.hpp"
 
 #include <d3d9on12.h>
 #include <wrl/client.h>
@@ -7,6 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace {
@@ -19,6 +21,10 @@ unsigned firstFrameEvents = 0;
 unsigned presentedFrameEvents = 0;
 bool rejectNextDevice = false;
 HWND destroyOnPositionChange = nullptr;
+// D1 of the review: the fixture plays a game whose resize callback
+// redemands 320x240 at each other restored WM_SIZE of this HWND.
+HWND reactOnSize = nullptr;
+unsigned fixtureReactions = 0;
 HRESULT DeviceCreated(IDirect3DDevice9* device) noexcept {
     if (device)
         ++deviceCreatedEvents;
@@ -38,7 +44,18 @@ LRESULT CALLBACK FixtureWindowProcedure(HWND window, UINT message,
         DestroyWindow(window);
         return 0;
     }
-    return DefWindowProcW(window, message, wparam, lparam);
+    const auto result = DefWindowProcW(window, message, wparam, lparam);
+    RECT outer{};
+    if (message == WM_SIZE && window == reactOnSize &&
+        wparam == SIZE_RESTORED &&
+        (LOWORD(lparam) != 320 || HIWORD(lparam) != 240) &&
+        GetWindowRect(window, &outer) &&
+        (outer.right - outer.left != 320 || outer.bottom - outer.top != 240)) {
+        ++fixtureReactions;
+        SetWindowPos(window, nullptr, 0, 0, 320, 240,
+                     SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+    return result;
 }
 
 void Require(bool condition, const char* message) {
@@ -52,8 +69,22 @@ void Check(HRESULT result, const char* message) {
                   << static_cast<unsigned long>(result) << std::dec << "\n";
     Require(SUCCEEDED(result), message);
 }
+// C3: presentation requests seen by a test diagnostics instance.
+std::vector<std::string> requests;
+void CollectRequest(const CursorRecord& record) noexcept {
+    if (std::string(record.event) == "display-present-request")
+        requests.emplace_back(record.reason);
+}
+unsigned constrainedLines = 0;
+unsigned reactionLines = 0;
 void Log(const char* event, HRESULT result, void*) noexcept {
     ++logCalls;
+    const std::string text(event);
+    if (text.starts_with("display-borderless-constrained ")) {
+        ++constrainedLines;
+        if (text.ends_with(" bridge=reaction"))
+            ++reactionLines;
+    }
     std::cout << event << "=0x" << std::hex
               << static_cast<unsigned long>(result) << std::dec << "\n";
 }
@@ -154,7 +185,12 @@ void Pixels(IDirect3DDevice9* device, UINT width, UINT height) {
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    // CTest display_classic_hooks_wiring stops before the second native
+    // Reset, which fails on this machine (0x8876086c, a known earlier failure),
+    // so the C2 and C3 assertions placed before it cannot hide behind it.
+    const bool stopBeforeSecondReset =
+        argc > 1 && std::string_view(argv[1]) == "--stop-before-second-reset";
     try {
         SetProcessDpiAwarenessContext(
             DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -289,16 +325,55 @@ int main() {
         Check(device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &retained),
               "hold default-pool resource for Reset failure");
         swap.Reset();
+        // C2 through the real subclass: a foreign resize of the bridged
+        // borderless HWND is constrained before Windows applies it.
+        const auto bounds = display.monitor.bounds;
+        Require(SetWindowPos(window.value, nullptr, bounds.left + 10,
+                             bounds.top + 10, 320, 240,
+                             SWP_NOZORDER | SWP_NOACTIVATE) != FALSE,
+                "foreign resize of the bridged HWND");
+        RECT constrainedRectangle{};
+        GetWindowRect(window.value, &constrainedRectangle);
+        Require(EqualRect(&constrainedRectangle, &bounds) &&
+                    constrainedLines == 1,
+                "subclass constrains the bridged HWND without a Present");
+        // The same subclass, while the bridge itself changes mode: the
+        // fixture's reaction from its WM_SIZE handler is still constrained.
+        Check(SetDisplayDeviceMode9(device.Get(), WindowMode::windowed),
+              "bridge windowed mode");
+        reactOnSize = window.value;
+        Check(SetDisplayDeviceMode9(device.Get(), WindowMode::borderless),
+              "bridge borderless mode while the fixture reacts");
+        reactOnSize = nullptr;
+        GetWindowRect(window.value, &constrainedRectangle);
+        Require(fixtureReactions >= 1 &&
+                    EqualRect(&constrainedRectangle, &bounds) &&
+                    constrainedLines == 2 && reactionLines == 1,
+                "subclass constrains the host reaction to a bridge operation");
         auto reset = parameters;
         reset.BackBufferWidth = 80;
         reset.BackBufferHeight = 40;
         reset.Windowed = FALSE;
         reset.FullScreen_RefreshRateInHz = 160;
+        WindowDiagnostics diagnostics(CollectRequest);
+        SetActiveWindowDiagnostics(&diagnostics);
         Require(FAILED(device->Reset(&reset)),
                 "native Reset fails with outstanding backbuffer reference");
+        SetActiveWindowDiagnostics(nullptr);
+        Require(requests.size() == 1 &&
+                    requests[0].starts_with(
+                        "call=reset windowed=0 bb=80x40 fmt=21 count=1 ") &&
+                    requests[0].find(" refresh=160 interval=0x80000000") !=
+                        std::string::npos,
+                "Reset diagnostics record the parameters the game asked for");
         Require(DisplayHooksReport().resets_failed == 1,
                 "failed native Reset recorded");
         retained.Reset();
+        if (stopBeforeSecondReset) {
+            std::cout << "display_hook_witness checks=" << checks
+                      << " failures=0 stopped=before-second-reset\n";
+            return 0;
+        }
         Check(device->Reset(&reset),
               "native Reset succeeds after default-pool release");
         Require(reset.hDeviceWindow == window.value && reset.Windowed &&

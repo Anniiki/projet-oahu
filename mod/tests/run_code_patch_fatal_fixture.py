@@ -12,16 +12,19 @@ def main():
     fixture = args.fixture.resolve(strict=True)
     if fixture.name != "tdur_code_patch_test.exe":
         parser.error("expected the source-owned code-patch fixture")
-    result = subprocess.run(
-        [str(fixture), "--fatal-protection"], capture_output=True,
-        text=True, timeout=10,
-    )
-    if result.returncode != 29:  # ERROR_WRITE_FAULT from TerminateProcess(self)
-        raise RuntimeError(
-            f"expected fail-closed exit 29, got {result.returncode}: "
-            f"{result.stdout} {result.stderr}"
+    for argument in ("--fatal-protection", "--fatal-protection-detour"):
+        result = subprocess.run(
+            [str(fixture), argument], capture_output=True,
+            text=True, timeout=10,
         )
-    print("persistent protection failure terminated only the owned fixture")
+        # ERROR_WRITE_FAULT from TerminateProcess(self)
+        if result.returncode != 29:
+            raise RuntimeError(
+                f"{argument}: expected fail-closed exit 29, got "
+                f"{result.returncode}: {result.stdout} {result.stderr}"
+            )
+        print(f"{argument}: persistent protection failure terminated only "
+              "the owned fixture")
 
 
 if __name__ == "__main__":

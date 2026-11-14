@@ -171,6 +171,12 @@ def main():
             check("hooks-installed-pre-entry" in log and
                   "folder-a-redirected" in log,
                   "missing independently injected hook evidence")
+            # The crash handler is armed through the owned channel.
+            check("crash-handler-armed" in log and
+                  report["crash_channel"]["mod_armed"] and
+                  report["end_reason"] in ("exit", "deadline",
+                                           "abnormal-exit-no-signal"),
+                  "crash handler not armed or no end reason")
         finally:
             if observed_process is not None:
                 kernel.CloseHandle(observed_process)

@@ -50,6 +50,12 @@ absence of a forward gear and `reset()` clear the driving memory. The
 adapter must also reset the controller on a profile change or when the car
 is put back on the road.
 
+Adapter contract for the AI: while the AI drives the player's car (finish
+cinematic, autopilot), the adapter passes `automatic_enabled=false`, then
+calls `reset()` when control returns to the player. The controller then
+restarts exactly like a new object; no shift band and no AI personality
+enters its thresholds, which depend only on `Red_Line`.
+
 ## Driver demand and shift schedule
 
 A fast response to the pedal and a short driving memory determine the
@@ -127,7 +133,7 @@ have to be consistent in the future integration.
 
 Successful MSVC x64 build: `/std:c++latest /W4 /WX /permissive- /utf-8`.
 The standalone test uses the Alfa ratios above, with no retail bank archive
-and no resource constant. **3 640 checks pass**, including:
+and no resource constant. **3 643 checks pass**, including:
 
 - gentle and strong accelerations up to sixth gear with deferred
   confirmation by a synthetic adapter;
@@ -141,6 +147,23 @@ and no resource constant. **3 640 checks pass**, including:
   events, delay expiry without renewal by braking and gradual pick-up;
 - high rpm after lift-off, brake or downshift, external guards,
   transactional errors, resets and single-gear cases.
+- independence of `reset()` (`reset_independence`): three controllers, two
+  of which receive the same history with no disabled step and no null gear
+  (one second at full throttle, upshift observed in 4th, abrupt lift-off,
+  one brake step). The controller restored by `reset()` and a new
+  controller return, over 240 probe steps (pedal 0.2, 4th gear, ramp from
+  2 000 to 6 500 rpm at 120 Hz), the same request, the same reason, the
+  same projected rpm to the bit and the same diagnostics; the witness
+  without `reset()` differs from the first step (higher upshift threshold,
+  `dwell` hold). At pedal 1, the upshift threshold is `0.92 × Red_Line`,
+  equal to the bit to that of a new controller. This last check remains a
+  simple non-regression: the demand is a maximum with the pedal, so it
+  would pass even without `reset()`.
+
+Mutation check, local and not validated: with `reset()` emptied in a
+working copy, the test fails (3 643 checks, 3 failures, including the
+equality between the restored controller and a new controller). The source
+was restored before the commit.
 
 The runs are synthetic rpm inputs, with a ramp of 1 000 rpm/s and an
 acknowledgement of 0.18 s. They verify the policy, not the performance of

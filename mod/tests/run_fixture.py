@@ -169,6 +169,107 @@ def check_forms(text: str, private: Path, source: Path, witness_dir: Path) -> No
          "A witness case wrote outside its temporary folders")
 
 
+def observer_fields(line: str) -> dict[str, str] | None:
+    """Fields of one observer line. The path is last and may hold spaces; the
+    reason is its first token, the key=value tokens after it are fields."""
+    if " event=" not in line or " path=" not in line:
+        return None
+    head, path = line.split(" path=", 1)
+    fields = {"path": path}
+    reason = ""
+    if " reason=" in head:
+        head, reason = head.split(" reason=", 1)
+    for token in head.split() + reason.split()[1:]:
+        key, separator, value = token.partition("=")
+        if separator:
+            fields.setdefault(key, value)
+    fields["reason"] = reason.split()[0] if reason.split() else ""
+    return fields
+
+
+def check_saves(text: str, private: Path, source: Path) -> None:
+    """Every write-intent open of a path with a "savegame"
+    component has its own line, with the request's access, disposition and
+    options, beyond the eight-line sample of the generic events."""
+    lines = [fields for fields in map(observer_fields, text.splitlines()) if fields]
+    observed = [line for line in lines if line.get("event") == "save-write-observed"]
+    refused = [line for line in lines if line.get("event") == "save-write-refused"]
+    base = private / "TDUR_WITNESS_SAVES"
+    saves = base / "savegame"
+    file_request = {"access": "0x40100000", "disposition": "0x00000002",
+                    "options": "0x00000060"}
+    directory_request = {"access": "0x00100001", "disposition": "0x00000002",
+                         "options": "0x00000021"}
+
+    def one(pool: list[dict[str, str]], path: object, **expected: str) -> dict[str, str]:
+        found = [line for line in pool if line["path"].lower() == str(path).lower()
+                 and all(line.get(key) == value for key, value in expected.items())]
+        need(len(found) == 1,
+             f"Expected one save line for {path} {expected}, found {len(found)}")
+        return found[0]
+
+    def win32_write(line: dict[str, str]) -> None:
+        # CreateFileW(GENERIC_WRITE) of a file: the access holds at least
+        # GENERIC_WRITE and SYNCHRONIZE, the options the synchronous,
+        # non-directory open.
+        need(int(line.get("access", "0"), 16) & 0x40100000 == 0x40100000 and
+             int(line.get("options", "0"), 16) & 0x60 == 0x60,
+             "A Win32 save request lost its access or options")
+
+    # CREATE_NEW is FILE_CREATE (2); CREATE_ALWAYS is FILE_OVERWRITE_IF (5).
+    win32_write(one(refused, saves / "TDUR_WITNESS_PROFILE.dat", error="3",
+                    reason="parent-directory-missing",
+                    disposition="0x00000002"))
+    one(refused, saves / "TDUR_WITNESS_ROOTED.dat", error="3",
+        reason="parent-directory-missing", **file_request)
+    one(refused, "savegame\\TDUR_WITNESS_BARE.dat", error="161",
+        reason="relative-name-without-root", **file_request)
+    for index in range(9):
+        one(refused, f"savegame\\TDUR_WITNESS_BARE_{index:02}.dat", error="161",
+            reason="relative-name-without-root", **file_request)
+    win32_write(one(refused, source / "savegame" / "TDUR_WITNESS_SOURCE.dat",
+                    error="5", reason="source-write-refused",
+                    disposition="0x00000005"))
+    need(len(refused) == 13, f"Expected 13 refused save lines, found {len(refused)}")
+    one(observed, saves, error="0", reason="admitted", **directory_request)
+    one(observed, saves, error="3221225525", reason="admitted", **directory_request)
+    for index in range(12):
+        one(observed, saves / f"TDUR_WITNESS_SAVE_{index:02}.sav", error="0",
+            reason="admitted", **file_request)
+    one(observed, saves / "TDUR_WITNESS_TRANSIENT.tmp", error="0",
+        reason="admitted", **file_request)
+    need(len(observed) == 15, f"Expected 15 observed save lines, found {len(observed)}")
+    for pool in (observed, refused):
+        numbers = list(range(1, len(pool) + 1))
+        need([int(line.get("sample", "0")) for line in pool] == numbers and
+             [int(line.get("count_total", "0")) for line in pool] == numbers,
+             "Save lines were sampled or summarized")
+    need(not any(line.get("event") == "observation-summary" and
+                 line.get("source_event", "").startswith("save-write-")
+                 for line in lines), "A summary replaced individual save lines")
+    for line in observed + refused:
+        need(not any(name in line["path"].lower()
+                     for name in ("savegame.bak", "xsavegame", "savegames")),
+             "A lookalike name was reported as a save path")
+    # The generic events are unchanged beside the dedicated lines.
+    need(any(line.get("event") == "nt-name-form-refused" and
+             line["path"] == "savegame\\TDUR_WITNESS_BARE.dat" for line in lines),
+         "The bare save name lost its nt-name-form-refused line")
+    need(any(line.get("event") == "source-write-refused" and line["path"].lower() ==
+             str(source / "savegame" / "TDUR_WITNESS_SOURCE.dat").lower()
+             for line in lines), "The source save lost its source-write-refused line")
+    need(saves.is_dir() and len(list(saves.glob("TDUR_WITNESS_SAVE_*.sav"))) == 12,
+         "The twelve private save entries are missing")
+    need(not (saves / "TDUR_WITNESS_TRANSIENT.tmp").exists() and
+         not (saves / "TDUR_WITNESS_PROFILE.dat").exists() and
+         not (saves / "TDUR_WITNESS_ROOTED.dat").exists(),
+         "A refused or transient save entry remains")
+    need((base / "savegame.bak").is_file() and (base / "xsavegame").is_dir() and
+         (base / "savegames" / "TDUR_WITNESS_INNER.dat").is_file(),
+         "A lookalike fixture entry is missing")
+    need(not any((source / "savegame").iterdir()), "The source savegame folder changed")
+
+
 def check_document_callers(text: str, witness: Path) -> None:
     """Compare reported call sites with CALL instructions in the owned PE."""
     image = witness.read_bytes()
@@ -241,6 +342,7 @@ def main() -> int:
     source.mkdir(exist_ok=True)
     private.mkdir(exist_ok=True)
     installation.mkdir()
+    (source / "savegame").mkdir()  # An owned, empty source folder.
     resource = installation / "fixture-resource.bin"
     resource.write_bytes(b"TDU-Recompilation owned fixture resource\n")
     resource_digest = sha(resource)
@@ -339,6 +441,7 @@ def main() -> int:
             need(len(list(private.glob("global-*.txt-*"))) == 4,
                  "The four pre-main folder APIs did not write privately")
             check_forms(text, private, source, witness.parent)
+            check_saves(text, private, source)
             check_document_callers(text, witness)
         report = {"project": "TDU-Recompilation", "game_executed": False,
                   "architecture": "x86", "source_files_locked": len(locks),

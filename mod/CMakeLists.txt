@@ -66,7 +66,7 @@ target_link_libraries(tdur_retail_video_defaults PUBLIC tdur_code_patch tdur_det
 function(tdur_proxy target variant)
     add_library(${target} SHARED src/dinput8_proxy.cpp src/observation_hooks.cpp
         src/display_startup_gate.cpp
-        src/cursor_diagnostics.cpp src/dinput8_proxy.def)
+        src/cursor_diagnostics.cpp src/crash_handler.cpp src/dinput8_proxy.def)
     target_include_directories(${target} PRIVATE include)
     target_compile_features(${target} PRIVATE cxx_std_23)
     target_compile_options(${target} PRIVATE /W4 /WX /EHsc /std:c++latest)
@@ -144,6 +144,13 @@ target_include_directories(tdur_native_service_path_test PRIVATE include)
 target_compile_features(tdur_native_service_path_test PRIVATE cxx_std_23)
 target_compile_options(tdur_native_service_path_test PRIVATE /W4 /WX /EHsc /std:c++latest)
 add_test(NAME observation_native_service_paths COMMAND tdur_native_service_path_test)
+# Which write-intent opens get a dedicated save line.
+add_executable(tdur_save_path_test tests/save_path_test.cpp)
+target_include_directories(tdur_save_path_test PRIVATE include)
+target_compile_features(tdur_save_path_test PRIVATE cxx_std_23)
+target_compile_options(tdur_save_path_test PRIVATE /W4 /WX /EHsc /std:c++latest)
+add_test(NAME observation_save_paths COMMAND tdur_save_path_test)
+set_tests_properties(observation_save_paths PROPERTIES TIMEOUT 10)
 
 add_executable(tdur_native_input_path_test tests/native_input_path_test.cpp)
 target_include_directories(tdur_native_input_path_test PRIVATE include)

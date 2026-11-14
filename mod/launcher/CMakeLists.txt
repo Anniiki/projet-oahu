@@ -1,11 +1,12 @@
-add_executable(tdur_observe_launch observe_launch.cpp)
-target_include_directories(tdur_observe_launch PRIVATE ../../include)
+add_executable(tdur_observe_launch observe_launch.cpp watchdog_core.cpp)
+target_include_directories(tdur_observe_launch PRIVATE ../../include
+    ../include)
 target_compile_features(tdur_observe_launch PRIVATE cxx_std_23)
 target_compile_options(tdur_observe_launch PRIVATE
     /std:c++latest /W4 /WX /permissive- /utf-8 /EHsc)
 target_compile_definitions(tdur_observe_launch PRIVATE
     WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
-target_link_libraries(tdur_observe_launch PRIVATE tdur_detours bcrypt)
+target_link_libraries(tdur_observe_launch PRIVATE tdur_detours bcrypt user32)
 
 add_executable(tdur_launch_witness ../launcher_tests/launch_witness.cpp)
 target_compile_features(tdur_launch_witness PRIVATE cxx_std_23)
@@ -31,3 +32,6 @@ add_test(NAME observation_reject_late_load
         --dll "$<TARGET_FILE:tdur_observation_proxy>"
         --work-root "${CMAKE_BINARY_DIR}/late-load-fixture")
 set_tests_properties(observation_reject_late_load PROPERTIES TIMEOUT 15 RUN_SERIAL TRUE)
+
+# Crash and hang dumps.
+include(../launcher_tests/crash_tests.cmake)

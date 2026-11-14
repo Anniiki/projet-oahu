@@ -65,6 +65,33 @@ allocations, their unknown names and the visual usage still to be validated.
   the context and its resources remain retained until the process ends. No
   timeout is reported as GPU completion.
 
+## Borderless constraint and window diagnostics
+
+- **Constraint (C2)**: the subclass applies `constrain_window_message` after
+  the native handler, for `WM_WINDOWPOSCHANGING` and `WM_STYLECHANGING`,
+  under the device lock and only if the window was not destroyed during
+  that handler. It is active by default; `TDUR_BORDERLESS_CONSTRAINT=0`
+  turns it off, and any other value refuses the bridge with an explicit
+  line. Backend lines go through the bridge log (`display-borderless-*`).
+  `DefSubclassProc` is called inside a `DisplayHostHandlerScope`: a call
+  made by the game's handler during a bridge operation (its reaction to the
+  bridge's `WM_SIZE`) is no longer taken for a bridge operation (review
+  items D1 and D3).
+- **Diagnostics (C3, C5)**: with `TDUR_CURSOR_DIAGNOSTICS=1`, the window is
+  bound to the diagnostics at `CreateDevice` and unbound at cleanup or at
+  `WM_NCDESTROY`; the parameters requested by the game are logged at
+  `CreateDevice` and at every `Reset`, before `RenderParameters`, with the
+  caller. C4 is not done: `Windowed=TRUE` remains imposed on the game,
+  pending the measurement of these parameters in the game.
+- The hook witness verifies the constraint on the real subclass, the game's
+  reaction during `SetDisplayDeviceMode9` (line `bridge=reaction`) and the
+  requested Reset query (`windowed=0 bb=80x40 refresh=160`), before its
+  known environment failure (`native Reset succeeds after default-pool
+  release`, `0x8876086c`, unchanged by this work). The CTest
+  `display_classic_hooks_wiring` runs the same witness with
+  `--stop-before-second-reset`: it stops green just before that Reset, so
+  that these assertions do not stay hidden behind the known failure.
+
 ## Validation performed
 
 MSVC 19.44.35229, Win32, SDK 10.0.26100.0, C++latest `/W4 /WX /permissive-`.

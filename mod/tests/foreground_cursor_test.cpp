@@ -2,6 +2,8 @@
 #include "tdur/mod/foreground_cursor.hpp"
 
 #include <cstdio>
+#include <initializer_list>
+#include <string>
 
 namespace {
 unsigned checks{}, failures{};
@@ -61,6 +63,17 @@ HCURSOR WINAPI Set(HCURSOR value) {
     ++fake.sets;
     return previous;
 }
+// The last 16 policy log lines, event and reason.
+struct Line {
+    std::string event, reason;
+};
+Line lines[16];
+unsigned line_count{};
+void Captured(const char* event, const char* reason) noexcept {
+    lines[line_count % 16] = {event, reason ? reason : ""};
+    ++line_count;
+}
+const Line& LastLine() { return lines[(line_count + 15) % 16]; }
 auto Api() {
     return tdur::mod::ForegroundCursorApi{CurrentThread, Foreground, Child,
                                           Capture,       Release,    Clip,
@@ -133,17 +146,17 @@ void alt_tab_balance() {
     expect(loops_terminate && fake.count == 0 && fake.shows == 3,
            "background hide/show loops terminate without desktop counter debt");
     Gain(policy);
-    expect(fake.count == -3 && fake.hides == 3 &&
+    expect(fake.count == -1 && fake.hides == 1 &&
                !policy.visibility_adjustments() && !policy.background(),
-           "restore our balance before the native activation procedure");
+           "a single hide given back on return (C1 policy)");
     Gain(policy);
-    expect(fake.hides == 3, "duplicate activation does not restore twice");
+    expect(fake.hides == 1, "duplicate activation does not restore twice");
     for (unsigned i = 0; i != 4; ++i) {
         Lose(policy);
         Gain(policy);
     }
-    expect(fake.count == -3 && fake.shows == fake.hides,
-           "repeated Alt+Tab cycles preserve the original counter");
+    expect(fake.count == -1 && fake.shows == 7 && fake.hides == 5,
+           "repeated Alt+Tab cycles do not deepen the counter");
 }
 void external_ownership() {
     fake = {};
@@ -174,16 +187,39 @@ void bounded_and_scope() {
     fake = {};
     fake.count = -100;
     fake.get_clip_succeeds = false;
-    tdur::mod::ForegroundCursor policy(Api());
+    line_count = 0;
+    tdur::mod::ForegroundCursor policy(Api(), Captured);
     policy.bind(window(1), 7, cursor(3));
     policy.clipped(&fake.clip, TRUE);
     Lose(policy);
-    expect(fake.shows == 32 && policy.visibility_limit_reached(),
-           "broken host counter cannot create an unbounded loop");
+    expect(fake.shows == 100 && !policy.visibility_limit_reached(),
+           "a deep host counter becomes visible within the cap");
+    expect(LastLine().event == "foreground-cursor-released" &&
+               LastLine().reason == "shows=100 count=0",
+           "release logs its real shows and the returned counter");
     expect(!fake.unclips, "unknown clipping rectangle is not discarded");
     Gain(policy);
-    expect(fake.count == -100 && fake.hides == 32,
-           "even capped visibility restoration remains balanced");
+    expect(fake.count == -1 && fake.hides == 1,
+           "return gives back a single hide");
+    expect(LastLine().event == "foreground-cursor-returned" &&
+               LastLine().reason == "hides=1 count=-1",
+           "return logs its real hides and the returned counter");
+    policy.unbind(window(1));
+    fake = {};
+    fake.count = -5000;
+    line_count = 0;
+    tdur::mod::ForegroundCursor broken(Api(), Captured);
+    broken.bind(window(1), 7, cursor(3));
+    Lose(broken);
+    expect(fake.shows == 4096 && broken.visibility_limit_reached(),
+           "broken host counter cannot create an unbounded loop");
+    expect(LastLine().event == "foreground-cursor-visibility-cap" &&
+               LastLine().reason == "shows=4096 count=-904",
+           "capped release logs its real shows and the returned counter");
+    Gain(broken);
+    expect(fake.count == -905 && fake.hides == 1,
+           "capped return also gives back a single hide");
+    broken.unbind(window(1));
     fake = {};
     tdur::mod::ForegroundCursor scoped(Api());
     scoped.bind(window(1), 7, cursor(3));
@@ -230,6 +266,154 @@ void retail_runaway_regression() {
            "a later real show invalidates the already-hidden shortcut");
     policy.unbind(window(1));
 }
+// Transcriptions of HookShowCursor (cursor_diagnostics.cpp): the retail site
+// keeps its already-hidden shortcut, any other caller always reaches the API.
+int RetailHide(tdur::mod::ForegroundCursor& policy) {
+    int result{};
+    if (policy.background())
+        return tdur::mod::ForegroundCursor::background_show_result(FALSE);
+    if (policy.skip_repeated_retail_hide(result))
+        return result;
+    result = Show(FALSE);
+    policy.observed_show(result);
+    return result;
+}
+int OtherShow(tdur::mod::ForegroundCursor& policy, BOOL show) {
+    if (policy.background())
+        return tdur::mod::ForegroundCursor::background_show_result(show);
+    const int result = Show(show);
+    policy.observed_show(result);
+    return result;
+}
+struct CycleCheck {
+    bool visible_after_loss = true;
+    bool no_cap = true;
+    bool game_count = true;
+};
+void LoseAsRecorded(tdur::mod::ForegroundCursor& policy, CycleCheck& check) {
+    policy.before_message(WM_ACTIVATE, MAKEWPARAM(WA_INACTIVE, 0));
+    policy.after_message(WM_ACTIVATE, MAKEWPARAM(WA_INACTIVE, 0));
+    fake.foreground = window(2);
+    policy.before_message(WM_ACTIVATEAPP, FALSE);
+    policy.after_message(WM_ACTIVATEAPP, FALSE);
+    check.visible_after_loss &= fake.count >= 0;
+    check.no_cap &= !policy.visibility_limit_reached();
+    for (unsigned i = 0; i != 355; ++i)
+        (void)RetailHide(policy);
+}
+void ActivePeriod(tdur::mod::ForegroundCursor& policy, bool shows_first,
+                  unsigned retail_hides, CycleCheck& check) {
+    if (shows_first) {
+        (void)OtherShow(policy, TRUE);
+        (void)OtherShow(policy, TRUE);
+    }
+    for (unsigned i = 0; i != retail_hides; ++i)
+        (void)RetailHide(policy);
+    if (!shows_first) {
+        (void)OtherShow(policy, TRUE);
+        (void)OtherShow(policy, TRUE);
+    }
+    check.game_count &= fake.count == -1;
+}
+// Recorded cycle 1: return by WM_ACTIVATEAPP(TRUE) then WM_ACTIVATE(WA_ACTIVE).
+void FirstRecordedCycle(tdur::mod::ForegroundCursor& policy, bool shows_first,
+                        CycleCheck& check) {
+    LoseAsRecorded(policy, check);
+    fake.foreground = window(1);
+    policy.before_message(WM_ACTIVATEAPP, TRUE);
+    (void)OtherShow(policy, FALSE);
+    (void)OtherShow(policy, FALSE);
+    (void)OtherShow(policy, TRUE);
+    (void)OtherShow(policy, TRUE);
+    policy.after_message(WM_ACTIVATEAPP, TRUE);
+    policy.before_message(WM_ACTIVATE, MAKEWPARAM(WA_ACTIVE, 0));
+    (void)OtherShow(policy, FALSE);
+    (void)OtherShow(policy, FALSE);
+    policy.after_message(WM_ACTIVATE, MAKEWPARAM(WA_ACTIVE, 0));
+    ActivePeriod(policy, shows_first, 49, check);
+}
+// Recorded cycle 2: return by minimized WM_ACTIVATE, then WM_ACTIVATEAPP(TRUE).
+void SecondRecordedCycle(tdur::mod::ForegroundCursor& policy, bool shows_first,
+                         CycleCheck& check) {
+    LoseAsRecorded(policy, check);
+    fake.foreground = window(1);
+    policy.before_message(WM_ACTIVATE, MAKEWPARAM(WA_ACTIVE, 1));
+    (void)RetailHide(policy);
+    policy.after_message(WM_ACTIVATE, MAKEWPARAM(WA_ACTIVE, 1));
+    policy.before_message(WM_ACTIVATE, MAKEWPARAM(WA_ACTIVE, 0));
+    policy.after_message(WM_ACTIVATE, MAKEWPARAM(WA_ACTIVE, 0));
+    policy.before_message(WM_ACTIVATEAPP, TRUE);
+    (void)OtherShow(policy, FALSE);
+    (void)OtherShow(policy, FALSE);
+    policy.after_message(WM_ACTIVATEAPP, TRUE);
+    ActivePeriod(policy, shows_first, 19, check);
+}
+// Replays the observed sequences of cycles 1 and 2 of a recorded session;
+// it does not prove the origin of the "other" calls, and the placement of the
+// two shows of each active period is assumed (both placements are replayed).
+void activation_other_module_cycles() {
+    for (const unsigned variant : {0U, 1U}) {
+        const bool shows_first = variant != 0;
+        fake = {};
+        fake.count = 0;
+        tdur::mod::ForegroundCursor policy(Api());
+        policy.bind(window(1), 7, cursor(3));
+        // Recorded start-up: 2,502 hides from the retail site and two shows.
+        for (unsigned i = 0; i != 2502; ++i) {
+            (void)RetailHide(policy);
+            if (i == 1 || i == 2)
+                (void)OtherShow(policy, TRUE);
+        }
+        CycleCheck check;
+        for (unsigned pair = 0; pair != 20; ++pair) {
+            FirstRecordedCycle(policy, shows_first, check);
+            SecondRecordedCycle(policy, shows_first, check);
+        }
+        expect(check.visible_after_loss,
+               "recorded replay: cursor visible after every loss");
+        expect(check.no_cap, "recorded replay: visibility cap never reached");
+        expect(check.game_count,
+               "recorded replay: counter -1 at the end of each active period");
+        expect(fake.shows == 162 && fake.hides == 163,
+               "recorded replay: 162 real shows and 163 real hides");
+        std::printf("recorded replay shows_first=%d shows=%u hides=%u "
+                    "count=%d\n",
+                    shows_first ? 1 : 0, fake.shows, fake.hides, fake.count);
+        policy.unbind(window(1));
+    }
+}
+// Constructed case, not observed in the recorded session: a module hides
+// twice at each return without a compensating show.
+void unbalanced_module_defense() {
+    fake = {};
+    fake.count = 0;
+    tdur::mod::ForegroundCursor policy(Api());
+    policy.bind(window(1), 7, cursor(3));
+    for (unsigned i = 0; i != 2502; ++i)
+        (void)RetailHide(policy);
+    CycleCheck check;
+    bool game_count = true;
+    for (unsigned cycle = 0; cycle != 50; ++cycle) {
+        LoseAsRecorded(policy, check);
+        fake.foreground = window(1);
+        policy.before_message(WM_ACTIVATEAPP, TRUE);
+        (void)OtherShow(policy, FALSE);
+        (void)OtherShow(policy, FALSE);
+        policy.after_message(WM_ACTIVATEAPP, TRUE);
+        for (unsigned i = 0; i != 49; ++i)
+            (void)RetailHide(policy);
+        game_count &= fake.count == -3;
+    }
+    expect(check.visible_after_loss,
+           "unbalanced module: cursor visible after every loss");
+    expect(check.no_cap, "unbalanced module: visibility cap never reached");
+    expect(game_count, "unbalanced module: counter stable at -3 in game");
+    expect(fake.shows == 148 && fake.hides == 151,
+           "unbalanced module: 148 real shows and 151 real hides");
+    std::printf("unbalanced module shows=%u hides=%u count=%d\n", fake.shows,
+                fake.hides, fake.count);
+    policy.unbind(window(1));
+}
 } // namespace
 
 int main() {
@@ -238,6 +422,8 @@ int main() {
     external_ownership();
     bounded_and_scope();
     retail_runaway_regression();
+    activation_other_module_cycles();
+    unbalanced_module_defense();
     std::printf("%u checks, %u failures\n", checks, failures);
     return failures ? 1 : 0;
 }

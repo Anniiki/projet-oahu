@@ -4,15 +4,20 @@
 #include <dxgi1_6.h>
 #include <wrl/client.h>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <initializer_list>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <stdexcept>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace {
 using namespace tdur::mod;
@@ -63,9 +68,327 @@ struct Window {
     }
 };
 
+// Witness shared by the window-operation and constraint tests: invisible
+// even when shown (layered, alpha 0), traversed by the mouse and never
+// activated. Only SW_SHOWMINNOACTIVE and SW_SHOWNOACTIVATE are ever used.
+struct ConstraintTrace {
+    std::vector<bool> internal_changing; // per WM_WINDOWPOSCHANGING
+    std::vector<bool> minimized_changing;
+    std::vector<UINT> changing_flags; // WINDOWPOS flags as received
+    std::vector<SIZE> changed; // window size after each WM_WINDOWPOSCHANGED
+    std::vector<SIZE> sizes;   // WM_SIZE client size
+} trace;
+
+// C2: the backend whose constraint the witness procedure applies, read
+// through its owner like display_hooks.cpp reads ctx->backend (null while
+// the backend is being destroyed), and the backend's correction lines.
+std::unique_ptr<DisplayBackend>* constrained = nullptr;
+std::vector<std::string> backendLines;
+void CollectBackendLine(const char* event, void*) noexcept {
+    backendLines.emplace_back(event);
+}
+std::size_t LinesStartingWith(const char* prefix) {
+    std::size_t count = 0;
+    for (const auto& line : backendLines)
+        if (line.starts_with(prefix))
+            ++count;
+    return count;
+}
+
+// The host of the witness, like a game procedure behind the bridge's
+// subclass: optionally it redemands 320x240 at each other restored WM_SIZE
+// (a resize callback), or rewrites any size change it is asked to make.
+struct HostBehavior {
+    bool react_to_size = false;
+    bool rewrite_size = false;
+    unsigned reactions = 0;
+    unsigned reactions_during_bridge = 0;
+} host;
+
+LRESULT HostProcedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
+    if (message == WM_WINDOWPOSCHANGING && host.rewrite_size) {
+        auto* position = reinterpret_cast<WINDOWPOS*>(lparam);
+        if ((position->flags & SWP_NOSIZE) == 0 &&
+            (position->cx != 320 || position->cy != 240) &&
+            position->x > -32000) {
+            position->cx = 320;
+            position->cy = 240;
+        }
+    }
+    const auto result = DefWindowProcW(window, message, wparam, lparam);
+    // Once per size: a framed 320x240 window has a smaller client area.
+    RECT outer{};
+    if (message == WM_SIZE && host.react_to_size && wparam == SIZE_RESTORED &&
+        (LOWORD(lparam) != 320 || HIWORD(lparam) != 240) &&
+        GetWindowRect(window, &outer) &&
+        (outer.right - outer.left != 320 || outer.bottom - outer.top != 240)) {
+        ++host.reactions;
+        // Still inside the outer message's host handler: never internal.
+        if (DisplayWindowOperationActive())
+            ++host.reactions_during_bridge;
+        SetWindowPos(window, nullptr, 0, 0, 320, 240,
+                     SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+    return result;
+}
+
+LRESULT CALLBACK ConstraintWindowProcedure(HWND window, UINT message,
+                                           WPARAM wparam, LPARAM lparam) {
+    if (message == WM_WINDOWPOSCHANGING) {
+        trace.internal_changing.push_back(DisplayWindowOperationActive());
+        trace.minimized_changing.push_back(
+            (GetWindowLongPtrW(window, GWL_STYLE) & WS_MINIMIZE) != 0);
+        trace.changing_flags.push_back(
+            reinterpret_cast<const WINDOWPOS*>(lparam)->flags);
+    }
+    // As display_hooks.cpp wraps DefSubclassProc.
+    LRESULT result{};
+    {
+        DisplayHostHandlerScope scope;
+        result = HostProcedure(window, message, wparam, lparam);
+    }
+    if (constrained && *constrained &&
+        (message == WM_WINDOWPOSCHANGING || message == WM_STYLECHANGING))
+        (void)(*constrained)->constrain_window_message(message, wparam, lparam);
+    if (message == WM_WINDOWPOSCHANGED) {
+        RECT rectangle{};
+        GetWindowRect(window, &rectangle);
+        trace.changed.push_back({rectangle.right - rectangle.left,
+                                 rectangle.bottom - rectangle.top});
+    } else if (message == WM_SIZE) {
+        trace.sizes.push_back({static_cast<LONG>(LOWORD(lparam)),
+                               static_cast<LONG>(HIWORD(lparam))});
+    }
+    return result;
+}
+
+struct ConstraintWindow {
+    HWND value = nullptr;
+    ConstraintWindow() {
+        WNDCLASSW klass{};
+        klass.hInstance = GetModuleHandleW(nullptr);
+        klass.lpfnWndProc = ConstraintWindowProcedure;
+        klass.lpszClassName = L"TDUR.DisplayBackend.Constraint.v1";
+        Require(RegisterClassW(&klass) != 0 ||
+                    GetLastError() == ERROR_CLASS_ALREADY_EXISTS,
+                "register constraint witness window");
+        value = CreateWindowExW(WS_EX_LAYERED | WS_EX_TRANSPARENT |
+                                    WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
+                                klass.lpszClassName,
+                                L"TDU reconstruction - constraint witness",
+                                WS_OVERLAPPEDWINDOW, 80, 100, 480, 320, nullptr,
+                                nullptr, klass.hInstance, nullptr);
+        Require(value != nullptr, "create hidden constraint witness");
+        Require(SetLayeredWindowAttributes(value, 0, 0, LWA_ALPHA) != FALSE,
+                "constraint witness fully transparent");
+    }
+    ~ConstraintWindow() {
+        if (value)
+            DestroyWindow(value);
+    }
+};
+
+// Every WM_WINDOWPOSCHANGING from index from is the bridge's own, except
+// the frame-only SetWindowPos (SWP_NOSIZE | SWP_NOMOVE) that DefWindowProc
+// makes while handling WM_STYLECHANGED: a call from inside the host's
+// handler, measured 0x1001837 during set_mode(windowed), never constrained.
+bool BridgeOwnedFrom(std::size_t from) {
+    constexpr UINT frameOnly = SWP_NOSIZE | SWP_NOMOVE;
+    for (std::size_t index = from; index < trace.internal_changing.size();
+         ++index)
+        if (!trace.internal_changing[index] &&
+            (trace.changing_flags[index] & frameOnly) != frameOnly)
+            return false;
+    return from < trace.internal_changing.size();
+}
+
 bool SameRectangle(RECT a, RECT b) {
     return a.left == b.left && a.top == b.top && a.right == b.right &&
            a.bottom == b.bottom;
+}
+
+bool SawSize(const std::vector<SIZE>& sizes, LONG width, LONG height) {
+    for (const auto& size : sizes)
+        if (size.cx == width && size.cy == height)
+            return true;
+    return false;
+}
+
+RECT Rectangle(HWND window) {
+    RECT rectangle{};
+    Require(GetWindowRect(window, &rectangle) != FALSE,
+            "read witness rectangle");
+    return rectangle;
+}
+
+bool Sized(RECT rectangle, LONG width, LONG height) {
+    return rectangle.right - rectangle.left == width &&
+           rectangle.bottom - rectangle.top == height;
+}
+
+void SwitchAndGuardPolicyTest() {
+    Require(ParseSwitchSetting(nullptr, 0, ERROR_ENVVAR_NOT_FOUND) ==
+                SwitchSetting::absent,
+            "switch: absent");
+    Require(ParseSwitchSetting(L"1", 1, ERROR_SUCCESS) ==
+                SwitchSetting::enabled,
+            "switch: 1 enables");
+    Require(ParseSwitchSetting(L"0", 1, ERROR_SUCCESS) ==
+                SwitchSetting::disabled,
+            "switch: 0 disables");
+    Require(ParseSwitchSetting(L"2", 1, ERROR_SUCCESS) ==
+                    SwitchSetting::invalid &&
+                ParseSwitchSetting(L"10", 2, ERROR_SUCCESS) ==
+                    SwitchSetting::invalid &&
+                ParseSwitchSetting(L"", 0, ERROR_SUCCESS) ==
+                    SwitchSetting::invalid &&
+                ParseSwitchSetting(nullptr, 0, ERROR_INVALID_PARAMETER) ==
+                    SwitchSetting::invalid,
+            "switch: anything else is invalid");
+
+    using Guard = BorderlessCorrectionGuard;
+    {
+        Guard guard;
+        for (const std::uint64_t now : {0ULL, 300ULL, 600ULL, 900ULL})
+            Require(guard.record(Guard::Kind::constrained, now) ==
+                            Guard::Verdict::apply &&
+                        !guard.opened_episode(),
+                    "guard: four constraints in 900 ms are applied");
+        Require(guard.record(Guard::Kind::constrained, 950) ==
+                        Guard::Verdict::apply_storm &&
+                    guard.opened_episode() && guard.counters().storms == 1,
+                "guard: a fifth constraint opens the episode, applied");
+        Require(guard.record(Guard::Kind::constrained, 960) ==
+                        Guard::Verdict::apply &&
+                    guard.counters().storms == 1,
+                "guard: constraints inside the episode stay applied");
+        Require(guard.record(Guard::Kind::repaired, 970) ==
+                        Guard::Verdict::suspend &&
+                    guard.counters().suspended == 1,
+                "guard: a repair inside the episode is suspended");
+        Require(guard.counters().constrained == 6 &&
+                    guard.counters().repaired == 0,
+                "guard: counters of applied corrections");
+    }
+    {
+        Guard guard;
+        for (const std::uint64_t now : {0ULL, 100ULL, 200ULL, 300ULL})
+            Require(guard.record(Guard::Kind::repaired, now) ==
+                        Guard::Verdict::apply,
+                    "guard: four repairs are applied");
+        Require(guard.record(Guard::Kind::repaired, 400) ==
+                        Guard::Verdict::suspend &&
+                    guard.opened_episode(),
+                "guard: the repair opening the episode is suspended");
+        Require(guard.record(Guard::Kind::repaired, 900) ==
+                    Guard::Verdict::suspend,
+                "guard: a repair 500 ms after the opening is suspended");
+        Require(guard.record(Guard::Kind::repaired, 1500) ==
+                        Guard::Verdict::apply &&
+                    !guard.opened_episode(),
+                "guard: a repair 1,100 ms after the opening is applied");
+        Require(guard.counters().repaired == 5 &&
+                    guard.counters().suspended == 2 &&
+                    guard.counters().storms == 1,
+                "guard: repaired, suspended and storm counters");
+    }
+    {
+        Guard guard;
+        for (const std::uint64_t now : {0ULL, 300ULL, 600ULL, 900ULL, 1200ULL})
+            Require(guard.record(Guard::Kind::repaired, now) ==
+                        Guard::Verdict::apply,
+                    "guard: five corrections over 1,200 ms open nothing");
+        Require(guard.counters().storms == 0, "guard: no spread-out storm");
+        Require(guard.record(Guard::Kind::migration, 1210) ==
+                        Guard::Verdict::apply &&
+                    guard.counters().migrations == 1 &&
+                    guard.counters().storms == 0,
+                "guard: migrations are counted outside the frequency");
+    }
+    {
+        Guard guard;
+        unsigned individual = 0;
+        unsigned storms = 0;
+        while (guard.take_individual_line())
+            ++individual;
+        while (guard.take_storm_line())
+            ++storms;
+        Require(individual == 16 && storms == 16,
+                "guard: 16 individual and 16 storm lines");
+        Require(!guard.summary_due(100000) && !guard.final_summary_due(),
+                "guard: no summary without any correction");
+        (void)guard.record(Guard::Kind::constrained, 1000);
+        Require(!guard.summary_due(5999) && guard.summary_due(6000),
+                "guard: first summary 5 s after the first correction");
+        Require(!guard.summary_due(20000),
+                "guard: no summary without a counter change");
+        std::vector<std::uint64_t> at{6000};
+        unsigned notices = 0;
+        bool noticeAfter32 = false;
+        std::uint64_t now = 6000;
+        for (unsigned round = 0; round != 40; ++round) {
+            now += 5000;
+            (void)guard.record(Guard::Kind::constrained, now);
+            if (guard.summary_due(now))
+                at.push_back(now);
+            if (guard.take_sparse_notice()) {
+                ++notices;
+                noticeAfter32 = at.size() == 32;
+            }
+        }
+        Require(at.size() == 34 && at[31] == 161000 && at[32] == 171000 &&
+                    at[33] == 191000,
+                "guard: 32 summaries 5 s apart, then 10 s, then 20 s");
+        Require(notices == 1 && noticeAfter32,
+                "guard: one sparse notice, right after the 32nd summary");
+        Require(guard.final_summary_due() && !guard.final_summary_due(),
+                "guard: final summary outside the budget, once");
+        Guard closing;
+        (void)closing.record(Guard::Kind::repaired, 0);
+        Require(closing.final_summary_due() && !closing.final_summary_due(),
+                "guard: one final summary when a counter changed");
+        Guard skipping;
+        skipping.record_skipped();
+        Require(skipping.counters().skipped == 1 &&
+                    !skipping.summary_due(100000) &&
+                    skipping.final_summary_due(),
+                "guard: an abstention is counted and summarized");
+    }
+    {
+        // A cause that never stops: one repair every 16 ms for 10 minutes,
+        // the shape of maintainBorderless under a host that keeps shrinking.
+        Guard guard;
+        std::uint64_t lastApplied = 0;
+        std::uint64_t longestGap = 0;
+        std::uint64_t lastSummary = 0;
+        std::uint64_t longestSilence = 0;
+        unsigned summaries = 0;
+        for (std::uint64_t now = 0; now <= 600000; now += 16) {
+            if (guard.record(Guard::Kind::repaired, now) ==
+                Guard::Verdict::apply) {
+                longestGap = std::max(longestGap, now - lastApplied);
+                lastApplied = now;
+            }
+            if (guard.summary_due(now)) {
+                ++summaries;
+                longestSilence = std::max(longestSilence, now - lastSummary);
+                lastSummary = now;
+            }
+        }
+        const auto& n = guard.counters();
+        Require(longestGap <= 1000 + 2 * 16,
+                "guard: a lasting cause still gets a repair after each "
+                "suspension");
+        Require(n.repaired >= 2000 && n.storms >= 500 &&
+                    n.repaired >= 4 * n.storms &&
+                    n.repaired <= 4 * n.storms + 4 &&
+                    600000 - lastApplied <= 1032,
+                "guard: four repairs per episode under a lasting cause");
+        Require(summaries == 37 && longestSilence <= 160000 + 16 * 37 &&
+                    guard.final_summary_due(),
+                "guard: summaries never stop under a lasting cause, final "
+                "one kept");
+    }
 }
 
 void PolicyTest() {
@@ -231,6 +554,471 @@ void BorderlessRecoveryTest() {
                 SameRectangle(actual, resized) &&
                 window_position_messages == windowedMessages,
             "windowed mode preserves a host resize");
+}
+
+void WindowOperationScopeTest() {
+    ConstraintWindow window;
+    const auto foreground = GetForegroundWindow();
+    const auto monitors = DisplayBackend::monitors();
+    trace = {};
+    std::size_t destruction = 0;
+    {
+        DisplayPreferences preferences;
+        preferences.cap = FrameCapMode::unlimited;
+        DisplayBackend display(window.value, preferences);
+        display.set_mode(WindowMode::windowed);
+        display.set_mode(WindowMode::borderless);
+        for (const auto& monitor : monitors)
+            display.move_to_monitor(monitor.handle);
+        Require(BridgeOwnedFrom(0),
+                "bridge style, mode and monitor changes are internal");
+        Require(!DisplayWindowOperationActive(),
+                "no window operation outside the bridge");
+        const auto own = trace.internal_changing.size();
+        Require(SetWindowPos(window.value, nullptr, 0, 0, 320, 240,
+                             SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE),
+                "foreign resize of the witness");
+        Require(trace.internal_changing.size() == own + 1 &&
+                    !trace.internal_changing.back(),
+                "a foreign SetWindowPos is not internal");
+        // The next frame repairs the foreign 320x240: the bridge's own.
+        const auto beforeRepair = trace.internal_changing.size();
+        display.wait_for_frame();
+        Require(display.corrections().repaired == 1 &&
+                    trace.internal_changing.size() > beforeRepair &&
+                    BridgeOwnedFrom(beforeRepair),
+                "a borderless repair is internal");
+        // A call the host makes from its WM_SIZE handler while the bridge
+        // changes mode is the host's, at every depth (C3 internal=0).
+        host = {};
+        host.react_to_size = true;
+        const auto beforeReaction = trace.internal_changing.size();
+        display.set_mode(WindowMode::windowed);
+        display.set_mode(WindowMode::borderless);
+        host.react_to_size = false;
+        std::size_t foreignMessages = 0;
+        for (std::size_t index = beforeReaction;
+             index < trace.internal_changing.size(); ++index)
+            if (!trace.internal_changing[index] &&
+                (trace.changing_flags[index] & SWP_NOSIZE) == 0)
+                ++foreignMessages;
+        std::cout << "scope_host_reactions=" << host.reactions
+                  << " foreign_changing=" << foreignMessages << "\n";
+        Require(host.reactions >= 2 && host.reactions_during_bridge == 0 &&
+                    foreignMessages == host.reactions,
+                "host calls nested in a bridge operation are not internal");
+        destruction = trace.internal_changing.size();
+    }
+    Require(BridgeOwnedFrom(destruction),
+            "restoration at destruction is internal");
+    Require(!DisplayWindowOperationActive(), "scope closed after destruction");
+    Require(!IsWindowVisible(window.value) &&
+                GetForegroundWindow() == foreground,
+            "scope test neither shows nor focuses the witness");
+}
+
+DisplayPreferences ConstraintPreferences(bool constrain) {
+    DisplayPreferences preferences;
+    preferences.cap = FrameCapMode::unlimited;
+    preferences.constrain_borderless = constrain;
+    preferences.log = CollectBackendLine;
+    return preferences;
+}
+
+void BorderlessConstraintTest() {
+    ConstraintWindow window;
+    const auto foreground = GetForegroundWindow();
+    backendLines.clear();
+    auto display = std::make_unique<DisplayBackend>(
+        window.value, ConstraintPreferences(true));
+    constrained = &display;
+    const auto bounds = display->state().monitor.bounds;
+    trace = {};
+    // No wait_for_frame below: the constraint alone must hold the bounds.
+    Require(SetWindowPos(window.value, nullptr, bounds.left + 10,
+                         bounds.top + 10, 320, 240,
+                         SWP_NOZORDER | SWP_NOACTIVATE),
+            "foreign 320x240 resize of the borderless witness");
+    Require(SameRectangle(Rectangle(window.value), bounds),
+            "constraint keeps the monitor bounds without a frame");
+    Require(!SawSize(trace.changed, 320, 240) &&
+                !SawSize(trace.sizes, 320, 240),
+            "no WM_WINDOWPOSCHANGED or WM_SIZE at the foreign size");
+    SetWindowLongPtrW(window.value, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+    Require((GetWindowLongPtrW(window.value, GWL_STYLE) &
+             (WS_CAPTION | WS_THICKFRAME)) == 0,
+            "constraint removes a foreign caption and frame");
+    const auto width = bounds.right - bounds.left;
+    const auto height = bounds.bottom - bounds.top;
+    const std::string position =
+        "display-borderless-constrained kind=position req=320x240 out=" +
+        std::to_string(width) + "x" + std::to_string(height) +
+        " n=1 bridge=none";
+    Require(LinesStartingWith("display-borderless-") == 2 &&
+                backendLines[0] == position &&
+                backendLines[1] == "display-borderless-constrained "
+                                   "kind=style caption=1 frame=1 n=2 "
+                                   "bridge=none",
+            "two exact constraint lines");
+    Require(display->corrections().constrained == 2 &&
+                display->corrections().repaired == 0,
+            "two constraints counted");
+    Require(!IsWindowVisible(window.value) &&
+                GetForegroundWindow() == foreground,
+            "constraint neither shows nor focuses the witness");
+    constrained = nullptr;
+    display.reset();
+
+    // Negative witness: the same gestures with C2 disabled.
+    backendLines.clear();
+    display = std::make_unique<DisplayBackend>(window.value,
+                                               ConstraintPreferences(false));
+    constrained = &display;
+    Require(SetWindowPos(window.value, nullptr, bounds.left + 10,
+                         bounds.top + 10, 320, 240,
+                         SWP_NOZORDER | SWP_NOACTIVATE),
+            "foreign resize without the constraint");
+    SetWindowLongPtrW(window.value, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+    Require(Sized(Rectangle(window.value), 320, 240) &&
+                display->corrections().constrained == 0,
+            "witness: without C2 the foreign size is applied");
+    display->wait_for_frame();
+    Require(SameRectangle(Rectangle(window.value), bounds) &&
+                LinesStartingWith("display-borderless-repaired style=1 "
+                                  "rect=1 w=320 h=240 n=1") == 1 &&
+                display->corrections().repaired == 1,
+            "witness: only the next frame repairs, with one line");
+    constrained = nullptr;
+    display.reset();
+    Require(GetForegroundWindow() == foreground,
+            "constraint witness keeps the foreground");
+}
+
+void ConstraintExemptionTest() {
+    ConstraintWindow window;
+    const RECT original = Rectangle(window.value);
+    const auto originalStyle = GetWindowLongPtrW(window.value, GWL_STYLE);
+    const auto foreground = GetForegroundWindow();
+    const auto monitors = DisplayBackend::monitors();
+    backendLines.clear();
+    auto display = std::make_unique<DisplayBackend>(
+        window.value, ConstraintPreferences(true));
+    constrained = &display;
+    display->set_mode(WindowMode::windowed);
+    Require((GetWindowLongPtrW(window.value, GWL_STYLE) &
+             WS_OVERLAPPEDWINDOW) == WS_OVERLAPPEDWINDOW &&
+                !SameRectangle(Rectangle(window.value),
+                               display->state().monitor.bounds),
+            "exemption: windowed mode keeps its frame and size");
+    display->set_mode(WindowMode::borderless);
+    for (const auto& monitor : monitors) {
+        display->move_to_monitor(monitor.handle);
+        Require(SameRectangle(Rectangle(window.value), monitor.bounds),
+                "exemption: monitor migration by the bridge");
+    }
+    // The owner is cleared first, as ctx->backend.reset() does.
+    display.reset();
+    constrained = nullptr;
+    Require(GetWindowLongPtrW(window.value, GWL_STYLE) == originalStyle &&
+                SameRectangle(Rectangle(window.value), original),
+            "exemption: destruction restores style and placement");
+    Require(LinesStartingWith("display-borderless-") == 0,
+            "exemption: no correction line for bridge operations");
+    Require(GetForegroundWindow() == foreground,
+            "exemption: foreground unchanged");
+}
+
+void MinimizedRestoreTest() {
+    ConstraintWindow window;
+    const auto foreground = GetForegroundWindow();
+    backendLines.clear();
+    auto display = std::make_unique<DisplayBackend>(
+        window.value, ConstraintPreferences(true));
+    constrained = &display;
+    const auto bounds = display->state().monitor.bounds;
+    ShowWindow(window.value, SW_SHOWMINNOACTIVE);
+    Require(IsIconic(window.value) != FALSE, "minimized without activation");
+    WINDOWPLACEMENT placement{};
+    placement.length = sizeof(placement);
+    Require(GetWindowPlacement(window.value, &placement) != FALSE,
+            "read minimized placement");
+    placement.rcNormalPosition = {bounds.left + 10, bounds.top + 10,
+                                  bounds.left + 330, bounds.top + 250};
+    placement.showCmd = SW_SHOWMINNOACTIVE;
+    Require(SetWindowPlacement(window.value, &placement) != FALSE,
+            "foreign 320x240 normal placement while minimized");
+    const auto minimized = display->corrections();
+    Require(IsIconic(window.value) != FALSE && minimized.constrained == 0 &&
+                minimized.repaired == 0,
+            "no correction while minimized");
+    trace = {};
+    ShowWindow(window.value, SW_SHOWNOACTIVATE);
+    Require(IsIconic(window.value) == FALSE, "restored without activation");
+    bool minimizedBit = false;
+    for (const bool bit : trace.minimized_changing)
+        minimizedBit |= bit;
+    const RECT restored = Rectangle(window.value);
+    const char* path = "none";
+    if (SameRectangle(restored, bounds)) {
+        path = "constraint";
+        Require(display->corrections().constrained == 1 &&
+                    display->corrections().repaired == 0 &&
+                    LinesStartingWith(
+                        "display-borderless-constrained kind=position "
+                        "req=320x240 ") == 1,
+                "restore path (a): one constraint, bounds at once");
+    } else {
+        path = "repair";
+        Require(Sized(restored, 320, 240) && minimizedBit,
+                "restore path (b): WS_MINIMIZE seen, foreign size first");
+        display->wait_for_frame();
+        Require(SameRectangle(Rectangle(window.value), bounds) &&
+                    display->corrections().repaired == 1 &&
+                    display->corrections().constrained == 0 &&
+                    LinesStartingWith("display-borderless-repaired ") == 1,
+                "restore path (b): one repair after one frame");
+    }
+    std::cout << "restore_path=" << path
+              << " minimized_bit_seen=" << (minimizedBit ? 1 : 0) << "\n";
+    Require(GetForegroundWindow() == foreground,
+            "restore test keeps the foreground");
+    constrained = nullptr;
+    display.reset();
+    Require(GetForegroundWindow() == foreground,
+            "restore test teardown keeps the foreground");
+}
+
+void CorrectionStormTest() {
+    ConstraintWindow window;
+    const auto foreground = GetForegroundWindow();
+    backendLines.clear();
+    auto display = std::make_unique<DisplayBackend>(
+        window.value, ConstraintPreferences(false));
+    constrained = &display;
+    const auto bounds = display->state().monitor.bounds;
+    const auto start = GetTickCount64();
+    std::vector<bool> repairedAt;
+    for (unsigned cycle = 0; cycle != 6; ++cycle) {
+        Require(SetWindowPos(window.value, nullptr, bounds.left + 10,
+                             bounds.top + 10, 320, 240,
+                             SWP_NOZORDER | SWP_NOACTIVATE),
+                "storm: foreign resize");
+        display->wait_for_frame();
+        repairedAt.push_back(SameRectangle(Rectangle(window.value), bounds));
+    }
+    Require(GetTickCount64() - start < 1000, "storm: six cycles within 1 s");
+    Require(repairedAt[0] && repairedAt[1] && repairedAt[2] && repairedAt[3] &&
+                !repairedAt[4] && !repairedAt[5] &&
+                Sized(Rectangle(window.value), 320, 240),
+            "storm: four repairs, then the size of the host is kept");
+    Require(display->corrections().repaired == 4 &&
+                display->corrections().suspended == 2 &&
+                display->corrections().storms == 1 &&
+                LinesStartingWith("display-borderless-correction-storm ") ==
+                    1 &&
+                LinesStartingWith("display-borderless-repaired ") == 4,
+            "storm: counters, one storm line, four repair lines");
+    Sleep(1100);
+    Require(SetWindowPos(window.value, nullptr, bounds.left + 10,
+                         bounds.top + 10, 320, 240,
+                         SWP_NOZORDER | SWP_NOACTIVATE),
+            "storm: resize after the suspension");
+    display->wait_for_frame();
+    Require(SameRectangle(Rectangle(window.value), bounds) &&
+                display->corrections().repaired == 5,
+            "storm: repairs resume after 1.1 s");
+    constrained = nullptr;
+    display.reset();
+
+    backendLines.clear();
+    display = std::make_unique<DisplayBackend>(window.value,
+                                               ConstraintPreferences(true));
+    constrained = &display;
+    bool held = true;
+    for (unsigned cycle = 0; cycle != 6; ++cycle) {
+        Require(SetWindowPos(window.value, nullptr, bounds.left + 10,
+                             bounds.top + 10, 320, 240,
+                             SWP_NOZORDER | SWP_NOACTIVATE),
+                "storm: foreign resize with the constraint");
+        held &= SameRectangle(Rectangle(window.value), bounds);
+    }
+    Require(held && display->corrections().constrained == 6 &&
+                display->corrections().storms == 1 &&
+                LinesStartingWith("display-borderless-correction-storm ") ==
+                    1 &&
+                LinesStartingWith("display-borderless-constrained ") <= 16,
+            "storm: six constraints applied, one storm line, bounded lines");
+    constrained = nullptr;
+    display.reset();
+    Require(GetForegroundWindow() == foreground,
+            "storm test keeps the foreground");
+}
+
+// D1 of the review: the host shrinks its window in reaction to the
+// bridge's WM_SIZE, or rewrites the bridge's own borderless request. Before
+// the fix both escaped C2 during set_mode and every repair.
+void HostReactionConstraintTest() {
+    ConstraintWindow window;
+    const auto foreground = GetForegroundWindow();
+    backendLines.clear();
+    host = {};
+    auto display = std::make_unique<DisplayBackend>(
+        window.value, ConstraintPreferences(true));
+    constrained = &display;
+    const auto bounds = display->state().monitor.bounds;
+    const std::string out = std::to_string(bounds.right - bounds.left) + "x" +
+                            std::to_string(bounds.bottom - bounds.top);
+    const std::string position =
+        "display-borderless-constrained kind=position req=320x240 out=" + out;
+
+    // 1. A windowed target leaves the host's own size alone (exemption).
+    host.react_to_size = true;
+    display->set_mode(WindowMode::windowed);
+    Require(Sized(Rectangle(window.value), 320, 240) &&
+                display->corrections().constrained == 0,
+            "reaction: a windowed target leaves the host's size alone");
+    // 2. Back to borderless while the host reacts (C2 reproduction, step 2).
+    const auto before = host.reactions;
+    display->set_mode(WindowMode::borderless);
+    Require(host.reactions > before && host.reactions_during_bridge == 0,
+            "reaction: the host reacted inside set_mode(borderless)");
+    Require(SameRectangle(Rectangle(window.value), bounds),
+            "reaction: set_mode(borderless) keeps the monitor bounds");
+    Require(
+        display->corrections().constrained == 1 &&
+            LinesStartingWith((position + " n=1 bridge=reaction").c_str()) == 1,
+        "reaction: one constraint line naming the host reaction");
+    // 3. A shrink C2 cannot see, then the repair (C2 reproduction, step 3).
+    Require(SetWindowPos(window.value, nullptr, 0, 0, 320, 240,
+                         SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE |
+                             SWP_NOSENDCHANGING) != FALSE,
+            "reaction: a shrink unseen by WM_WINDOWPOSCHANGING");
+    Require(Sized(Rectangle(window.value), 320, 240),
+            "reaction: the unseen shrink is applied");
+    display->wait_for_frame();
+    Require(SameRectangle(Rectangle(window.value), bounds) &&
+                display->corrections().repaired == 1 &&
+                display->corrections().constrained == 2,
+            "reaction: the repair holds, its host reaction is constrained");
+    for (unsigned frame = 0; frame != 8; ++frame) {
+        display->wait_for_frame();
+        Require(SameRectangle(Rectangle(window.value), bounds),
+                "reaction: the bounds hold on the next frames");
+    }
+    Require(display->corrections().repaired == 1 &&
+                display->corrections().storms == 0,
+            "reaction: no repair loop, no storm");
+    // 4. The host rewrites the size the bridge asks for.
+    host.react_to_size = false;
+    host.rewrite_size = true;
+    display->set_mode(WindowMode::windowed);
+    Require(Sized(Rectangle(window.value), 320, 240) &&
+                display->corrections().constrained == 2,
+            "rewrite: a windowed target stays exempt");
+    display->set_mode(WindowMode::borderless);
+    Require(SameRectangle(Rectangle(window.value), bounds) &&
+                display->corrections().constrained == 3 &&
+                LinesStartingWith((position + " n=3 bridge=altered").c_str()) ==
+                    1,
+            "rewrite: the bridge's own borderless request is restored");
+    // 5. The same rewrite of a repair, outside any storm.
+    Sleep(1100);
+    host.rewrite_size = false;
+    Require(SetWindowPos(window.value, nullptr, 0, 0, 320, 240,
+                         SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE |
+                             SWP_NOSENDCHANGING) != FALSE,
+            "rewrite: a shrink unseen by WM_WINDOWPOSCHANGING");
+    host.rewrite_size = true;
+    display->wait_for_frame();
+    host.rewrite_size = false;
+    Require(SameRectangle(Rectangle(window.value), bounds) &&
+                display->corrections().repaired == 2 &&
+                display->corrections().constrained == 4 &&
+                display->corrections().storms == 0,
+            "rewrite: the repair's own request is restored");
+    Require(LinesStartingWith("display-borderless-constrained ") == 4 &&
+                LinesStartingWith("display-borderless-repaired ") == 2,
+            "reaction: every correction has its line");
+    for (const auto& line : backendLines)
+        Require(!line.starts_with("display-borderless-constrained ") ||
+                    !line.ends_with(" bridge=none"),
+                "reaction: no constraint here is a plain foreign change");
+    host = {};
+    constrained = nullptr;
+    display.reset();
+    Require(!IsWindowVisible(window.value) &&
+                GetForegroundWindow() == foreground,
+            "reaction test neither shows nor focuses the witness");
+}
+
+// Review (tests, D1): the shared line budget of one backend, past 16
+// corrections, and the final summary that keeps every counter.
+void BoundedCorrectionLinesTest() {
+    ConstraintWindow window;
+    const auto foreground = GetForegroundWindow();
+    const auto monitors = DisplayBackend::monitors();
+    backendLines.clear();
+    host = {};
+    auto display = std::make_unique<DisplayBackend>(
+        window.value, ConstraintPreferences(true));
+    constrained = &display;
+    const auto state = display->state();
+    const auto bounds = state.monitor.bounds;
+    for (unsigned gesture = 0; gesture != 20; ++gesture)
+        Require(SetWindowPos(window.value, nullptr, bounds.left + 10,
+                             bounds.top + 10, 320, 240,
+                             SWP_NOZORDER | SWP_NOACTIVATE) != FALSE,
+                "bounded: foreign resize");
+    Require(SameRectangle(Rectangle(window.value), bounds) &&
+                display->corrections().constrained == 20 &&
+                LinesStartingWith("display-borderless-constrained ") == 16,
+            "bounded: 20 constraints counted, 16 individual lines");
+    Sleep(1100);
+    Require(SetWindowPos(window.value, nullptr, 0, 0, 320, 240,
+                         SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE |
+                             SWP_NOSENDCHANGING) != FALSE,
+            "bounded: a shrink unseen by WM_WINDOWPOSCHANGING");
+    display->wait_for_frame();
+    Require(SameRectangle(Rectangle(window.value), bounds) &&
+                display->corrections().repaired == 1 &&
+                LinesStartingWith("display-borderless-repaired ") == 0,
+            "bounded: a repair past the budget is counted without a line");
+    std::uint64_t migrations = 0;
+    for (const auto& monitor : monitors) {
+        if (monitor.handle == state.monitor.handle)
+            continue;
+        Require(SetWindowPos(window.value, nullptr, monitor.bounds.left,
+                             monitor.bounds.top,
+                             monitor.bounds.right - monitor.bounds.left,
+                             monitor.bounds.bottom - monitor.bounds.top,
+                             SWP_NOZORDER | SWP_NOACTIVATE) != FALSE,
+                "bounded: shell-like migration to another monitor");
+        migrations = 1;
+        Require(display->corrections().migrations == 1 &&
+                    LinesStartingWith("display-borderless-monitor-") == 0,
+                "bounded: a migration past the budget is counted");
+        break;
+    }
+    const auto n = display->corrections();
+    Require(n.storms >= 1 &&
+                LinesStartingWith("display-borderless-correction-storm ") ==
+                    std::min<std::uint64_t>(n.storms, 16) &&
+                LinesStartingWith("display-borderless-correction-summary ") ==
+                    0,
+            "bounded: storm lines match the storms, no summary yet");
+    constrained = nullptr;
+    display.reset();
+    const std::string summary =
+        "display-borderless-correction-summary constrained=20 repaired=1 "
+        "suspended=0 storms=" +
+        std::to_string(n.storms) + " migrations=" + std::to_string(migrations) +
+        " skipped=0";
+    Require(!backendLines.empty(), "bounded: lines were written");
+    std::cout << "bounded_final=" << backendLines.back() << "\n";
+    Require(backendLines.back() == summary,
+            "bounded: the final summary carries every counter");
+    Require(GetForegroundWindow() == foreground,
+            "bounded test keeps the foreground");
 }
 
 void PaceAndUnfocusedHostTest() {
@@ -639,8 +1427,16 @@ int main(int argc, char** argv) {
             VisibleExclusiveTest();
         } else if (!interopOnly) {
             PolicyTest();
+            SwitchAndGuardPolicyTest();
             WindowTest();
             BorderlessRecoveryTest();
+            WindowOperationScopeTest();
+            BorderlessConstraintTest();
+            ConstraintExemptionTest();
+            MinimizedRestoreTest();
+            CorrectionStormTest();
+            HostReactionConstraintTest();
+            BoundedCorrectionLinesTest();
             PaceAndUnfocusedHostTest();
         }
         if (!visibleExclusive && !windowsOnly) {

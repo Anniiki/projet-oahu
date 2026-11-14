@@ -53,7 +53,12 @@ def main():
     parser.add_argument("--frametime", default="off", choices=(
         "off", "enabled", "invalid", "missing-display", "missing-installation",
         "host-log", "source-log"))
+    # C2: TDUR_BORDERLESS_CONSTRAINT absent (default), "0" (off) or invalid.
+    parser.add_argument("--constraint", default="default",
+                        choices=("default", "off", "invalid"))
     args = parser.parse_args()
+    if args.constraint != "default" and args.frametime != "off":
+        parser.error("--constraint is exercised with --frametime off only")
     witness = args.witness.resolve(strict=True)
     if witness.name != "tdur_display_startup_witness.exe":
         raise RuntimeError("Only the owned startup fixture may execute")
@@ -86,6 +91,11 @@ def main():
                TDUR_RETAIL_BACKGROUND="1",
                TDUR_RETAIL_MAX_GRAPHICS="1")
     env.pop("TDUR_FRAMETIME_DIAGNOSTICS", None)
+    env.pop("TDUR_BORDERLESS_CONSTRAINT", None)
+    if args.constraint == "off":
+        env["TDUR_BORDERLESS_CONSTRAINT"] = "0"
+    elif args.constraint == "invalid":
+        env["TDUR_BORDERLESS_CONSTRAINT"] = "2"
     rejected = args.frametime not in ("off", "enabled")
     if args.frametime != "off":
         env["TDUR_FRAMETIME_DIAGNOSTICS"] = "1"
@@ -135,6 +145,26 @@ def main():
         assert child.returncode == 0, stdout + stderr
         result = json.loads(report.read_text(encoding="utf-8"))
         assert result["pid"] == identity["pid"] and not result["timed_out"]
+        if args.constraint == "invalid":
+            # The bridge refuses explicitly: a logged refusal, no factory,
+            # so the owned witness fails; no accepted constraint line.
+            assert result["exit_code"] == 1, "unexpected exit; inspect " + str(root)
+            assert result["locked_save_files"] == 17 and result["source_saves_unchanged"]
+            assert hashes(source) == before
+            assert hashes(installation) == installation_before
+            trace = log.read_text(encoding="utf-8")
+            assert " event=display-borderless-constraint-invalid error=13 " in trace
+            assert " event=display-deferred-initialization-failed " in trace
+            assert " event=display-borderless-constraint " not in trace
+            assert " event=display-deferred-initialization " not in trace
+            assert not (private / "display-startup-proof.json").exists()
+            (root / "result.json").write_text(json.dumps({
+                "game_executed": False, "success": True,
+                "refusal": "borderless-constraint", "exit_code": result["exit_code"],
+                "visible_owned_windows": 0, "window_checks": window_checks,
+                "evidence_directory": str(root)}, indent=2) + "\n", encoding="utf-8")
+            print("PASS invalid borderless constraint refused and logged; " + str(root))
+            return
         assert (result["exit_code"] != 0) == rejected, "unexpected exit; inspect " + str(root)
         assert result["locked_save_files"] == 17 and result["source_saves_unchanged"]
         assert hashes(source) == before
@@ -172,6 +202,13 @@ def main():
         positions = [trace.index("event=" + event) for event in events]
         assert positions == sorted(positions), "factory setup was not deferred in order"
         assert "display-first-dxgi-frame on12=1" in trace and "focus=0" in trace
+        constraint_lines = [line for line in trace.splitlines()
+                            if " event=display-borderless-constraint " in line]
+        expected_constraint = {
+            "default": " reason=enabled=1 source=default ",
+            "off": " reason=enabled=0 source=environment "}[args.constraint]
+        assert len(constraint_lines) == 1, "one borderless constraint line"
+        assert expected_constraint in constraint_lines[0], constraint_lines[0]
         assert "retail-video-defaults-identity-refused" in trace
         assert "retail-background-identity-refused" in trace
         assert "retail-background-branches-applied" not in trace
@@ -185,6 +222,7 @@ def main():
             "game_executed": False, "success": True, "proof": proof,
             "requested_mode": args.mode,
             "frametime": args.frametime, "summary_count": len(summaries),
+            "borderless_constraint": args.constraint,
             "visible_owned_windows": 0, "window_checks": window_checks,
             "exclusive_pending": args.mode == "exclusive",
             "source_files_unchanged": True,

@@ -1,6 +1,7 @@
 #include "tdur/mod/observation_hooks.hpp"
 #include "tdur/mod/native_input_path.hpp"
 #include "tdur/mod/native_service_path.hpp"
+#include "tdur/mod/save_path.hpp"
 
 #include <detours.h>
 #include <intrin.h>
@@ -53,6 +54,14 @@ thread_local bool internalOperation = false;
 // witness log bounded.
 constexpr uint64_t DecisionLines = 512;
 
+// Write-intent opens of a save path are written one line per
+// call up to this count per event name and process, then counted in the
+// periodic summaries. The eight-line sample of file-write-observed and of
+// unconfined-write-refused is spent at startup, and a summary names only the
+// path of the call that triggers it: neither can tell which save entry a
+// session created, replaced or was refused.
+constexpr uint64_t SaveLines = 4096;
+
 struct FrequentEvent {
     const char* name;
     uint64_t individualLimit = 8;
@@ -63,7 +72,7 @@ struct FrequentEvent {
     std::atomic<uint64_t> lastTick{};
     std::atomic_flag summaryLock{};
 };
-constinit std::array<FrequentEvent, 12> frequentEvents{
+constinit std::array<FrequentEvent, 14> frequentEvents{
     {{"native-input-open-forwarded"},
      {"file-write-observed"},
      {"folder-a-redirected", DecisionLines},
@@ -75,7 +84,9 @@ constinit std::array<FrequentEvent, 12> frequentEvents{
      {"DirectInput8Create-forwarded"},
      {"unconfined-write-refused"},
      {"nt-name-form-refused", DecisionLines},
-     {"native-service-open-forwarded"}}};
+     {"native-service-open-forwarded"},
+     {"save-write-observed", SaveLines},
+     {"save-write-refused", SaveLines}}};
 
 struct InternalCall {
     bool previous = internalOperation;
@@ -348,6 +359,23 @@ bool IsNativeInputOpen(const OBJECT_ATTRIBUTES* attributes,
            tdur::mod::IsSimpleInputDeviceTarget(target.data());
 }
 
+// Dedicated line of a write-intent open whose path has a
+// "savegame" component, beside the generic event of the same call. `decision`
+// is "admitted", the refusal reason or the refusal event; the request's
+// access, disposition and options follow it. No caller address: the return of
+// this hook lies in the system libraries, and the game's frames are not read.
+void RecordSaveWrite(const char* event, DWORD error, const wchar_t* path,
+                     const char* decision, ACCESS_MASK access,
+                     ULONG disposition, ULONG options) noexcept {
+    char reason[160]{};
+    std::snprintf(reason, sizeof(reason),
+                  "%s access=0x%08lx disposition=0x%08lx options=0x%08lx",
+                  decision, static_cast<unsigned long>(access),
+                  static_cast<unsigned long>(disposition),
+                  static_cast<unsigned long>(options));
+    TdurObservationRecord(event, error, path, reason);
+}
+
 NTSTATUS NTAPI ObserveNativeCreateFile(
     PHANDLE handle, ACCESS_MASK access, POBJECT_ATTRIBUTES attributes,
     PIO_STATUS_BLOCK status, PLARGE_INTEGER allocation, ULONG fileAttributes,
@@ -400,8 +428,9 @@ NTSTATUS NTAPI ObserveNativeCreateFile(
     NameForm form = NameForm::file_path;
     bool missing_parent = false;
     bool trailing_separator = false;
-    bool allowed = attributes != nullptr &&
-                   NativePath(*attributes, windowsPath, reason, form);
+    const bool resolved = attributes != nullptr &&
+                          NativePath(*attributes, windowsPath, reason, form);
+    bool allowed = resolved;
     if (allowed) {
         reason = "noncanonical-or-reparse-file-path";
         allowed = CanonicalPath(windowsPath.data(), canonical, &missing_parent,
@@ -441,6 +470,17 @@ NTSTATUS NTAPI ObserveNativeCreateFile(
                                              ? inputPath.data()
                                              : windowsPath.data()),
                               allowed ? nullptr : reason);
+        // The save line names the most resolved form of the request: the
+        // canonical path, else the absolute path NativePath built (a name
+        // relative to a root handle included), else the name as requested.
+        const wchar_t* savePath = allowed    ? canonical.data()
+                                  : resolved ? windowsPath.data()
+                                             : inputPath.data();
+        if (tdur::mod::HasSaveComponent(savePath)) {
+            RecordSaveWrite("save-write-refused", error, savePath,
+                            allowed ? event : reason, access, disposition,
+                            options);
+        }
         // Do not issue an open/create through an unresolved path. Preserve
         // missing-parent semantics so the caller can create its directories
         // and retry. Reparse/unknown paths and DOS device forms still return
@@ -478,6 +518,11 @@ NTSTATUS NTAPI ObserveNativeCreateFile(
     TdurObservationRecord(
         protectedSource ? "mutant-source-write" : "file-write-observed",
         result >= 0 ? ERROR_SUCCESS : DWORD(result), canonical.data());
+    if (tdur::mod::HasSaveComponent(canonical.data())) {
+        RecordSaveWrite(
+            "save-write-observed", result >= 0 ? ERROR_SUCCESS : DWORD(result),
+            canonical.data(), "admitted", access, disposition, options);
+    }
     return result;
 }
 

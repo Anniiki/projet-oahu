@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -460,6 +461,76 @@ void validation_and_reset() {
           "single-gear profile never emits an impossible command");
 }
 
+bool same_bits(double left, double right) {
+    return std::bit_cast<std::uint64_t>(left) ==
+           std::bit_cast<std::uint64_t>(right);
+}
+
+// Common past without any disabled step or missing forward gear, so that only
+// reset() can clear the memory measured afterwards: full throttle, an
+// observed upshift, an abrupt lift and one braking step.
+void reset_history(AdaptiveAutomatic& c) {
+    constexpr double dt = 1.0 / 120;
+    warm(c, 1.0, 5000, 3);
+    tick(c, {dt, 1.0, 0, 4200, 4});
+    tick(c, {dt, 0.6, 0, 4200, 4});
+    tick(c, {dt, 0.2, 0, 4200, 4});
+    tick(c, {dt, 0.2, 0.8, 3800, 4});
+}
+
+void reset_independence() {
+    constexpr double dt = 1.0 / 120;
+    auto witness = controller();
+    auto restored = controller();
+    auto fresh = controller();
+    reset_history(witness);
+    reset_history(restored);
+    restored.reset();
+    bool identical = true;
+    bool history_leaks = false;
+    for (int i = 0; i < 240; ++i) {
+        const auto rpm = 2000 + (6500 - 2000) * i / 239.0;
+        const AutomaticInputs input{dt, 0.2, 0, rpm, 4};
+        const auto kept = tick(witness, input);
+        const auto again = tick(restored, input);
+        const auto clean = tick(fresh, input);
+        identical = identical && again.requested_gear == clean.requested_gear &&
+                    again.reason == clean.reason &&
+                    same_bits(again.projected_rpm, clean.projected_rpm) &&
+                    again.diagnostics == clean.diagnostics;
+        if (i == 0) {
+            history_leaks =
+                kept.diagnostics.upshift_rpm > clean.diagnostics.upshift_rpm &&
+                (kept.reason == AutomaticReason::dwell_hold ||
+                 kept.diagnostics.dwell_remaining_seconds > 0);
+        }
+    }
+    check(identical, "reset() after a full history decides exactly like a new "
+                     "controller at every probe step");
+    check(history_leaks,
+          "without reset() the same history changes the first decision");
+
+    // Pedal 1 is kept as non-regression only: the demand is a maximum with
+    // the pedal, so this check alone cannot prove the effect of reset().
+    auto restored_full = controller();
+    auto fresh_full = controller();
+    reset_history(restored_full);
+    restored_full.reset();
+    const AutomaticInputs full{dt, 1, 0, 3000, 4};
+    const auto after = tick(restored_full, full);
+    const auto clean = tick(fresh_full, full);
+    const AutomaticConfig config;
+    const auto expected =
+        (config.low_up_fraction +
+         (config.high_up_fraction - config.low_up_fraction) * 1) *
+        7000;
+    check(std::abs(after.diagnostics.upshift_rpm - expected) <=
+                  1e-9 * expected &&
+              same_bits(after.diagnostics.upshift_rpm,
+                        clean.diagnostics.upshift_rpm),
+          "pedal 1 after reset() uses the high upshift fraction of Red_Line");
+}
+
 } // namespace
 
 int main() {
@@ -471,6 +542,7 @@ int main() {
     rpm_ceiling_and_gates();
     safety_grid();
     validation_and_reset();
+    reset_independence();
     std::cout << checks << " checks, " << failures << " failures\n";
     return failures == 0 ? 0 : 1;
 }

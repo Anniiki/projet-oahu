@@ -1,6 +1,7 @@
 // Observation infrastructure: no game instructions, login or protection hooks.
 // The only public export forwards the real system DirectInput8Create ABI.
 #define DIRECTINPUT_VERSION 0x0800
+#include "tdur/mod/crash_handler.hpp"
 #include "tdur/mod/cursor_diagnostics.hpp"
 #include "tdur/mod/display_startup_gate.hpp"
 #include "tdur/mod/observation_hooks.hpp"
@@ -95,7 +96,7 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID reserved) {
         selfModule = module;
         DisableThreadLibraryCalls(module);
         DetourRestoreAfterWith();
-        return TdurInstallObservationHooks() &&
+        return TdurInstallObservationHooks() && TdurInstallCrashHandler() &&
                        TdurInstallDisplayStartupGate() &&
                        TdurInstallCursorDiagnostics()
                    ? TRUE
@@ -103,5 +104,7 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID reserved) {
     }
     // No worker thread, COM initialization or system DirectInput load here.
     // All hooks and their fixed configuration remain for the process lifetime.
+    // The crash handler only places one detour and maps a section
+    // that the owned launcher prepared; it creates no thread either.
     return TRUE;
 }

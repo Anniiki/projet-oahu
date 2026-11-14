@@ -8,6 +8,10 @@ namespace tdur::mod {
 
 // An application policy, not a reconstruction of a commercial function.
 // The owner HWND thread alone owns this state. Tests inject every desktop API.
+// On focus loss the cursor is made visible with at most 4,096 real shows.
+// On return a single hide is made, not the whole loss compensation: a module
+// that hides without showing again cannot deepen the counter cycle after
+// cycle. At unbind every remaining compensation is still given back.
 struct ForegroundCursorApi {
     DWORD(WINAPI* current_thread)();
     HWND(WINAPI* foreground)();
@@ -19,7 +23,10 @@ struct ForegroundCursorApi {
     int(WINAPI* show)(BOOL);
     HCURSOR(WINAPI* set)(HCURSOR);
 };
-using ForegroundCursorLog = void (*)(const char*) noexcept;
+// reason is null or a short "key=value" text: call and counter values only,
+// never a coordinate, rectangle or handle.
+using ForegroundCursorLog = void (*)(const char* event,
+                                     const char* reason) noexcept;
 
 class ForegroundCursor {
   public:
@@ -55,7 +62,11 @@ class ForegroundCursor {
   private:
     [[nodiscard]] bool owner() const noexcept;
     void release() noexcept;
-    void restore_visibility() noexcept;
+    // Returns the number of real hides made. all=false (return to the game):
+    // one hide at most; all=true (unbind): every remaining compensation.
+    unsigned restore_visibility(bool all) noexcept;
+    // "<key>=<calls> count=<last API result>", or count=none without calls.
+    void log(const char* event, const char* key, unsigned calls) const noexcept;
     ForegroundCursorApi api_;
     ForegroundCursorLog log_{};
     std::atomic<HWND> window_{};

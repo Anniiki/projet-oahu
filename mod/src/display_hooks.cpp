@@ -2,9 +2,12 @@
 #include "tdur/mod/cursor_diagnostics.hpp"
 #include "tdur/mod/foreground_cursor.hpp"
 #include "tdur/mod/frametime_recorder.hpp"
+#include "tdur/mod/present_heartbeat.hpp"
+#include "tdur/mod/window_diagnostics.hpp"
 
 #include <commctrl.h>
 #include <detours.h>
+#include <intrin.h>
 #include <tlhelp32.h>
 #include <wrl/client.h>
 
@@ -128,6 +131,9 @@ void Log(const char* event, HRESULT result) noexcept {
     if (options.log)
         options.log(event, result, options.log_context);
 }
+
+// C2: bounded borderless correction lines of the backend, owner thread.
+void BackendLog(const char* event, void*) noexcept { Log(event, S_OK); }
 
 // Called with the device lock held. The budget belongs to the process, not to
 // a device/reset/install cycle. Each bounded summary is a single log record.
@@ -374,8 +380,10 @@ void CleanupDeviceWindow(const std::shared_ptr<DeviceContext>& ctx) {
             removedWindow = true;
         }
     }
-    if (removedWindow)
+    if (removedWindow) {
         TdurUnbindForegroundCursor(ctx->window);
+        TdurWindowDiagnosticsUnbind(ctx->window);
+    }
     if (!ctx->window_closed)
         RemoveWindowSubclass(ctx->window, WindowProcedure, SubclassId);
 }
@@ -432,6 +440,7 @@ LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam,
         Internal internal;
         if (message == WM_NCDESTROY) {
             TdurUnbindForegroundCursor(window);
+            TdurWindowDiagnosticsUnbind(window);
             ctx->window_closed = true;
             if (ctx->backend)
                 ctx->backend->abandon_window();
@@ -451,7 +460,36 @@ LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam,
     // TDUR_CURSOR_DIAGNOSTICS=1. The message still reaches the native
     // procedure unchanged, which keeps writing its own activation flag.
     TdurCursorActivationMarker(message, wparam);
-    const auto result = DefSubclassProc(window, message, wparam, lparam);
+    TdurWindowActivationMarker(message, wparam);
+    LRESULT result{};
+    {
+        // The host handler runs one level deeper: a window message produced
+        // by a call it makes during a bridge operation is foreign (C2, C3).
+        DisplayHostHandlerScope host;
+        result = DefSubclassProc(window, message, wparam, lparam);
+    }
+    // C2: after the native handler, before Windows applies the change. The
+    // window may have been destroyed by the native handler (reentrancy).
+    DisplayBackend::WindowConstraint constraint{};
+    if (ctx &&
+        (message == WM_WINDOWPOSCHANGING || message == WM_STYLECHANGING)) {
+        std::lock_guard deviceLock(ctx->mutex);
+        if (ctx->backend && !ctx->window_closed && IsWindow(window))
+            constraint =
+                ctx->backend->constrain_window_message(message, wparam, lparam);
+    }
+    // C3: opt-in, after the native handler and C2; nothing is altered.
+    if (TdurWindowDiagnosticsBound(window)) {
+        MessageContext context{};
+        // Back at this message's level: true only for the bridge's own
+        // messages, false for a host call nested in a bridge operation.
+        context.internal = DisplayWindowOperationActive();
+        context.constrained = constraint.changed;
+        context.requested_width = constraint.requested_width;
+        context.requested_height = constraint.requested_height;
+        context.minimized = IsIconic(window) != FALSE;
+        TdurWindowDiagnosticsMessage(window, message, wparam, lparam, context);
+    }
     TdurForegroundCursorAfter(window, message, wparam);
     return result;
 }
@@ -612,6 +650,10 @@ HRESULT STDMETHODCALLTYPE HookCreateDevice(IDirect3D9* factory, UINT adapter,
                 throw DisplayError(D3DERR_NOTAVAILABLE,
                                    "one active presenter per HWND");
         }
+        // C3: values requested by the game, before RenderParameters.
+        TdurWindowDiagnosticsBind(window);
+        TdurWindowDiagnosticsPresentRequest("create", *parameters,
+                                            _ReturnAddress());
         auto ctx = std::make_shared<DeviceContext>();
         ctx->window = window;
         ctx->owner_thread = GetCurrentThreadId();
@@ -621,8 +663,10 @@ HRESULT STDMETHODCALLTYPE HookCreateDevice(IDirect3D9* factory, UINT adapter,
             std::lock_guard lock(State().mutex);
             ctx->frame_time_id = ++State().next_frame_time_id;
         }
-        ctx->backend =
-            std::make_unique<DisplayBackend>(window, State().options.display);
+        auto preferences = State().options.display;
+        preferences.log = BackendLog;
+        preferences.log_context = nullptr;
+        ctx->backend = std::make_unique<DisplayBackend>(window, preferences);
         auto actual = RenderParameters(*parameters, *ctx);
         ComPtr<IDirect3DDevice9> device;
         const HRESULT result =
@@ -893,6 +937,9 @@ HRESULT STDMETHODCALLTYPE HookReset(IDirect3DDevice9* device,
         FlushFrameTimes(*ctx, "reset", true);
         ctx->reset_failed = true;
         ctx->backend->prepare_device_reset();
+        // C3: values requested by the game, before the bridge rewrites them.
+        TdurWindowDiagnosticsPresentRequest("reset", *parameters,
+                                            _ReturnAddress());
         auto actual = RenderParameters(*parameters, *ctx);
         if (ctx->window_closed)
             return D3DERR_DEVICELOST;
@@ -1082,6 +1129,7 @@ HRESULT STDMETHODCALLTYPE HookPresent(IDirect3DDevice9* device,
     const auto original = Original<Present>(device, 17, Kind::present);
     if (internalDepth)
         return original(device, source, destination, overrideWindow, dirty);
+    tdur::mod::beat_present();
     try {
         const auto ctx = FindDevice(device);
         return ctx ? MeasuredPresent(ctx, source, destination, overrideWindow,
@@ -1104,6 +1152,7 @@ HRESULT STDMETHODCALLTYPE HookSwapPresent(IDirect3DSwapChain9* swap,
     if (internalDepth)
         return original(swap, source, destination, overrideWindow, dirty,
                         flags);
+    tdur::mod::beat_present();
     try {
         std::shared_ptr<DeviceContext> ctx;
         {

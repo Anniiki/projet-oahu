@@ -1,8 +1,12 @@
 #include "tdur/mod/foreground_cursor.hpp"
 
+#include <cstdio>
+
 namespace tdur::mod {
 namespace {
 std::atomic<ForegroundCursor*> installed{nullptr};
+// Bound for the real shows of one focus loss, even with a broken counter.
+constexpr unsigned visibility_cap = 4096;
 bool inactive(UINT message, WPARAM parameter) noexcept {
     return (message == WM_ACTIVATEAPP && !parameter) ||
            (message == WM_ACTIVATE && LOWORD(parameter) == WA_INACTIVE);
@@ -40,17 +44,43 @@ void ForegroundCursor::bind(HWND window, DWORD thread, HCURSOR arrow) noexcept {
     thread_ = thread;
     window_ = window;
     if (log_)
-        log_("foreground-cursor-bound");
+        log_("foreground-cursor-bound", nullptr);
 }
 
-void ForegroundCursor::restore_visibility() noexcept {
-    // Undo only our bounded adjustments, before the native activation handler
-    // makes its own show/hide calls. No cursor position is restored or moved.
-    while (visibility_adjustments_) {
+void ForegroundCursor::log(const char* event, const char* key,
+                           unsigned calls) const noexcept {
+    if (!log_)
+        return;
+    // count_ is the value returned by our own last call when calls != 0.
+    char reason[48]{};
+    if (calls)
+        std::snprintf(reason, sizeof(reason), "%s=%u count=%d", key, calls,
+                      count_);
+    else
+        std::snprintf(reason, sizeof(reason), "%s=0 count=none", key);
+    log_(event, reason);
+}
+
+unsigned ForegroundCursor::restore_visibility(bool all) noexcept {
+    // Undo our adjustments before the native activation handler makes its
+    // own show/hide calls. No cursor position is restored or moved.
+    unsigned hides = 0;
+    if (all) {
+        while (visibility_adjustments_) {
+            observed_show(api_.show(FALSE));
+            --visibility_adjustments_;
+            ++hides;
+        }
+    } else if (visibility_adjustments_) {
+        // Defense against an unbalanced module: the exact native depth is
+        // not given back on return. With the recorded sequences the counter
+        // stays at -1 in game, as before.
         observed_show(api_.show(FALSE));
-        --visibility_adjustments_;
+        visibility_adjustments_ = 0;
+        hides = 1;
     }
     visibility_limit_reached_ = false;
+    return hides;
 }
 
 void ForegroundCursor::release() noexcept {
@@ -65,20 +95,22 @@ void ForegroundCursor::release() noexcept {
         api_.clip(nullptr);
     clipped_ = false;
     // Bounded even if the host already has a broken visibility counter.
-    for (unsigned i = 0; i != 32; ++i) {
+    unsigned shows = 0;
+    for (unsigned i = 0; i != visibility_cap; ++i) {
         const auto count = api_.show(TRUE);
         observed_show(count);
         ++visibility_adjustments_;
+        ++shows;
         if (count >= 0)
             break;
-        if (i == 31)
+        if (i == visibility_cap - 1)
             visibility_limit_reached_ = true;
     }
     if (arrow_)
         api_.set(arrow_);
-    if (log_)
-        log_(visibility_limit_reached_ ? "foreground-cursor-visibility-cap"
-                                       : "foreground-cursor-released");
+    log(visibility_limit_reached_ ? "foreground-cursor-visibility-cap"
+                                  : "foreground-cursor-released",
+        "shows", shows);
 }
 
 void ForegroundCursor::before_message(UINT message, WPARAM parameter) noexcept {
@@ -88,11 +120,11 @@ void ForegroundCursor::before_message(UINT message, WPARAM parameter) noexcept {
         deactivating_ = true;
     else if (active(message, parameter)) {
         const bool restoring = released_;
-        restore_visibility();
+        const unsigned hides = restore_visibility(false);
         deactivating_ = false;
         released_ = false;
-        if (restoring && log_)
-            log_("foreground-cursor-returned");
+        if (restoring)
+            log("foreground-cursor-returned", "hides", hides);
     }
 }
 
@@ -133,14 +165,14 @@ void ForegroundCursor::unbind(HWND window) noexcept {
     RECT current{};
     if (clipped_ && api_.get_clip(&current) && equal(current, clip_))
         api_.clip(nullptr);
-    restore_visibility();
+    const unsigned hides = restore_visibility(true);
+    // Logged while still bound: count_ is our last real result.
+    log("foreground-cursor-unbound", "hides", hides);
     window_ = nullptr;
     thread_ = 0;
     arrow_ = nullptr;
     clipped_ = deactivating_ = released_ = false;
     count_known_ = false;
-    if (log_)
-        log_("foreground-cursor-unbound");
 }
 
 void SetActiveForegroundCursor(ForegroundCursor* cursor) noexcept {

@@ -14,7 +14,9 @@
 // existing observation logger). It forces no cursor, focus or pause state.
 
 // Reads TDUR_CURSOR_DIAGNOSTICS and, when it is exactly "1", attaches
-// ShowCursor, SetCursor, ClipCursor and ReleaseCapture for diagnostics.
+// ShowCursor, SetCursor, ClipCursor and ReleaseCapture for diagnostics, and
+// the window operations of window_diagnostics.hpp (SetWindowPos, MoveWindow,
+// SetWindowLongA/W, SetWindowPlacement, ShowWindow, ShowWindowAsync).
 // Independently, TDUR_D3D12_DISPLAY=1 installs the foreground cursor policy,
 // also intercepting SetCursorPos/SetCapture. With neither feature, no API is
 // attached. Invalid diagnostics configuration or failed attachment returns
@@ -40,6 +42,31 @@ enum class CursorDiagnosticsSetting : std::uint8_t {
 ParseCursorDiagnosticsSetting(const wchar_t* value, DWORD length,
                               DWORD last_error) noexcept;
 
+// Origin class of a caller, written as origin=<name> in diagnostics lines.
+// No module name or path is ever written, only this fixed class.
+enum class CallerOrigin : std::uint8_t {
+    unresolved,
+    main,
+    retail_site,
+    proxy,
+    d3d9,
+    d3d9on12,
+    dxgi,
+    d3d12,
+    dinput8,
+    user32,
+    other
+};
+// "unresolved", "main", "retail-site", "proxy", "d3d9", "d3d9on12", "dxgi",
+// "d3d12", "dinput8", "user32" or "other".
+[[nodiscard]] const char* CallerOriginName(CallerOrigin origin) noexcept;
+// Pure: leaf is a module file name without directory, compared without
+// case. is_main and is_proxy are decided by the caller from handles.
+[[nodiscard]] CallerOrigin CallerOriginFromModule(const wchar_t* leaf,
+                                                  bool is_main,
+                                                  bool is_proxy) noexcept;
+using CallerClassifier = CallerOrigin (*)(const void* caller) noexcept;
+
 // Real (or, in tests, injected) entry points. Each wrapper calls its entry
 // exactly once with the caller's argument.
 struct CursorApiTable {
@@ -49,12 +76,15 @@ struct CursorApiTable {
     BOOL(WINAPI* release_capture)() = nullptr;
 };
 
-// Capacity of CursorRecord::reason. The longest reason is the period summary
-// with its ten counters at UINT32_MAX: "period" and ten " name=4294967295"
-// fields, 186 characters, plus the NUL. cursor_diagnostics_core.cpp derives
+// Capacity of CursorRecord::reason. The longest cursor reason is the period
+// summary with its twelve counters at UINT32_MAX (the two origin counters are
+// written only with a classifier): "period" and twelve " name=4294967295"
+// fields, 218 characters, plus the NUL. cursor_diagnostics_core.cpp derives
 // that length from the table it prints and checks it with a static_assert;
-// every operation or marker reason is under 40 characters.
-inline constexpr std::size_t cursor_reason_capacity = 192;
+// every operation or marker reason is under 64 characters. The window
+// diagnostics (window_diagnostics.hpp) share this record and check their own
+// longest line against the same capacity.
+inline constexpr std::size_t cursor_reason_capacity = 256;
 
 // One bounded line. event and reason are classifications only; error is the
 // thread last error after a failed ClipCursor/ReleaseCapture, else 0.
@@ -73,6 +103,9 @@ struct CursorLimits {
     std::uint32_t activation_lines = 256;
     // Hard cap for every line of this module, summaries included.
     std::uint32_t total_lines = 4096;
+    // With a classifier, individual lines of the retail site per window;
+    // later retail calls are only counted, leaving the window to others.
+    std::uint32_t retail_lines_per_window = 2;
 };
 
 // Counts since the previous activation marker, written as one summary line.
@@ -81,18 +114,25 @@ struct CursorPeriod {
     std::uint32_t set_null{}, set_handle{};
     std::uint32_t clip_rect{}, clip_null{}, clip_failed{};
     std::uint32_t release_ok{}, release_failed{};
+    // With a classifier: ShowCursor calls neither from main nor retail-site.
+    std::uint32_t ext_show_true{}, ext_show_false{};
 };
 
 // Writes "period show1=N show0=N hidden=N set0=N set1=N clip=N unclip=N
-// clipfail=N release=N releasefail=N" into record.reason. All ten fields fit
-// for any counter values (see cursor_reason_capacity).
-void FormatCursorSummary(const CursorPeriod& period,
-                         CursorRecord& record) noexcept;
+// clipfail=N release=N releasefail=N" into record.reason, followed by
+// " ext1=N ext0=N" when with_origin is true. Every field fits for any
+// counter values (see cursor_reason_capacity).
+void FormatCursorSummary(const CursorPeriod& period, CursorRecord& record,
+                         bool with_origin = false) noexcept;
 
 class CursorDiagnostics {
   public:
+    // Without a classifier, lines are byte-identical to the earlier format.
+    // With one, every operation line ends with origin=<class>, the retail
+    // site has its own small line budget and the summary adds ext1/ext0.
     CursorDiagnostics(const CursorApiTable& api, CursorSink sink,
-                      CursorLimits limits = {}) noexcept;
+                      CursorLimits limits = {},
+                      CallerClassifier classify = nullptr) noexcept;
     CursorDiagnostics(const CursorDiagnostics&) = delete;
     CursorDiagnostics& operator=(const CursorDiagnostics&) = delete;
 
@@ -112,13 +152,17 @@ class CursorDiagnostics {
 
   private:
     [[nodiscard]] bool take_operation_line() noexcept;
+    [[nodiscard]] bool take_line(CallerOrigin origin) noexcept;
+    [[nodiscard]] CallerOrigin classify(const void* caller) const noexcept;
     void write(CursorRecord& record) noexcept;
 
     CursorApiTable api_;
     CursorSink sink_;
     CursorLimits limits_;
+    CallerClassifier classify_{};
     mutable SRWLOCK lock_ = SRWLOCK_INIT;
     std::uint32_t window_left_{};
+    std::uint32_t retail_left_{};
     std::uint32_t markers_written_{};
     std::uint32_t markers_seen_{};
     std::uint32_t lines_{};

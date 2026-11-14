@@ -2,6 +2,8 @@
 
 #include <atomic>
 #include <cstdio>
+#include <cwchar>
+#include <iterator>
 #include <string>
 
 namespace tdur::mod {
@@ -27,7 +29,11 @@ constexpr SummaryField summary_fields[] = {
     {"clipfail", &CursorPeriod::clip_failed},
     {"release", &CursorPeriod::release_ok},
     {"releasefail", &CursorPeriod::release_failed},
+    // Written only with a classifier; they stay last.
+    {"ext1", &CursorPeriod::ext_show_true},
+    {"ext0", &CursorPeriod::ext_show_false},
 };
+constexpr std::size_t origin_summary_fields = 2;
 constexpr std::size_t uint32_max_digits = 10; // 4294967295
 
 // " name=" plus the widest uint32 for each field, after the leading word.
@@ -41,6 +47,37 @@ constexpr std::size_t LongestSummary() noexcept {
 static_assert(LongestSummary() < cursor_reason_capacity,
               "a summary with every counter at UINT32_MAX must fit with "
               "its NUL");
+
+constexpr const char* origin_names[] = {
+    "unresolved", "main",  "retail-site", "proxy",  "d3d9", "d3d9on12",
+    "dxgi",       "d3d12", "dinput8",     "user32", "other"};
+static_assert(std::size(origin_names) ==
+                  static_cast<std::size_t>(CallerOrigin::other) + 1,
+              "one name per origin");
+
+struct ModuleOrigin {
+    const wchar_t* leaf;
+    CallerOrigin origin;
+};
+constexpr ModuleOrigin module_origins[] = {
+    {L"d3d9.dll", CallerOrigin::d3d9},
+    {L"d3d9on12.dll", CallerOrigin::d3d9on12},
+    {L"dxgi.dll", CallerOrigin::dxgi},
+    {L"d3d12.dll", CallerOrigin::d3d12},
+    {L"d3d12core.dll", CallerOrigin::d3d12},
+    {L"dinput8.dll", CallerOrigin::dinput8},
+    {L"user32.dll", CallerOrigin::user32},
+    {L"win32u.dll", CallerOrigin::user32},
+};
+
+// " origin=<class>" only with a classifier, so the earlier format is unchanged.
+[[nodiscard]] const char* OriginKey(CallerClassifier classify) noexcept {
+    return classify != nullptr ? " origin=" : "";
+}
+[[nodiscard]] const char* OriginValue(CallerClassifier classify,
+                                      CallerOrigin origin) noexcept {
+    return classify != nullptr ? CallerOriginName(origin) : "";
+}
 
 [[nodiscard]] const char* ActivateState(WPARAM wparam) noexcept {
     switch (LOWORD(wparam)) {
@@ -64,11 +101,33 @@ static_assert(LongestSummary() < cursor_reason_capacity,
 
 } // namespace
 
-void FormatCursorSummary(const CursorPeriod& period,
-                         CursorRecord& record) noexcept {
+const char* CallerOriginName(CallerOrigin origin) noexcept {
+    const auto index = static_cast<std::size_t>(origin);
+    return index < std::size(origin_names) ? origin_names[index] : "other";
+}
+
+CallerOrigin CallerOriginFromModule(const wchar_t* leaf, bool is_main,
+                                    bool is_proxy) noexcept {
+    if (is_main)
+        return CallerOrigin::main;
+    if (is_proxy)
+        return CallerOrigin::proxy;
+    if (leaf == nullptr || leaf[0] == L'\0')
+        return CallerOrigin::unresolved;
+    for (const auto& known : module_origins)
+        if (_wcsicmp(leaf, known.leaf) == 0)
+            return known.origin;
+    return CallerOrigin::other;
+}
+
+void FormatCursorSummary(const CursorPeriod& period, CursorRecord& record,
+                         bool with_origin) noexcept {
     constexpr std::size_t capacity = cursor_reason_capacity;
+    const std::size_t fields =
+        std::size(summary_fields) - (with_origin ? 0 : origin_summary_fields);
     int used = std::snprintf(record.reason, capacity, "%s", summary_word);
-    for (const auto& field : summary_fields) {
+    for (std::size_t index = 0; index != fields; ++index) {
+        const auto& field = summary_fields[index];
         if (used < 0 || static_cast<std::size_t>(used) >= capacity)
             return;
         const int written = std::snprintf(
@@ -93,15 +152,39 @@ ParseCursorDiagnosticsSetting(const wchar_t* value, DWORD length,
 }
 
 CursorDiagnostics::CursorDiagnostics(const CursorApiTable& api, CursorSink sink,
-                                     CursorLimits limits) noexcept
-    : api_(api), sink_(sink), limits_(limits),
-      window_left_(limits.lines_per_window) {}
+                                     CursorLimits limits,
+                                     CallerClassifier classify) noexcept
+    : api_(api), sink_(sink), limits_(limits), classify_(classify),
+      window_left_(limits.lines_per_window),
+      retail_left_(limits.retail_lines_per_window) {}
 
 bool CursorDiagnostics::take_operation_line() noexcept {
     if (window_left_ == 0 || lines_ >= limits_.total_lines)
         return false;
     --window_left_;
     return true;
+}
+
+bool CursorDiagnostics::take_line(CallerOrigin origin) noexcept {
+    // The retail site is detailed only within its own budget; once spent it
+    // is counted, and the window budget stays available to other callers.
+    if (origin == CallerOrigin::retail_site) {
+        if (retail_left_ == 0 || !take_operation_line())
+            return false;
+        --retail_left_;
+        return true;
+    }
+    return take_operation_line();
+}
+
+CallerOrigin CursorDiagnostics::classify(const void* caller) const noexcept {
+    // Called outside the lock: a classifier may take the loader lock.
+    if (classify_ == nullptr)
+        return CallerOrigin::unresolved;
+    const DWORD error = GetLastError();
+    const auto origin = classify_(caller);
+    SetLastError(error);
+    return origin;
 }
 
 void CursorDiagnostics::write(CursorRecord& record) noexcept {
@@ -113,15 +196,20 @@ void CursorDiagnostics::write(CursorRecord& record) noexcept {
 int CursorDiagnostics::show_cursor(BOOL show, const void* caller) noexcept {
     const int count = api_.show_cursor(show);
     const DWORD error = GetLastError();
+    const auto origin = classify(caller);
     AcquireSRWLockExclusive(&lock_);
     ++(show ? period_.show_true : period_.show_false);
     if (count < 0)
         ++period_.show_negative;
-    if (take_operation_line()) {
+    if (classify_ != nullptr && origin != CallerOrigin::main &&
+        origin != CallerOrigin::retail_site)
+        ++(show ? period_.ext_show_true : period_.ext_show_false);
+    if (take_line(origin)) {
         CursorRecord record{"cursor-op"};
         std::snprintf(record.reason, sizeof(record.reason),
-                      "show-cursor arg=%s count=%d", show ? "true" : "false",
-                      count);
+                      "show-cursor arg=%s count=%d%s%s",
+                      show ? "true" : "false", count, OriginKey(classify_),
+                      OriginValue(classify_, origin));
         record.caller = caller;
         write(record);
     }
@@ -134,13 +222,15 @@ HCURSOR CursorDiagnostics::set_cursor(HCURSOR cursor,
                                       const void* caller) noexcept {
     const HCURSOR previous = api_.set_cursor(cursor);
     const DWORD error = GetLastError();
+    const auto origin = classify(caller);
     AcquireSRWLockExclusive(&lock_);
     ++(cursor ? period_.set_handle : period_.set_null);
-    if (take_operation_line()) {
+    if (take_line(origin)) {
         CursorRecord record{"cursor-op"};
         std::snprintf(record.reason, sizeof(record.reason),
-                      "set-cursor arg=%s previous=%s",
-                      cursor ? "handle" : "null", previous ? "handle" : "null");
+                      "set-cursor arg=%s previous=%s%s%s",
+                      cursor ? "handle" : "null", previous ? "handle" : "null",
+                      OriginKey(classify_), OriginValue(classify_, origin));
         record.caller = caller;
         write(record);
     }
@@ -153,15 +243,17 @@ BOOL CursorDiagnostics::clip_cursor(const RECT* rect,
                                     const void* caller) noexcept {
     const BOOL result = api_.clip_cursor(rect);
     const DWORD error = GetLastError();
+    const auto origin = classify(caller);
     AcquireSRWLockExclusive(&lock_);
     ++(rect ? period_.clip_rect : period_.clip_null);
     if (!result)
         ++period_.clip_failed;
-    if (take_operation_line()) {
+    if (take_line(origin)) {
         CursorRecord record{"cursor-op"};
         std::snprintf(record.reason, sizeof(record.reason),
-                      "clip-cursor arg=%s result=%d", rect ? "rect" : "null",
-                      result ? 1 : 0);
+                      "clip-cursor arg=%s result=%d%s%s",
+                      rect ? "rect" : "null", result ? 1 : 0,
+                      OriginKey(classify_), OriginValue(classify_, origin));
         record.error = result ? 0 : error;
         record.caller = caller;
         write(record);
@@ -174,12 +266,14 @@ BOOL CursorDiagnostics::clip_cursor(const RECT* rect,
 BOOL CursorDiagnostics::release_capture(const void* caller) noexcept {
     const BOOL result = api_.release_capture();
     const DWORD error = GetLastError();
+    const auto origin = classify(caller);
     AcquireSRWLockExclusive(&lock_);
     ++(result ? period_.release_ok : period_.release_failed);
-    if (take_operation_line()) {
+    if (take_line(origin)) {
         CursorRecord record{"cursor-op"};
         std::snprintf(record.reason, sizeof(record.reason),
-                      "release-capture result=%d", result ? 1 : 0);
+                      "release-capture result=%d%s%s", result ? 1 : 0,
+                      OriginKey(classify_), OriginValue(classify_, origin));
         record.error = result ? 0 : error;
         record.caller = caller;
         write(record);
@@ -197,7 +291,7 @@ void CursorDiagnostics::activation(UINT message, WPARAM wparam) noexcept {
     ++markers_seen_;
     if (!PeriodEmpty(period_) && lines_ < limits_.total_lines) {
         CursorRecord summary{"cursor-summary"};
-        FormatCursorSummary(period_, summary);
+        FormatCursorSummary(period_, summary, classify_ != nullptr);
         write(summary);
     }
     period_ = {};
@@ -215,6 +309,7 @@ void CursorDiagnostics::activation(UINT message, WPARAM wparam) noexcept {
         write(marker);
     }
     window_left_ = limits_.lines_per_window;
+    retail_left_ = limits_.retail_lines_per_window;
     ReleaseSRWLockExclusive(&lock_);
     SetLastError(error);
 }
