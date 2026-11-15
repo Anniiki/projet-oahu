@@ -7,6 +7,7 @@
 #include "tdur/mod/window_diagnostics.hpp"
 
 #include <detours.h>
+#include <dwmapi.h>
 #include <intrin.h>
 
 #include <atomic>
@@ -35,6 +36,7 @@ void ForegroundLog(const char* event, const char* reason) noexcept {
     SetLastError(error);
 }
 
+// The policy counts every refused call; only the first 128 are lines.
 void Blocked(const char* operation) noexcept {
     auto line = blockedLines.load(std::memory_order_relaxed);
     while (line < 128 && !blockedLines.compare_exchange_weak(
@@ -126,9 +128,26 @@ tdur::mod::CallerOrigin ClassifyCaller(const void* caller) noexcept {
     return origin;
 }
 
-bool Background() noexcept {
-    const auto* policy = foregroundPolicy.load(std::memory_order_acquire);
-    return policy && policy->background();
+// Every intercepted call starts with the policy (owner thread; nothing on
+// other threads): ownership is refreshed, then a refusable call is refused,
+// and counted, while the game does not own the pointer.
+bool Refused(bool refusable = true) noexcept {
+    auto* policy = foregroundPolicy.load(std::memory_order_acquire);
+    return policy && policy->intercept(refusable);
+}
+
+// Image path of a process for the policy's log, which keeps only the file
+// name. Limited query right; nothing else of the process is read.
+DWORD WINAPI ProcessImage(DWORD process, wchar_t* buffer,
+                          DWORD capacity) noexcept {
+    const HANDLE handle =
+        OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, process);
+    if (!handle)
+        return 0;
+    DWORD length = capacity;
+    const BOOL read = QueryFullProcessImageNameW(handle, 0, buffer, &length);
+    CloseHandle(handle);
+    return read ? length : 0;
 }
 
 void Sink(const tdur::mod::CursorRecord& record) noexcept {
@@ -141,7 +160,7 @@ void Sink(const tdur::mod::CursorRecord& record) noexcept {
 int WINAPI HookShowCursor(BOOL show) {
     const void* caller = _ReturnAddress();
     const DWORD error = GetLastError();
-    const bool background = Background();
+    const bool background = Refused();
     SetLastError(error);
     if (background) {
         Blocked(show ? "show" : "hide");
@@ -170,7 +189,7 @@ int WINAPI HookShowCursor(BOOL show) {
 
 HCURSOR WINAPI HookSetCursor(HCURSOR cursor) {
     const DWORD error = GetLastError();
-    if (Background()) {
+    if (Refused()) {
         Blocked("set-cursor");
         const auto previous = GetCursor();
         SetLastError(error);
@@ -185,7 +204,8 @@ HCURSOR WINAPI HookSetCursor(HCURSOR cursor) {
 
 BOOL WINAPI HookClipCursor(const RECT* rect) {
     const DWORD error = GetLastError();
-    if (rect && Background()) {
+    // Lifting a clip is never refused; ownership is refreshed all the same.
+    if (Refused(rect != nullptr)) {
         Blocked("clip");
         SetLastError(ERROR_ACCESS_DENIED);
         return FALSE;
@@ -204,7 +224,7 @@ BOOL WINAPI HookClipCursor(const RECT* rect) {
 
 BOOL WINAPI HookSetCursorPos(int x, int y) {
     const DWORD error = GetLastError();
-    if (Background()) {
+    if (Refused()) {
         Blocked("warp");
         SetLastError(ERROR_ACCESS_DENIED);
         return FALSE;
@@ -215,7 +235,7 @@ BOOL WINAPI HookSetCursorPos(int x, int y) {
 
 HWND WINAPI HookSetCapture(HWND window) {
     const DWORD error = GetLastError();
-    if (Background()) {
+    if (Refused()) {
         Blocked("capture");
         SetLastError(ERROR_ACCESS_DENIED);
         return nullptr;
@@ -226,6 +246,9 @@ HWND WINAPI HookSetCapture(HWND window) {
 
 BOOL WINAPI HookReleaseCapture() {
     const void* caller = _ReturnAddress();
+    const DWORD error = GetLastError();
+    (void)Refused(false);
+    SetLastError(error);
     auto* diagnostics = installed.load(std::memory_order_acquire);
     return diagnostics ? diagnostics->release_capture(caller)
                        : realReleaseCapture();
@@ -556,10 +579,32 @@ bool TdurInstallCursorDiagnostics() noexcept {
             tdur::mod::SetActiveWindowDiagnostics(&windows);
         }
         if (protectForeground) {
+            // Hooked entries go through their trampolines. The foreground
+            // WinEvent hook is installed at bind, on the HWND thread.
             static tdur::mod::ForegroundCursor policy(
-                {GetCurrentThreadId, GetForegroundWindow, IsChild, GetCapture,
-                 realReleaseCapture, realClipCursor, GetClipCursor,
-                 realShowCursor, realSetCursor},
+                {.current_thread = GetCurrentThreadId,
+                 .foreground = GetForegroundWindow,
+                 .is_child = IsChild,
+                 .capture = GetCapture,
+                 .release_capture = realReleaseCapture,
+                 .clip = realClipCursor,
+                 .get_clip = GetClipCursor,
+                 .show = realShowCursor,
+                 .set = realSetCursor,
+                 .current_process = GetCurrentProcessId,
+                 .tick = GetTickCount64,
+                 .cursor_position = GetCursorPos,
+                 .window_from_point = WindowFromPoint,
+                 .ancestor = GetAncestor,
+                 .window_process = GetWindowThreadProcessId,
+                 .visible = IsWindowVisible,
+                 .window_attribute = DwmGetWindowAttribute,
+                 .event_hook = SetWinEventHook,
+                 .event_unhook = UnhookWinEvent,
+                 .cursor_info = GetCursorInfo,
+                 .key_state = GetAsyncKeyState,
+                 .process_image = ProcessImage,
+                 .class_name = GetClassNameW},
                 ForegroundLog);
             foregroundPolicy.store(&policy, std::memory_order_release);
             tdur::mod::SetActiveForegroundCursor(&policy);

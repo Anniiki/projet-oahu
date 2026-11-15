@@ -152,6 +152,10 @@ struct DisplayState {
     bool process_has_foreground = false;
     bool d3d9on12_verified = false;
     double effective_cap_hz{};
+    // DescribeMonitor calls made by refresh(): one per monitor change, display
+    // change message, explicit refresh, or bounded retry after an unproven
+    // rational rate; never one per frame.
+    uint64_t monitor_descriptions{};
     uint32_t maximum_anisotropy{};
     uint32_t reference_msaa_samples = 1;
     HRESULT backend_failure = S_OK;
@@ -239,6 +243,14 @@ class DisplayBackend {
     WindowConstraint constrain_window_message(UINT message, WPARAM wparam,
                                               LPARAM lparam) noexcept;
     [[nodiscard]] BorderlessCorrectionCounters corrections() const noexcept;
+    // Owner thread, from the HWND procedure before the native handler:
+    // WM_DISPLAYCHANGE, WM_DPICHANGED, WM_SETTINGCHANGE with SPI_SETWORKAREA
+    // and WM_ACTIVATEAPP on activation mark the cached monitor description
+    // stale (the last one as a safety net for a missed message); the next
+    // state(), wait_for_frame() or mode change rereads it. Returns whether it
+    // was marked; any other message, and any other thread, is ignored. Never
+    // queries the monitor itself and never throws.
+    bool note_display_change(UINT message, WPARAM wparam) noexcept;
     void refresh_monitor();
     [[nodiscard]] DisplayState state();
     void wait_for_frame();

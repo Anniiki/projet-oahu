@@ -437,7 +437,32 @@ struct DisplayBackend::Impl {
     DisplayState status;
     LARGE_INTEGER frequency{};
     int64_t nextDeadline = 0;
-    ULONGLONG lastMonitorQuery = 0;
+    // Monitor description cached until the window changes monitor or the
+    // display configuration changes: no periodic query on the render thread.
+    bool monitorStale = true;
+    // A description without a proven DisplayConfig rate (GDI fallback, which
+    // can be 60 Hz) is retried every two seconds, five times at most, so a
+    // transient QueryDisplayConfig failure cannot pin the native cap.
+    ULONGLONG monitorRetryAt = 0;
+    unsigned monitorRetries = 0;
+
+    // A display configuration change (resolution, refresh rate, DPI) or a
+    // new work area makes the cached description stale. Owner thread only:
+    // refresh() reads the flag there, so no other thread ever writes it.
+    bool noteDisplayChange(UINT message, WPARAM wparam) noexcept {
+        if (GetCurrentThreadId() != ownerThread)
+            return false;
+        if (message != WM_DISPLAYCHANGE && message != WM_DPICHANGED &&
+            !(message == WM_SETTINGCHANGE && wparam == SPI_SETWORKAREA) &&
+            !(message == WM_ACTIVATEAPP && wparam != FALSE))
+            return false;
+        monitorStale = true;
+        return true;
+    }
+    // Sampleable copy of the D3D9 source, kept while the source description
+    // is unchanged; dropped on any failed submission and on device reset.
+    ComPtr<ID3D12Resource> sampledCache;
+    D3D12_RESOURCE_DESC sampledCacheDesc{};
     Handle pacingTimer;
     Handle fenceEvent;
     ComPtr<IDirect3D9Ex> factory9;
@@ -811,11 +836,21 @@ struct DisplayBackend::Impl {
         owner();
         const auto monitor =
             MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-        const auto now = GetTickCount64();
-        if (monitor != status.monitor.handle || now - lastMonitorQuery >= 500) {
+        const bool retry =
+            monitorRetryAt != 0 && GetTickCount64() >= monitorRetryAt;
+        if (monitor != status.monitor.handle || monitorStale || retry) {
             const auto previous = status.monitor;
             status.monitor = DescribeMonitor(monitor);
-            lastMonitorQuery = now;
+            ++status.monitor_descriptions;
+            if (monitor != previous.handle || monitorStale)
+                monitorRetries = 0;
+            monitorStale = false;
+            monitorRetryAt = 0;
+            if (!status.monitor.rational_refresh_observed &&
+                monitorRetries < 5) {
+                ++monitorRetries;
+                monitorRetryAt = GetTickCount64() + 2000;
+            }
             if (previous.handle != monitor ||
                 previous.refresh_numerator !=
                     status.monitor.refresh_numerator ||
@@ -1354,14 +1389,35 @@ struct DisplayBackend::Impl {
             auto sampleDesc = sourceDesc;
             sampleDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
             sampleDesc.Alignment = 0;
-            D3D12_HEAP_PROPERTIES sampleHeap{};
-            sampleHeap.Type = D3D12_HEAP_TYPE_DEFAULT;
-            ComPtr<ID3D12Resource> sampled;
-            Check(device->CreateCommittedResource(
-                      &sampleHeap, D3D12_HEAP_FLAG_NONE, &sampleDesc,
-                      D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-                      IID_PPV_ARGS(&sampled)),
-                  "Create sampleable interop copy");
+            // One copy per source description, reused while it is unchanged:
+            // every blit waits for its own fence before returning, so the
+            // previous use is complete and the copy sits in the pixel shader
+            // state it was left in. Any failure below drops it.
+            // Field by field: the structure has padding after Dimension.
+            const auto& cached = sampledCacheDesc;
+            const bool reuse =
+                sampledCache && cached.Dimension == sampleDesc.Dimension &&
+                cached.Width == sampleDesc.Width &&
+                cached.Height == sampleDesc.Height &&
+                cached.DepthOrArraySize == sampleDesc.DepthOrArraySize &&
+                cached.MipLevels == sampleDesc.MipLevels &&
+                cached.Format == sampleDesc.Format &&
+                cached.SampleDesc.Count == sampleDesc.SampleDesc.Count &&
+                cached.SampleDesc.Quality == sampleDesc.SampleDesc.Quality &&
+                cached.Layout == sampleDesc.Layout &&
+                cached.Flags == sampleDesc.Flags;
+            if (!reuse) {
+                sampledCache.Reset();
+                D3D12_HEAP_PROPERTIES sampleHeap{};
+                sampleHeap.Type = D3D12_HEAP_TYPE_DEFAULT;
+                Check(device->CreateCommittedResource(
+                          &sampleHeap, D3D12_HEAP_FLAG_NONE, &sampleDesc,
+                          D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                          IID_PPV_ARGS(&sampledCache)),
+                      "Create sampleable interop copy");
+                sampledCacheDesc = sampleDesc;
+            }
+            ComPtr<ID3D12Resource> sampled = sampledCache;
             lifetime->sampled = sampled;
             D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
             srv.Format = SampleFormat(sourceDesc.Format);
@@ -1376,6 +1432,12 @@ struct DisplayBackend::Impl {
                 auto targetBarrier = Transition(
                     output, initialState, D3D12_RESOURCE_STATE_RENDER_TARGET);
                 commands->ResourceBarrier(1, &targetBarrier);
+            }
+            if (reuse) {
+                auto copyBarrier = Transition(
+                    sampled.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                    D3D12_RESOURCE_STATE_COPY_DEST);
+                commands->ResourceBarrier(1, &copyBarrier);
             }
             auto barrier =
                 Transition(resource.Get(), D3D12_RESOURCE_STATE_COMMON,
@@ -1438,6 +1500,9 @@ struct DisplayBackend::Impl {
             waitFence(value);
             pendingBlit.reset();
         } catch (...) {
+            // Its state is no longer known: the next blit creates a new copy.
+            // A retained submission keeps its own reference in pendingBlit.
+            sampledCache.Reset();
             HRESULT failure = E_FAIL;
             try {
                 throw;
@@ -1559,13 +1624,17 @@ void DisplayBackend::move_to_monitor(HMONITOR monitor) {
                       SWP_NOZORDER | SWP_NOACTIVATE))
         throw DisplayError(HRESULT_FROM_WIN32(GetLastError()),
                            "move to monitor");
-    impl_->lastMonitorQuery = 0;
+    impl_->monitorStale = true;
     impl_->nextDeadline = 0;
     impl_->setMode(requested);
 }
 
+bool DisplayBackend::note_display_change(UINT message, WPARAM wparam) noexcept {
+    return impl_ ? impl_->noteDisplayChange(message, wparam) : false;
+}
+
 void DisplayBackend::refresh_monitor() {
-    impl_->lastMonitorQuery = 0;
+    impl_->monitorStale = true;
     impl_->refresh();
 }
 
@@ -1634,6 +1703,9 @@ void DisplayBackend::prepare_device_reset() {
               "unbind reference target before Reset");
         impl_->referenceTarget.Reset();
     }
+    // The sampleable copy is recreated after Reset (the fence above proved
+    // its last use complete).
+    impl_->sampledCache.Reset();
     impl_->nextDeadline = 0;
 }
 

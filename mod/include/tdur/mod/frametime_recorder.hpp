@@ -37,9 +37,11 @@ class FrameTimeRecorder {
     bool anchored_{};
 };
 
+// One summary line per 256 presents: 1024 lines cover a 25-minute session up
+// to about 174 presents per second (27 minutes at 160, 72 at 60).
 class FrameTimeBudget {
   public:
-    static constexpr std::uint32_t limit = 128;
+    static constexpr std::uint32_t limit = 1024;
     bool available() const noexcept { return used_.load() < limit; }
     bool take(std::uint32_t& remaining) noexcept;
 

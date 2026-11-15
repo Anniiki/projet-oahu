@@ -461,6 +461,16 @@ LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam,
     // procedure unchanged, which keeps writing its own activation flag.
     TdurCursorActivationMarker(message, wparam);
     TdurWindowActivationMarker(message, wparam);
+    // The cached monitor description is reread only after these messages
+    // (or a monitor change), never on a periodic query. Marked before the
+    // native handler, which may itself reset the device or change the mode.
+    if (ctx && (message == WM_DISPLAYCHANGE || message == WM_DPICHANGED ||
+                (message == WM_SETTINGCHANGE && wparam == SPI_SETWORKAREA) ||
+                (message == WM_ACTIVATEAPP && wparam != FALSE))) {
+        std::lock_guard deviceLock(ctx->mutex);
+        if (ctx->backend && !ctx->window_closed && IsWindow(window))
+            (void)ctx->backend->note_display_change(message, wparam);
+    }
     LRESULT result{};
     {
         // The host handler runs one level deeper: a window message produced

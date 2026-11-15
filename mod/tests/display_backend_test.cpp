@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -485,6 +486,35 @@ void WindowTest() {
             Require(!display.state().exclusive_active, "windowed DXGI state");
             display.set_mode(WindowMode::borderless);
         }
+        // Display changes mark the cached monitor description stale, on the
+        // owner thread only; everything else is ignored.
+        Require(
+            display.note_display_change(WM_DISPLAYCHANGE, 32) &&
+                display.note_display_change(WM_DPICHANGED, 0) &&
+                display.note_display_change(WM_SETTINGCHANGE, SPI_SETWORKAREA),
+            "display, DPI and work-area changes mark the monitor stale");
+        Require(!display.note_display_change(WM_SETTINGCHANGE, 0) &&
+                    !display.note_display_change(WM_SIZE, 0) &&
+                    !display.note_display_change(WM_WINDOWPOSCHANGING, 0),
+                "other messages leave the monitor description alone");
+        bool foreignMarked = true;
+        std::thread foreign([&] {
+            foreignMarked = display.note_display_change(WM_DISPLAYCHANGE, 32);
+        });
+        foreign.join();
+        Require(!foreignMarked, "another thread never marks the monitor");
+        const auto reread = display.state();
+        Require(reread.monitor.handle != nullptr &&
+                    reread.monitor.refresh_hz() > 1,
+                "a stale monitor description is reread on demand");
+        const auto described = display.state().monitor_descriptions;
+        Require(display.state().monitor_descriptions == described,
+                "no monitor query without a reason");
+        Require(display.note_display_change(WM_ACTIVATEAPP, TRUE) &&
+                    !display.note_display_change(WM_ACTIVATEAPP, FALSE),
+                "activation is the safety net, deactivation is not");
+        Require(display.state().monitor_descriptions == described + 1,
+                "one query per marked change");
         Require(GetForegroundWindow() == originalForeground,
                 "mode changes do not steal focus");
         Require(!display.state().window_has_foreground,

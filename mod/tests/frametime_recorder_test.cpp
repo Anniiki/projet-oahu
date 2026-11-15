@@ -72,7 +72,8 @@ int main() {
         });
     for (auto& thread : threads)
         thread.join();
-    require(emitted == 128 && !budget.available());
+    require(emitted == 1024 && FrameTimeBudget::limit == 1024 &&
+            !budget.available());
     summary.interval = summary.present = {UINT32_MAX, UINT64_MAX, UINT64_MAX,
                                           UINT64_MAX, UINT64_MAX};
     summary.calls = summary.failed = summary.occluded = UINT32_MAX;

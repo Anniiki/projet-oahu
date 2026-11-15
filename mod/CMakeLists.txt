@@ -83,7 +83,7 @@ function(tdur_proxy target variant)
     target_compile_definitions(${target} PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX
         _WIN32_WINNT=0x0A00 _CRT_SECURE_NO_WARNINGS)
     target_link_libraries(${target} PRIVATE tdur_detours tdur_display_hooks tdur_retail_video_defaults
-        shell32 ole32 uuid advapi32)
+        shell32 ole32 uuid advapi32 dwmapi)
     tdur_proxy_gamepad(${target})
     set_target_properties(${target} PROPERTIES OUTPUT_NAME dinput8
         ARCHIVE_OUTPUT_NAME "${target}_import"

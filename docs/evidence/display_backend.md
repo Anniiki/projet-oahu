@@ -27,7 +27,12 @@ game DLL and no custom version of the Microsoft component is loaded.
   refused. No adapter index is persisted.
 - Rational DisplayConfig refresh rate of the covered monitor, GDI as a reported
   fallback; ambiguous clones are flagged. Explicit migration and screen-change
-  detection, refresh-rate revision every 500 ms and cap reset.
+  detection, and cap reset. The monitor description is no longer reread every
+  500 ms (QueryDisplayConfig on the render thread, possible hitches): only on a
+  screen change, on WM_DISPLAYCHANGE, WM_DPICHANGED, WM_SETTINGCHANGE (work
+  area), on application activation, on an explicit migration or reread, and,
+  without a proven DisplayConfig rate, at most five retries 2 s apart
+  (`monitor_descriptions` counts every reread).
   Default `native`, choices `native_minus_three`, fixed or unlimited.
 - QPC deadlines and high-resolution waitable timer when available, without a
   global `timeBeginPeriod`. Focus does not enter the cap computation.

@@ -217,7 +217,8 @@ def main():
             fields = dict(part.split("=", 1) for part in summaries[0].split() if "=" in part)
             assert fields["calls"] == "3" and fields["durations"] == "3"
             assert fields["intervals"] == "2" and fields["failed"] == "0"
-            assert fields["invalid_clock"] == "0" and fields["reports_left"] == "127"
+            # First summary of a 1 024-record process quota.
+            assert fields["invalid_clock"] == "0" and fields["reports_left"] == "1023"
             assert log.stat().st_size < 16384
         events = ["hooks-installed-pre-entry", "display-public-factory-gate-armed",
                   "display-deferred-initialization", "display-first-dxgi-frame"]

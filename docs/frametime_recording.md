@@ -25,10 +25,12 @@ counts, failed and occluded calls, invalid-clock count, intervals at least
 Percentiles use nearest rank, without interpolation. Failed and occluded
 attempts remain in the timing samples when their clock readings are valid.
 
-The process has a single quota of 128 summary records, shared by all devices
+The process has a single quota of 1,024 summary records, shared by all devices
 and retained across Reset or hook reinstall. Once exhausted, timing stops.
-Each event is under 1,024 bytes; the existing logger limits a complete line to
-2,784 bytes, so this diagnostic contributes less than 356,352 bytes per process.
+One record summarizes 256 presents: the quota covers a 25-minute session up to
+about 174 presents per second (27 minutes at 160, 72 at 60). Each event is
+under 1,024 bytes; the existing logger limits a complete line to 2,784 bytes,
+so this diagnostic contributes less than 2,850,816 bytes per process.
 Other observation events have their own limits. Fixed recording overhead and
 occasional summary writes can influence the next measured interval.
 
